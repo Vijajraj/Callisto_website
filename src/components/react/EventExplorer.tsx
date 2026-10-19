@@ -468,53 +468,60 @@ export default function EventExplorer({ initialEvents }: EventExplorerProps): Re
         <div
           style={{
             backgroundColor: 'var(--deep)',
-            border: '1px dashed color-mix(in srgb, var(--steel) 40%, transparent)',
+            border: '1px dashed color-mix(in srgb, var(--steel) 35%, transparent)',
             borderRadius: 'var(--radius-lg)',
-            padding: '3rem 1.5rem',
+            padding: '3.5rem 1.5rem',
             textAlign: 'center',
           }}
+          aria-label="Event schedule kept blank for user future events"
         >
-          <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🛰</div>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🔭</div>
           <h4
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '1.25rem',
+              fontSize: '1.5rem',
               color: 'var(--moon)',
               margin: '0 0 0.5rem 0',
             }}
           >
-            No missions matched your telemetry query
+            {initialEvents.length === 0 ? 'No events scheduled currently' : 'No missions matched your search query'}
           </h4>
           <p
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: '0.875rem',
+              fontSize: '0.9375rem',
               color: 'var(--steel)',
-              maxWidth: '400px',
-              margin: '0 auto 1.25rem auto',
+              maxWidth: '450px',
+              margin: '0 auto',
+              lineHeight: 1.6,
             }}
           >
-            Try adjusting your search keywords, clearing filters, or switching to the archived mission log.
+            {initialEvents.length === 0
+              ? 'Event schedule, dark-sky expeditions, and workshop announcements will be published here in the future.'
+              : 'Try clearing your search query or selecting a different category tab.'}
           </p>
-          <button
-            onClick={() => {
-              setSelectedType('all');
-              setSearchQuery('');
-              setTimelineFilter('all');
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              fontSize: '0.75rem',
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--moon)',
-              backgroundColor: 'var(--navy)',
-              border: '1px solid var(--orbit)',
-              borderRadius: 'var(--radius-md)',
-              cursor: 'pointer',
-            }}
-          >
-            Reset All Filters
-          </button>
+          {initialEvents.length > 0 && (
+            <button
+              onClick={() => {
+                setSelectedType('all');
+                setSearchQuery('');
+                setTimelineFilter('all');
+              }}
+              style={{
+                marginTop: '1.25rem',
+                padding: '0.5rem 1rem',
+                fontSize: '0.75rem',
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--moon)',
+                backgroundColor: 'var(--navy)',
+                border: '1px solid var(--orbit)',
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+              }}
+            >
+              Reset All Filters
+            </button>
+          )}
         </div>
       )}
     </div>

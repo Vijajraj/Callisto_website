@@ -33,6 +33,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Light Mode Overrides */
+html.light-mode body,
+html.flat-mode body,
+html[data-theme="light"] body {
+  background-color: var(--void);
+  color: var(--moon);
+}
+
+html.light-mode canvas[aria-hidden="true"],
+html.flat-mode canvas[aria-hidden="true"],
+html[data-theme="light"] canvas[aria-hidden="true"] {
+  opacity: 0.15;
+  filter: invert(1);
 }
 
 /* Media Elements */

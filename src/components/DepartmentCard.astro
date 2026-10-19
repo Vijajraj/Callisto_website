@@ -14,7 +14,7 @@ const { id, name, themedName, lead, shipModule, description, icon } = Astro.prop
 
 <a href={`/crew/${id}`} class="dept-card" aria-label={`View department: ${themedName} (${name})`}>
   <div class="dept-card-header">
-    <span class="ship-module">{shipModule}</span>
+    {shipModule ? <span class="ship-module">{shipModule}</span> : <span class="ship-module-empty"></span>}
     <span class="dept-icon" aria-hidden="true">{icon}</span>
   </div>
 
@@ -22,7 +22,11 @@ const { id, name, themedName, lead, shipModule, description, icon } = Astro.prop
     <h3 class="dept-themed-name">{themedName}</h3>
     <span class="dept-real-name">{name}</span>
 
-    <p class="dept-description">{description}</p>
+    {description ? (
+      <p class="dept-description">{description}</p>
+    ) : (
+      <div class="dept-blank-slot" aria-hidden="true"></div>
+    )}
   </div>
 
   <div class="dept-card-footer">
@@ -172,6 +176,10 @@ const { id, name, themedName, lead, shipModule, description, icon } = Astro.prop
     line-height: 1.6;
     color: var(--steel);
     margin: 0;
+  }
+
+  .dept-blank-slot {
+    min-height: 2.2rem;
   }
 
   .dept-card-footer {

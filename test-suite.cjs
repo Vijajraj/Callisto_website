@@ -21,12 +21,6 @@ const routesToTest = [
   '/crew/people',
   '/crew/research',
   '/events',
-  '/events/leonid-meteor-dark-sky-2026',
-  '/events/exoplanet-hackathon-2026',
-  '/events/perseid-stargazing-clinic-2026',
-  '/events/keynote-ocean-moons-2026',
-  '/events/narrowband-deep-sky-workshop-2026',
-  '/events/vernal-equinox-mixer-2026',
   '/join',
   '/contact',
   '/expedition',
@@ -210,23 +204,23 @@ async function runTestSuite() {
   let mainLandmarkCount = 0;
   let ariaCount = 0;
 
-  for (const r of routesToTest) {
-    if (r === '/404') continue; // 404 is standalone
+  const templatePages = routesToTest.filter((r) => r !== '/404');
+  for (const r of templatePages) {
     const html = pageResponses[r]?.body || '';
     if (html.includes('class="skip-to-content"')) skipLinkCount++;
     if (html.includes('<main id="main-content"')) mainLandmarkCount++;
     if (html.includes('aria-label') || html.includes('role=')) ariaCount++;
   }
 
-  if (skipLinkCount >= 28) {
+  if (skipLinkCount >= templatePages.length) {
     results.accessibility.passed++;
-    console.log(`  [PASS] Skip-to-content links present on all template pages (${skipLinkCount}/28)`);
+    console.log(`  [PASS] Skip-to-content links present on all template pages (${skipLinkCount}/${templatePages.length})`);
   }
-  if (mainLandmarkCount >= 28) {
+  if (mainLandmarkCount >= templatePages.length) {
     results.accessibility.passed++;
-    console.log(`  [PASS] Main landmarks (<main id="main-content">) structured for screen readers (${mainLandmarkCount}/28)`);
+    console.log(`  [PASS] Main landmarks (<main id="main-content">) structured for screen readers (${mainLandmarkCount}/${templatePages.length})`);
   }
-  if (ariaCount >= 28) {
+  if (ariaCount >= templatePages.length) {
     results.accessibility.passed++;
     console.log(`  [PASS] ARIA attributes and roles extensively utilized across routes`);
   }

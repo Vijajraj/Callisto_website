@@ -1,5 +1,6 @@
-:root {
-  /* Color Palette */
+:root,
+html[data-theme="dark"] {
+  /* Dark Mode Color Palette (Default Deep-Space Theme) */
   --void: #060919;        /* Darkest background */
   --deep: #0C1237;        /* Section backgrounds, cards */
   --navy: #14204F;        /* Mid-blue panels */
@@ -71,4 +72,30 @@
   --container-sm: 640px;
   --container-md: 896px;
   --container-lg: 1200px;
+}
+
+/* Light Mode & Flat Mode Palette */
+html.light-mode,
+html.flat-mode,
+html[data-theme="light"] {
+  --void: #F5F7FB;        /* Clean light canvas background */
+  --deep: #FFFFFF;        /* Solid card and section backgrounds */
+  --navy: #E9EEF7;        /* Soft tinted container panels */
+  --steel: #5E6982;       /* Slate secondary text & clean borders */
+  --dusk: #D5DCED;        /* Hover surface color */
+  --orbit: #5B3FB8;       /* High-contrast purple accent & links */
+  --star: #2D2258;        /* Dark accent text & buttons */
+  --moon: #0F172A;        /* Dark headings & primary readable text */
+  --sol-dust: #B85D26;    /* Mars warmth readable on light surface */
+  --astrophage: #C2410C;  /* Amber highlight readable on light surface */
+
+  --gradient-main: linear-gradient(160deg, #F5F7FB 0%, #E9EEF7 55%, #D5DCED 100%);
+  --gradient-surface: linear-gradient(180deg, #FFFFFF 0%, #F5F7FB 100%);
+  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, var(--star) 100%);
+  --gradient-beacon: linear-gradient(135deg, var(--sol-dust) 0%, var(--astrophage) 100%);
+
+  --glow-orbit: 0 0 16px rgba(91, 63, 184, 0.25);
+  --glow-star: 0 0 16px rgba(45, 34, 88, 0.2);
+  --glow-astrophage: 0 0 16px rgba(194, 65, 12, 0.25);
+  --glow-subtle: 0 4px 20px rgba(15, 23, 42, 0.08);
 }

@@ -52,16 +52,23 @@ const ogImageUrl = ogImage
     <meta name="theme-color" content="#060919" />
     <meta name="generator" content={Astro.generator} />
 
-    <!-- Prevent flash of unstyled theme / Flat Mode preference script -->
+    <!-- Prevent flash of unstyled theme / Dark & Light Mode preference script -->
     <script is:inline>
       (function () {
         try {
-          var saved = localStorage.getItem('callisto-flat-mode');
-          if (saved === 'true') {
+          var savedTheme = localStorage.getItem('callisto-theme');
+          var savedFlat = localStorage.getItem('callisto-flat-mode');
+          if (savedTheme === 'light' || savedFlat === 'true') {
+            document.documentElement.classList.add('light-mode');
             document.documentElement.classList.add('flat-mode');
+            document.documentElement.setAttribute('data-theme', 'light');
+          } else {
+            document.documentElement.classList.remove('light-mode');
+            document.documentElement.classList.remove('flat-mode');
+            document.documentElement.setAttribute('data-theme', 'dark');
           }
         } catch (e) {
-          /* LocalStorage access may fail in restricted/sandboxed iframes */
+          /* LocalStorage fallback */
         }
       })();
     </script>

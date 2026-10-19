@@ -125,7 +125,7 @@ const isLinkActive = (href: string): boolean => {
           >
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
-          <span class="mode-label">FLAT</span>
+          <span class="mode-label"></span>
         </button>
 
         <!-- Mobile Hamburger Button -->
@@ -373,28 +373,31 @@ const isLinkActive = (href: string): boolean => {
     display: inline-flex;
   }
 
-  :global(html:not(.flat-mode)) .icon-moon {
+  :global(html:not(.light-mode):not(.flat-mode)) .icon-moon {
     display: none !important;
   }
 
-  :global(html:not(.flat-mode)) .icon-sun {
+  :global(html:not(.light-mode):not(.flat-mode)) .icon-sun {
     display: inline-flex !important;
   }
 
+  :global(html.light-mode) .icon-sun,
   :global(html.flat-mode) .icon-sun {
     display: none !important;
   }
 
+  :global(html.light-mode) .icon-moon,
   :global(html.flat-mode) .icon-moon {
     display: inline-flex !important;
   }
 
-  :global(html.flat-mode) .mode-label::before {
-    content: 'DEEP ';
+  :global(html:not(.light-mode):not(.flat-mode)) .mode-label::before {
+    content: 'LIGHT';
   }
 
-  :global(html:not(.flat-mode)) .mode-label::before {
-    content: '';
+  :global(html.light-mode) .mode-label::before,
+  :global(html.flat-mode) .mode-label::before {
+    content: 'DARK';
   }
 
   /* Mobile Hamburger Toggle */
@@ -605,14 +608,29 @@ const isLinkActive = (href: string): boolean => {
       });
     });
 
-    // Flat Mode Toggle handler
+    // Dark & Light Mode Toggle handler
     flatButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
-        const isCurrentlyFlat = document.documentElement.classList.toggle('flat-mode');
+        const isCurrentlyLight =
+          document.documentElement.classList.contains('light-mode') ||
+          document.documentElement.classList.contains('flat-mode');
+        const nextIsLight = !isCurrentlyLight;
+
+        if (nextIsLight) {
+          document.documentElement.classList.add('light-mode');
+          document.documentElement.classList.add('flat-mode');
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.documentElement.classList.remove('light-mode');
+          document.documentElement.classList.remove('flat-mode');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
         try {
-          localStorage.setItem('callisto-flat-mode', isCurrentlyFlat ? 'true' : 'false');
+          localStorage.setItem('callisto-theme', nextIsLight ? 'light' : 'dark');
+          localStorage.setItem('callisto-flat-mode', nextIsLight ? 'true' : 'false');
         } catch (e) {
-          /* LocalStorage access might be disabled */
+          /* LocalStorage fallback */
         }
       });
     });
