@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <mask id="favicon-mask">
+      <rect width="32" height="32" fill="black" />
+      <circle cx="14" cy="16" r="12" fill="white" />
+      <circle cx="19" cy="15" r="10" fill="black" />
+    </mask>
+  </defs>
+
+  <!-- Crescent Moon -->
+  <circle cx="14" cy="16" r="12" fill="#F7F5FF" mask="url(#favicon-mask)" />
+
+  <!-- Four-Point Star -->
+  <path
+    d="M 24 4 L 25.2 7.8 L 29 9 L 25.2 10.2 L 24 14 L 22.8 10.2 L 19 9 L 22.8 7.8 Z"
+    fill="#CFCBF2"
+  />
+</svg>

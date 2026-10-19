@@ -1,0 +1,362 @@
+---
+interface Props {
+  slug: string;
+  title: string;
+  date: string;
+  description: string;
+  location: string;
+  type: string;
+  registrationOpen: boolean;
+}
+
+const {
+  slug,
+  title,
+  date,
+  description,
+  location,
+  type,
+  registrationOpen,
+} = Astro.props;
+
+// Map event types to design system color variables
+const getTypeColor = (eventType: string): string => {
+  const normalized = eventType.trim().toLowerCase();
+  switch (normalized) {
+    case 'observation':
+      return 'var(--orbit)';
+    case 'talk':
+      return 'var(--star)';
+    case 'workshop':
+      return 'var(--astrophage)';
+    case 'hackathon':
+      return 'var(--sol-dust)';
+    case 'social':
+      return 'var(--dusk)';
+    case 'expedition':
+      return 'var(--orbit)';
+    default:
+      return 'var(--orbit)';
+  }
+};
+
+const badgeColor = getTypeColor(type);
+
+function formatEventDate(rawDate: string): string {
+  try {
+    const parsed = new Date(rawDate);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+  } catch (e) {
+    /* fallback to raw date */
+  }
+  return rawDate;
+}
+
+const formattedDate = formatEventDate(date);
+---
+
+<a
+  href={`/events/${slug}`}
+  class="event-card"
+  aria-label={`View event details: ${title}`}
+  style={`--type-accent: ${badgeColor};`}
+>
+  <div class="event-card-header">
+    <span class="event-type-badge">{type}</span>
+
+    <div
+      class:list={['registration-status', registrationOpen ? 'status-open' : 'status-closed']}
+      aria-label={`Registration ${registrationOpen ? 'is open' : 'is closed'}`}
+    >
+      <span class="status-dot" aria-hidden="true"></span>
+      <span class="status-text">{registrationOpen ? 'Open' : 'Closed'}</span>
+    </div>
+  </div>
+
+  <div class="event-card-body">
+    <h3 class="event-title">{title}</h3>
+
+    <div class="event-metadata">
+      <div class="meta-item date-item">
+        <svg
+          class="meta-icon"
+          viewBox="0 0 24 24"
+          width="15"
+          height="15"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span class="meta-text">{formattedDate}</span>
+      </div>
+
+      <div class="meta-item location-item">
+        <svg
+          class="meta-icon"
+          viewBox="0 0 24 24"
+          width="15"
+          height="15"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <span class="meta-text">{location}</span>
+      </div>
+    </div>
+
+    <p class="event-description">{description}</p>
+  </div>
+
+  <div class="event-card-footer">
+    <span class="view-details-text">Mission Briefing</span>
+    <div class="card-arrow" aria-hidden="true">
+      <svg
+        viewBox="0 0 20 20"
+        width="16"
+        height="16"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+    </div>
+  </div>
+</a>
+
+<style>
+  .event-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  }
+
+  /* Subtle corner glow accent using type color */
+  .event-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 70px;
+    height: 70px;
+    background: radial-gradient(circle at top right, color-mix(in srgb, var(--type-accent) 25%, transparent), transparent 70%);
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+  }
+
+  .event-card:hover,
+  .event-card:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--orbit);
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--orbit) 25%, transparent);
+    background-color: color-mix(in srgb, var(--navy) 40%, var(--deep));
+    outline: none;
+  }
+
+  .event-card:hover::before,
+  .event-card:focus-visible::before {
+    opacity: 1;
+  }
+
+  .event-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    gap: 0.5rem;
+  }
+
+  /* Event Type Badge */
+  .event-type-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+    color: var(--type-accent);
+    background-color: color-mix(in srgb, var(--type-accent) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--type-accent) 40%, transparent);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .event-card:hover .event-type-badge {
+    background-color: color-mix(in srgb, var(--type-accent) 25%, transparent);
+    border-color: var(--type-accent);
+  }
+
+  /* Registration Status Pill */
+  .registration-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-full);
+    background-color: color-mix(in srgb, var(--void) 60%, transparent);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .status-open .status-dot {
+    background-color: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+    animation: pulseDot 2s infinite ease-in-out;
+  }
+
+  .status-open .status-text {
+    color: #4ade80;
+  }
+
+  .status-closed .status-dot {
+    background-color: var(--steel);
+  }
+
+  .status-closed .status-text {
+    color: var(--steel);
+  }
+
+  @keyframes pulseDot {
+    0%, 100% {
+      opacity: 0.5;
+      transform: scale(0.9);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+  }
+
+  .event-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--space-md);
+  }
+
+  .event-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--moon);
+    margin: 0 0 var(--space-sm) 0;
+    transition: color 0.2s ease;
+  }
+
+  .event-card:hover .event-title {
+    color: var(--star);
+  }
+
+  .event-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--star);
+  }
+
+  .meta-icon {
+    color: var(--orbit);
+    flex-shrink: 0;
+  }
+
+  .event-description {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--steel);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .event-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-sm);
+    border-top: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--steel);
+    transition: color 0.2s ease;
+  }
+
+  .view-details-text {
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .card-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+
+  .event-card:hover .event-card-footer {
+    color: var(--star);
+  }
+
+  .event-card:hover .card-arrow {
+    color: var(--orbit);
+    transform: translateX(4px);
+  }
+
+  /* Accessibility focus ring */
+  .event-card:focus-visible {
+    outline: 2px solid var(--orbit);
+    outline-offset: 3px;
+  }
+</style>

@@ -1,0 +1,493 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+
+const acts = [
+  {
+    act: 'ACT I',
+    title: 'Departure',
+    subtitle: 'Leaving the Cradle of Earth',
+    description:
+      'Experience the solemn awe of orbital ascent. As atmospheric friction yields to the silent vacuum, watch the blue crescent of Earth recede through the observation portal. All engine telemetry transitions to deep-space propulsion.',
+    mood: 'Interstellar Odyssey',
+    accentColor: 'var(--orbit)',
+    themeBg: 'color-mix(in srgb, var(--orbit) 10%, var(--deep))',
+    icon: '🚀',
+  },
+  {
+    act: 'ACT II',
+    title: 'Sol 1',
+    subtitle: 'Survive, Adapt, Explore',
+    description:
+      'Touch down upon initial waypoint dust. Calibrate environmental life support, measure ambient ionizing radiation, and establish your first Martian radio relay. Every grain of red regolith demands acute problem-solving.',
+    mood: 'Martian Frontier',
+    accentColor: 'var(--sol-dust)',
+    themeBg: 'color-mix(in srgb, var(--sol-dust) 10%, var(--deep))',
+    icon: '🔴',
+  },
+  {
+    act: 'ACT III',
+    title: 'The Ship',
+    subtitle: 'Meet Your Crew, Decode the Unknown',
+    description:
+      'Stationed within the rotating habitat ring of the expedition cruiser. Gather with your cross-disciplinary wing leads, crunch astrophysical spectral lines, and decipher enigmatic interstellar anomalies in true project Hail Mary fashion.',
+    mood: 'Hail Mary Enigma',
+    accentColor: 'var(--astrophage)',
+    themeBg: 'color-mix(in srgb, var(--astrophage) 10%, var(--deep))',
+    icon: '⚡',
+  },
+  {
+    act: 'ACT IV',
+    title: 'Callisto Base',
+    subtitle: 'Arrival. Your New Home Among the Stars',
+    description:
+      'Touchdown in the shadow of Valhalla Crater on the Jovian moon. Deploy cryogenic drills into the icy crust, gaze upward at the swirling bands of Jupiter dominating the night sky, and pioneer humanity’s furthest permanent astronomical observatory.',
+    mood: 'Jovian Frontier',
+    accentColor: 'var(--star)',
+    themeBg: 'color-mix(in srgb, var(--star) 10%, var(--deep))',
+    icon: '🪐',
+  },
+];
+---
+
+<BaseLayout
+  title="The Expedition | An Interstellar Narrative Journey"
+  description="Embark through Acts I to IV of the Callisto Expedition — from Earth departure to permanent Jovian outposts."
+>
+  <div class="expedition-container">
+    <!-- Header -->
+    <header class="expedition-header">
+      <SectionHeading
+        mono="THE EXPEDITION"
+        title="Your Journey Awaits"
+        subtitle="A multi-act interactive narrative chronicling humanity's leap from campus observation domes to deep-space orbital outposts."
+        align="center"
+      />
+    </header>
+
+    <!-- Coming Soon Callout -->
+    <div class="teaser-alert-box">
+      <div class="alert-pulse"></div>
+      <div class="alert-content">
+        <span class="alert-tag">SIMULATION PROTOCOL IN DEVELOPMENT</span>
+        <h2 class="alert-title">Coming Soon — The Full Interactive Odyssey</h2>
+        <p class="alert-desc">
+          Phase 2 will unlock full 3D WebGL orbital mechanics, interactive cockpit controls, soundscapes, and branching narrative decisions. Below is your early mission briefing.
+        </p>
+      </div>
+    </div>
+
+    <!-- Vertical Timeline of Acts -->
+    <section class="timeline-section" aria-label="Expedition Acts Timeline">
+      <div class="timeline-track" aria-hidden="true"></div>
+
+      <div class="acts-list">
+        {acts.map((act, index) => (
+          <article
+            class:list={['act-card-row', index % 2 === 0 ? 'row-left' : 'row-right']}
+            style={`--act-accent: ${act.accentColor}; --act-bg: ${act.themeBg};`}
+          >
+            {/* Timeline Center Node */}
+            <div class="timeline-node" aria-hidden="true">
+              <span class="node-ring"></span>
+              <span class="node-icon">{act.icon}</span>
+            </div>
+
+            {/* Act Content Card */}
+            <div class="act-card">
+              <div class="card-meta">
+                <span class="act-number">{act.act}</span>
+                <span class="act-mood">{act.mood}</span>
+              </div>
+
+              <h3 class="act-title">{act.title}</h3>
+              <p class="act-subtitle">{act.subtitle}</p>
+
+              <p class="act-desc">{act.description}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- Navigation Hub Links -->
+    <section class="explore-hub-section" aria-labelledby="hub-heading">
+      <div class="hub-panel">
+        <div class="hub-badge">MISSION CONTROL PORTAL</div>
+        <h2 id="hub-heading" class="hub-title">Explore the Site Now</h2>
+        <p class="hub-subtitle">
+          While the full immersive expedition engine powers up, chart your course through our current live departments and active operations.
+        </p>
+
+        <div class="hub-grid">
+          <a href="/crew" class="hub-card">
+            <span class="hub-icon">👥</span>
+            <span class="hub-name">The Crew</span>
+            <span class="hub-details">Meet all 11 ship departments & station leads</span>
+          </a>
+
+          <a href="/events" class="hub-card">
+            <span class="hub-icon">🚀</span>
+            <span class="hub-name">Launch Schedule</span>
+            <span class="hub-details">Attend upcoming stargazing nights & hackathons</span>
+          </a>
+
+          <a href="/join" class="hub-card">
+            <span class="hub-icon">📝</span>
+            <span class="hub-name">Request Boarding</span>
+            <span class="hub-details">Submit an application to join the flight roster</span>
+          </a>
+
+          <a href="/about" class="hub-card">
+            <span class="hub-icon">📜</span>
+            <span class="hub-name">Mission Briefing</span>
+            <span class="hub-details">Read our origin story and institutional charter</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .expedition-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-md) var(--space-3xl);
+  }
+
+  @media (min-width: 768px) {
+    .expedition-container {
+      padding: var(--space-3xl) var(--space-xl) var(--space-3xl);
+    }
+  }
+
+  .expedition-header {
+    margin-bottom: var(--space-2xl);
+  }
+
+  /* Teaser Alert Box */
+  .teaser-alert-box {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--navy) 70%, var(--deep)), var(--deep));
+    border: 1px solid color-mix(in srgb, var(--orbit) 35%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    margin-bottom: var(--space-3xl);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--orbit) 15%, transparent);
+  }
+
+  .alert-pulse {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--astrophage);
+    box-shadow: 0 0 10px var(--astrophage);
+    flex-shrink: 0;
+    margin-top: 0.35rem;
+    animation: alertPulse 2s infinite ease-in-out;
+  }
+
+  @keyframes alertPulse {
+    0%, 100% {
+      opacity: 0.5;
+      transform: scale(0.9);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+  }
+
+  .alert-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .alert-tag {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--astrophage);
+  }
+
+  .alert-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0;
+  }
+
+  .alert-desc {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--star);
+    margin: 0;
+  }
+
+  /* Timeline */
+  .timeline-section {
+    position: relative;
+    margin-bottom: var(--space-3xl);
+    padding: var(--space-xl) 0;
+  }
+
+  .timeline-track {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 20px;
+    width: 2px;
+    background: linear-gradient(180deg, var(--orbit), var(--sol-dust), var(--astrophage), var(--star));
+    opacity: 0.35;
+  }
+
+  @media (min-width: 768px) {
+    .timeline-track {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+
+  .acts-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+  }
+
+  .act-card-row {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-left: 50px;
+  }
+
+  @media (min-width: 768px) {
+    .act-card-row {
+      padding-left: 0;
+      width: 50%;
+    }
+
+    .row-left {
+      align-self: flex-start;
+      padding-right: var(--space-2xl);
+    }
+
+    .row-right {
+      align-self: flex-end;
+      padding-left: var(--space-2xl);
+    }
+  }
+
+  .timeline-node {
+    position: absolute;
+    left: 6px;
+    top: 24px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--deep);
+    border: 2px solid var(--act-accent);
+    box-shadow: 0 0 12px var(--act-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    z-index: 5;
+  }
+
+  @media (min-width: 768px) {
+    .row-left .timeline-node {
+      left: auto;
+      right: -15px;
+    }
+
+    .row-right .timeline-node {
+      left: -15px;
+    }
+  }
+
+  .act-card {
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--act-accent) 30%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .act-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--act-accent);
+  }
+
+  .act-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--act-accent);
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--act-accent) 25%, transparent);
+  }
+
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xs);
+  }
+
+  .act-number {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--act-accent);
+  }
+
+  .act-mood {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--steel);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .act-title {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 0.15rem 0;
+  }
+
+  .act-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--star);
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  .act-desc {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--steel);
+    margin: 0;
+  }
+
+  /* Explore Hub */
+  .explore-hub-section {
+    margin-top: var(--space-xl);
+  }
+
+  .hub-panel {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--navy) 60%, var(--deep)), var(--deep));
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl) var(--space-lg);
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .hub-panel {
+      padding: var(--space-3xl) var(--space-2xl);
+    }
+  }
+
+  .hub-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--orbit);
+    display: inline-block;
+    margin-bottom: var(--space-xs);
+  }
+
+  .hub-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .hub-subtitle {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--star);
+    max-width: 620px;
+    margin: 0 auto var(--space-2xl) auto;
+  }
+
+  .hub-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    text-align: left;
+  }
+
+  @media (min-width: 640px) {
+    .hub-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hub-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .hub-card {
+    background-color: color-mix(in srgb, var(--navy) 40%, transparent);
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .hub-card:hover,
+  .hub-card:focus-visible {
+    transform: translateY(-3px);
+    border-color: var(--orbit);
+    background-color: color-mix(in srgb, var(--navy) 80%, transparent);
+  }
+
+  .hub-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+    margin-bottom: var(--space-xs);
+  }
+
+  .hub-name {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--moon);
+  }
+
+  .hub-details {
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--steel);
+  }
+</style>

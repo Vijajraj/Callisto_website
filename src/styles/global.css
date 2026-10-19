@@ -1,0 +1,129 @@
+@import './tokens.css';
+@import '@fontsource/cormorant-garamond/400.css';
+@import '@fontsource/cormorant-garamond/600.css';
+@import '@fontsource/cormorant-garamond/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/jetbrains-mono/400.css';
+
+/* Global Box Sizing & Margin Resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Document & Base Styles */
+html {
+  scroll-behavior: smooth;
+  font-size: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--orbit) var(--deep);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--moon);
+  background-color: var(--void);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Media Elements */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  display: block;
+}
+
+/* Links */
+a {
+  color: var(--orbit);
+  text-decoration-skip-ink: auto;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--star);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--orbit);
+  color: var(--void);
+}
+
+/* Accessible Focus States */
+:focus-visible {
+  outline: 2px solid var(--orbit);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--orbit);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--star);
+}
+
+/* Utility Classes */
+.container {
+  width: 100%;
+  max-width: var(--container-lg);
+  margin-inline: auto;
+  padding-inline: var(--space-md);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.display {
+  font-family: var(--font-display);
+}

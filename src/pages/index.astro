@@ -1,0 +1,711 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import DepartmentCard from '../components/DepartmentCard.astro';
+import Starfield from '../components/react/Starfield';
+import CrescentLoader from '../components/react/CrescentLoader';
+import EventCountdown from '../components/react/EventCountdown';
+import { departments } from '../data/departments';
+import { getUpcomingEvents } from '../data/events';
+import { getSolCount } from '../lib/utils';
+
+const solCount = getSolCount();
+const upcomingEvents = getUpcomingEvents();
+const nextEvent = upcomingEvents.length > 0 ? upcomingEvents[0] : {
+  title: 'Stellar Observations Night',
+  date: '2026-11-17T21:00:00Z',
+  description: 'An overnight expedition to observe meteor peaks, distant nebulae, and stellar clusters through specialized optics.',
+  slug: 'leonid-meteor-dark-sky-2026',
+};
+
+const previewDepartments = departments.slice(0, 5);
+---
+
+<BaseLayout title="Callisto | Space Expedition & Astronomy Club" description="Embark on an expedition into observational astrophysics, space robotics, and celestial cartography with Callisto Club.">
+  <!-- Interactive Starfield Canvas Island -->
+  <Starfield client:load />
+
+  <!-- Act 0 Opening Sequence Overlay -->
+  <CrescentLoader client:load />
+
+  <!-- Hero Section -->
+  <section class="hero-section" aria-label="Expedition Hero">
+    <div class="sol-badge" aria-label={`Mission Sol ${solCount}`}>
+      <span class="sol-dot"></span>
+      <span class="sol-text">SOL {solCount}</span>
+    </div>
+
+    <div class="hero-content">
+      <p class="hero-eyebrow">THE CALLISTO</p>
+      <h1 class="hero-title">EXPEDITION</h1>
+      <p class="hero-tagline">
+        A journey to the edge of wonder. Your mission begins here.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="/expedition" class="btn-primary">
+          <span>Begin Expedition</span>
+          <svg class="btn-icon" viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </a>
+        <a href="/about" class="btn-outline">
+          <span>Quick Overview</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <a href="#mission-brief" class="scroll-indicator" aria-label="Scroll down to Mission Brief">
+      <span class="scroll-text">Scroll to explore</span>
+      <svg class="scroll-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </a>
+  </section>
+
+  <!-- Mission Brief Section -->
+  <section id="mission-brief" class="mission-brief-section">
+    <div class="content-wrapper">
+      <SectionHeading
+        mono="MISSION BRIEF"
+        title="Why Callisto?"
+        subtitle="Named after the ancient, cratered moon orbiting Jupiter, we are a collective of student astronomers, engineers, and dreamers dedicated to exploring the nocturnal frontier."
+        align="center"
+      />
+
+      <div class="brief-grid">
+        <article class="brief-card">
+          <div class="brief-icon" aria-hidden="true">🔭</div>
+          <h3 class="brief-title">Explore</h3>
+          <p class="brief-desc">
+            Deploy motorized optical arrays under pristine dark skies. Track lunar occultations, Messier deep-sky objects, and meteor showers through live telescopic sessions.
+          </p>
+        </article>
+
+        <article class="brief-card">
+          <div class="brief-icon" aria-hidden="true">🧠</div>
+          <h3 class="brief-title">Learn</h3>
+          <p class="brief-desc">
+            Master photometric light curve reduction, exoplanet transit modeling, and astrophotography stacking. Learn alongside faculty mentors and visiting astrophysicists.
+          </p>
+        </article>
+
+        <article class="brief-card">
+          <div class="brief-icon" aria-hidden="true">🤝</div>
+          <h3 class="brief-title">Connect</h3>
+          <p class="brief-desc">
+            Find your flight crew among 11 interdisciplinary ship wings. Build enduring bonds at stargazing campouts, campus hackathons, and global space symposia.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Next Launch Section -->
+  <section class="next-launch-section" aria-label="Upcoming Event">
+    <div class="content-wrapper">
+      <SectionHeading
+        mono="NEXT LAUNCH"
+        title="Upcoming Event"
+        subtitle="The launchpad is prepped. Count down to our next scheduled celestial observation or mission workshop."
+        align="center"
+      />
+
+      <div class="countdown-container">
+        <EventCountdown
+          client:visible
+          targetDate={nextEvent.date}
+          eventTitle={nextEvent.title}
+        />
+
+        <div class="event-brief-box">
+          <div class="event-brief-meta">
+            <span class="brief-pill">MISSION READY</span>
+            <span class="brief-date">{new Date(nextEvent.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+          </div>
+          <h3 class="event-brief-title">{nextEvent.title}</h3>
+          <p class="event-brief-desc">{nextEvent.description}</p>
+          <div class="event-actions">
+            <a href={`/events/${nextEvent.slug}`} class="btn-primary">
+              <span>View Mission Dossier</span>
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </a>
+            <a href="/events" class="link-secondary">
+              <span>View All Events &rarr;</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Departments Preview Section -->
+  <section class="departments-section" aria-label="Meet the Crew">
+    <div class="content-wrapper">
+      <div class="section-header-flex">
+        <SectionHeading
+          mono="THE SHIP"
+          title="Meet the Crew"
+          subtitle="Every department represents a mission-critical module aboard our expedition vessel."
+          align="left"
+        />
+        <a href="/crew" class="desktop-view-all-link">
+          <span>Explore All Departments</span>
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Horizontal Scrollable Track -->
+      <div class="horizontal-scroll-container" tabindex="0" role="region" aria-label="Departments scroll gallery">
+        <div class="horizontal-scroll-track">
+          {previewDepartments.map((dept) => (
+            <div class="scroll-card-item">
+              <DepartmentCard
+                id={dept.id}
+                name={dept.name}
+                themedName={dept.themedName}
+                lead={dept.lead}
+                shipModule={dept.shipModule}
+                description={dept.description}
+                icon={dept.icon}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="mobile-view-all">
+        <a href="/crew" class="btn-outline full-width">
+          <span>Explore All 11 Departments &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Join CTA Section -->
+  <section class="join-cta-section" aria-label="Join Callisto">
+    <div class="cta-inner">
+      <div class="cta-badge">CREW RECRUITMENT OPEN</div>
+      <h2 class="cta-heading">Ready to Board?</h2>
+      <p class="cta-subtitle">
+        Join the expedition and become part of something extraordinary. We welcome all cadets, researchers, designers, and stargazers.
+      </p>
+      <div class="cta-buttons">
+        <a href="/join" class="btn-primary cta-btn">
+          <span>Request Boarding</span>
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </a>
+        <a href="/about" class="btn-outline cta-btn">
+          <span>Read Mission Charter</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Common Container */
+  .content-wrapper {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+  }
+
+  @media (min-width: 768px) {
+    .content-wrapper {
+      padding: 0 var(--space-xl);
+    }
+  }
+
+  /* 1. Hero Section */
+  .hero-section {
+    position: relative;
+    min-height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-3xl) var(--space-md) var(--space-2xl);
+    overflow: hidden;
+  }
+
+  /* Sol Badge */
+  .sol-badge {
+    position: absolute;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: color-mix(in srgb, var(--navy) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--steel) 35%, transparent);
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+
+  .sol-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--sol-dust);
+    box-shadow: 0 0 8px var(--sol-dust);
+  }
+
+  .sol-text {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--star);
+  }
+
+  .hero-content {
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: clamp(0.75rem, 1.2vw, 0.9375rem);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin: 0 0 var(--space-sm) 0;
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: 0.04em;
+    color: var(--moon);
+    margin: 0 0 var(--space-lg) 0;
+    text-shadow: 0 0 40px color-mix(in srgb, var(--orbit) 35%, transparent);
+  }
+
+  .hero-tagline {
+    font-family: var(--font-body);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    line-height: 1.6;
+    color: var(--star);
+    max-width: 620px;
+    margin: 0 0 var(--space-2xl) 0;
+  }
+
+  .hero-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+  }
+
+  /* General Button Styles */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    background: linear-gradient(135deg, var(--orbit), var(--dusk));
+    color: var(--moon);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--orbit) 50%, transparent);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--orbit) 40%, transparent);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  }
+
+  .btn-primary:hover,
+  .btn-primary:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 0 32px color-mix(in srgb, var(--orbit) 65%, transparent);
+    filter: brightness(1.1);
+    color: #ffffff;
+    outline: none;
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    background: color-mix(in srgb, var(--navy) 40%, transparent);
+    color: var(--star);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--steel) 45%, transparent);
+    backdrop-filter: blur(8px);
+    transition: all 0.25s ease;
+  }
+
+  .btn-outline:hover,
+  .btn-outline:focus-visible {
+    transform: translateY(-2px);
+    color: var(--moon);
+    border-color: var(--orbit);
+    background: color-mix(in srgb, var(--navy) 80%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--orbit) 25%, transparent);
+    outline: none;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  /* Scroll Indicator */
+  .scroll-indicator {
+    position: absolute;
+    bottom: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+    color: var(--steel);
+    transition: color 0.25s ease;
+    z-index: 5;
+  }
+
+  .scroll-text {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .scroll-chevron {
+    animation: chevronBounce 2s infinite ease-in-out;
+  }
+
+  @keyframes chevronBounce {
+    0%, 100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translateY(6px);
+      opacity: 1;
+    }
+  }
+
+  .scroll-indicator:hover {
+    color: var(--orbit);
+  }
+
+  /* 2. Mission Brief Section */
+  .mission-brief-section {
+    padding: var(--space-3xl) 0;
+    background: linear-gradient(180deg, var(--void) 0%, var(--deep) 100%);
+    position: relative;
+    border-top: 1px solid color-mix(in srgb, var(--steel) 15%, transparent);
+  }
+
+  .brief-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+    margin-top: var(--space-xl);
+  }
+
+  @media (min-width: 768px) {
+    .brief-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .brief-card {
+    background-color: color-mix(in srgb, var(--navy) 40%, var(--deep));
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brief-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--orbit);
+    box-shadow: 0 12px 30px color-mix(in srgb, var(--orbit) 20%, transparent);
+  }
+
+  .brief-icon {
+    font-size: 2.25rem;
+    margin-bottom: var(--space-md);
+    line-height: 1;
+  }
+
+  .brief-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-sm) 0;
+  }
+
+  .brief-desc {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--steel);
+    margin: 0;
+  }
+
+  /* 3. Next Launch Section */
+  .next-launch-section {
+    padding: var(--space-3xl) 0;
+    background-color: var(--deep);
+    border-top: 1px solid color-mix(in srgb, var(--steel) 15%, transparent);
+    position: relative;
+  }
+
+  .countdown-container {
+    max-width: 840px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  .event-brief-box {
+    background-color: color-mix(in srgb, var(--navy) 50%, var(--deep));
+    border: 1px solid color-mix(in srgb, var(--orbit) 30%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: left;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--void) 50%, transparent);
+  }
+
+  .event-brief-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+
+  .brief-pill {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--astrophage);
+    background: color-mix(in srgb, var(--astrophage) 15%, transparent);
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-full);
+    border: 1px solid color-mix(in srgb, var(--astrophage) 40%, transparent);
+  }
+
+  .brief-date {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--star);
+  }
+
+  .event-brief-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-sm) 0;
+  }
+
+  .event-brief-desc {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--steel);
+    margin: 0 0 var(--space-lg) 0;
+  }
+
+  .event-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .link-secondary {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--star);
+    text-decoration: none;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .link-secondary:hover {
+    color: var(--moon);
+    transform: translateX(4px);
+  }
+
+  /* 4. Departments Preview Section */
+  .departments-section {
+    padding: var(--space-3xl) 0;
+    background: linear-gradient(180deg, var(--deep) 0%, var(--void) 100%);
+    position: relative;
+    border-top: 1px solid color-mix(in srgb, var(--steel) 15%, transparent);
+  }
+
+  .section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--space-xl);
+  }
+
+  .desktop-view-all-link {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--orbit);
+    text-decoration: none;
+    margin-bottom: var(--space-2xl);
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .desktop-view-all-link:hover {
+    color: var(--star);
+    transform: translateX(4px);
+  }
+
+  @media (min-width: 768px) {
+    .desktop-view-all-link {
+      display: inline-flex;
+    }
+  }
+
+  .horizontal-scroll-container {
+    overflow-x: auto;
+    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-lg);
+    scrollbar-width: thin;
+    scrollbar-color: var(--orbit) var(--deep);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .horizontal-scroll-container:focus-visible {
+    outline: 2px solid var(--orbit);
+    border-radius: var(--radius-md);
+  }
+
+  .horizontal-scroll-track {
+    display: flex;
+    gap: var(--space-lg);
+    width: max-content;
+    padding: var(--space-xs);
+  }
+
+  .scroll-card-item {
+    width: 320px;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 640px) {
+    .scroll-card-item {
+      width: 360px;
+    }
+  }
+
+  .mobile-view-all {
+    display: block;
+    margin-top: var(--space-md);
+  }
+
+  @media (min-width: 768px) {
+    .mobile-view-all {
+      display: none;
+    }
+  }
+
+  /* 5. Join CTA Section */
+  .join-cta-section {
+    padding: var(--space-3xl) var(--space-md);
+    background: linear-gradient(160deg, var(--void) 0%, var(--navy) 55%, var(--dusk) 100%);
+    position: relative;
+    border-top: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .cta-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cta-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--astrophage);
+    background: color-mix(in srgb, var(--astrophage) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--astrophage) 35%, transparent);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-md);
+  }
+
+  .cta-heading {
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    font-weight: 700;
+    color: var(--moon);
+    margin: 0 0 var(--space-md) 0;
+    line-height: 1.15;
+  }
+
+  .cta-subtitle {
+    font-family: var(--font-body);
+    font-size: clamp(1rem, 1.8vw, 1.15rem);
+    line-height: 1.6;
+    color: var(--star);
+    margin: 0 0 var(--space-2xl) 0;
+    max-width: 580px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-md);
+  }
+
+  .cta-btn {
+    min-width: 180px;
+  }
+</style>

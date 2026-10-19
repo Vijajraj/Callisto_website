@@ -1,0 +1,317 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import EventCard from '../../components/EventCard.astro';
+import EventCountdown from '../../components/react/EventCountdown';
+import { getUpcomingEvents, getPastEvents } from '../../data/events';
+
+const upcomingEvents = getUpcomingEvents();
+const pastEvents = getPastEvents();
+
+const nextUpcoming = upcomingEvents.length > 0 ? upcomingEvents[0] : null;
+---
+
+<BaseLayout
+  title="Mission Launches & Celestial Events | Callisto Club"
+  description="Explore upcoming observational expeditions, exoplanet hackathons, and guest astrophysics symposiums hosted by Callisto Club."
+>
+  <div class="events-page-container">
+    <!-- Header -->
+    <header class="events-header">
+      <SectionHeading
+        mono="LAUNCH SCHEDULE"
+        title="Events & Expeditions"
+        subtitle="From all-night dark sky star parties to 36-hour data science sprints, join our upcoming astronomical missions."
+        align="center"
+      />
+    </header>
+
+    <!-- Prominent Next Event Countdown -->
+    {nextUpcoming && (
+      <section class="featured-countdown-section" aria-label="Next Scheduled Launch">
+        <div class="featured-countdown-wrapper">
+          <div class="featured-badge">COUNTDOWN TO NEXT EXPEDITION</div>
+          <EventCountdown
+            client:visible
+            targetDate={nextUpcoming.date}
+            eventTitle={nextUpcoming.title}
+          />
+        </div>
+      </section>
+    )}
+
+    <!-- Upcoming Events Section -->
+    <section class="events-group-section" aria-labelledby="upcoming-heading">
+      <div class="group-header">
+        <div class="group-title-wrap">
+          <span class="status-indicator-green" aria-hidden="true"></span>
+          <h2 id="upcoming-heading" class="group-title">Upcoming Launches</h2>
+        </div>
+        <span class="group-count">{upcomingEvents.length} Active Missions</span>
+      </div>
+
+      {upcomingEvents.length > 0 ? (
+        <div class="events-grid">
+          {upcomingEvents.map((event) => (
+            <EventCard
+              slug={event.slug}
+              title={event.title}
+              date={event.date}
+              description={event.description}
+              location={event.location}
+              type={event.type}
+              registrationOpen={event.registrationOpen}
+            />
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state">
+          <p>All scheduled expeditions have successfully completed. New mission trajectories will be announced shortly.</p>
+        </div>
+      )}
+    </section>
+
+    <!-- Past Missions Section -->
+    <section class="events-group-section past-group-section" aria-labelledby="past-heading">
+      <div class="group-header">
+        <div class="group-title-wrap">
+          <span class="status-indicator-muted" aria-hidden="true"></span>
+          <h2 id="past-heading" class="group-title">Past Missions Archive</h2>
+        </div>
+        <span class="group-count">{pastEvents.length} Concluded Expeditions</span>
+      </div>
+
+      <div class="events-grid past-grid">
+        {pastEvents.map((event) => (
+          <div class="past-card-wrapper">
+            <EventCard
+              slug={event.slug}
+              title={event.title}
+              date={event.date}
+              description={event.description}
+              location={event.location}
+              type={event.type}
+              registrationOpen={false}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Suggest Event CTA -->
+    <section class="suggest-cta-section" aria-label="Suggest an Event">
+      <div class="suggest-card">
+        <div class="suggest-icon" aria-hidden="true">✨</div>
+        <h3 class="suggest-title">Have an Event or Mission Idea?</h3>
+        <p class="suggest-desc">
+          Do you want to host a stargazing night in your department, suggest a guest lecturer, or organize a space hardware workshop? Coordinate with our Event Horizon operations crew.
+        </p>
+        <a href="/contact" class="btn-outline">
+          <span>Suggest a Mission &rarr;</span>
+        </a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .events-page-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-md) var(--space-3xl);
+  }
+
+  @media (min-width: 768px) {
+    .events-page-container {
+      padding: var(--space-3xl) var(--space-xl) var(--space-3xl);
+    }
+  }
+
+  .events-header {
+    margin-bottom: var(--space-2xl);
+  }
+
+  /* Featured Countdown */
+  .featured-countdown-section {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .featured-countdown-wrapper {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .featured-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--astrophage);
+    background: color-mix(in srgb, var(--astrophage) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--astrophage) 35%, transparent);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-md);
+  }
+
+  /* Group Header */
+  .events-group-section {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-xl);
+  }
+
+  .group-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .status-indicator-green {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+  }
+
+  .status-indicator-muted {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--steel);
+  }
+
+  .group-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0;
+  }
+
+  .group-count {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--steel);
+    letter-spacing: 0.08em;
+  }
+
+  /* Events Grid */
+  .events-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  @media (min-width: 640px) {
+    .events-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .events-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Past Grid Muted Styling */
+  .past-group-section {
+    opacity: 0.9;
+  }
+
+  .past-card-wrapper {
+    filter: grayscale(0.25);
+    transition: filter 0.25s ease;
+  }
+
+  .past-card-wrapper:hover {
+    filter: grayscale(0);
+  }
+
+  .empty-state {
+    padding: var(--space-2xl);
+    text-align: center;
+    background-color: var(--deep);
+    border-radius: var(--radius-md);
+    border: 1px dashed color-mix(in srgb, var(--steel) 30%, transparent);
+    font-family: var(--font-body);
+    color: var(--steel);
+  }
+
+  /* Suggest CTA */
+  .suggest-cta-section {
+    margin-top: var(--space-2xl);
+  }
+
+  .suggest-card {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--navy) 60%, var(--deep)), var(--deep));
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl) var(--space-xl);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .suggest-icon {
+    font-size: 2.25rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .suggest-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .suggest-desc {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--star);
+    max-width: 580px;
+    margin: 0 0 var(--space-lg) 0;
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: color-mix(in srgb, var(--navy) 50%, transparent);
+    color: var(--moon);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--orbit) 50%, transparent);
+    transition: all 0.2s ease;
+  }
+
+  .btn-outline:hover,
+  .btn-outline:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--star);
+    background: color-mix(in srgb, var(--navy) 80%, transparent);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--orbit) 35%, transparent);
+    outline: none;
+  }
+</style>

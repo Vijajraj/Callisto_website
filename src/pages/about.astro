@@ -1,0 +1,424 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { getSolCount } from '../lib/utils';
+import { departments } from '../data/departments';
+import { events } from '../data/events';
+
+const solCount = getSolCount();
+const deptCount = departments.length;
+const totalEvents = events.length;
+
+const activities = [
+  {
+    title: 'Observation Nights',
+    desc: 'Deploying motorized Schmidt-Cassegrains, tracking occultations, and mapping lunar craters under Class 2 dark-sky reserves.',
+    icon: '🔭',
+  },
+  {
+    title: 'Workshops & Talks',
+    desc: 'Deep dives into exoplanet transit photometry, astrophotography calibration, radio astronomy, and guest faculty keynotes.',
+    icon: '🎓',
+  },
+  {
+    title: 'Space Hackathons',
+    desc: '36-hour weekend design sprints engineering satellite telemetry pipelines, planetary rover kinematics, and orbital sims.',
+    icon: '💻',
+  },
+  {
+    title: 'Scientific Research',
+    desc: 'Contributing raw observations and photometric light curves to open databases like AAVSO and the International Meteor Organization.',
+    icon: '📊',
+  },
+  {
+    title: 'Outreach & Stargazing Clinics',
+    desc: 'Bringing public scopes to campus quads and local schools to awaken celestial curiosity in the next generation of voyagers.',
+    icon: '🪐',
+  },
+  {
+    title: 'Social & Crew Culture',
+    desc: 'Equinox stargazing campouts, cosmic movie screenings, speed collimation tournaments, and interstellar trivia nights.',
+    icon: '☕',
+  },
+];
+
+const stats = [
+  { label: 'ACTIVE CREW MEMBERS', value: '140+' },
+  { label: 'EXPEDITIONS & EVENTS', value: `${totalEvents + 15}+` },
+  { label: 'SHIP DEPARTMENTS', value: `${deptCount}` },
+  { label: 'MISSION SOLS', value: `${solCount}` },
+];
+---
+
+<BaseLayout title="About Callisto | Mission Briefing" description="The story, identity, and celestial charter of Callisto Club — Chennai Institute of Technology's premier astronomy & space expedition collective.">
+  <div class="about-container">
+    <!-- Page Hero -->
+    <header class="about-hero">
+      <SectionHeading
+        mono="MISSION BRIEFING"
+        title="About Callisto"
+        subtitle="Exploring the celestial expanse through empirical observation, open engineering, and deep cosmic wonder."
+        align="center"
+      />
+    </header>
+
+    <!-- Origin Story Section -->
+    <section class="story-section" aria-labelledby="origin-heading">
+      <div class="story-card">
+        <div class="story-badge">ORIGIN DOSSIER</div>
+        <h2 id="origin-heading" class="story-title">Why Callisto?</h2>
+        
+        <div class="story-prose">
+          <p>
+            Orbiting nearly two million kilometers from the turbulent cloud bands of Jupiter lies Callisto. Discovered in 1610 by Galileo Galilei, this celestial body bears the most heavily cratered surface in our solar system—an ancient, untouched ledger recording four billion years of cosmic impacts. Beneath its dark, scarred crust of rock and ice lies a quiet, saline subsurface ocean.
+          </p>
+          <p>
+            Unlike its radiation-seared sibling Europa or volcanic Io, Callisto rests in a calm magnetospheric harbor. For generations of planetary scientists and visionary engineers, it represents the ideal deep-space outpost: an anchor from which humanity can safely observe the outer solar system and gaze deeper into interstellar space.
+          </p>
+          <p>
+            We took the name <strong>Callisto</strong> because our club was founded upon the same ethos. We are a sanctuary for curious minds—a student-led vessel where engineers, artists, astrophysicists, and night-sky dreamers congregate to build tools, chart constellations, and venture fearlessly toward the horizon of discovery.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- What We Do Section -->
+    <section class="activities-section" aria-labelledby="activities-heading">
+      <SectionHeading
+        mono="FLIGHT PROGRAM"
+        title="What We Do"
+        subtitle="Our missions span hands-on observational astronomy, cutting-edge hardware development, scientific publications, and community culture."
+        align="center"
+      />
+
+      <div class="activities-grid">
+        {activities.map((act) => (
+          <article class="activity-card">
+            <div class="activity-icon" aria-hidden="true">{act.icon}</div>
+            <h3 class="activity-title">{act.title}</h3>
+            <p class="activity-desc">{act.desc}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- Vision Statement Quote -->
+    <section class="vision-section" aria-label="Our Vision">
+      <div class="vision-card">
+        <div class="quote-mark" aria-hidden="true">“</div>
+        <blockquote class="vision-quote">
+          To cultivate a world-class collegiate community where every student, regardless of academic background, can look through an eyepiece, touch the mechanics of space exploration, and realize that we are the cosmos experiencing itself.
+        </blockquote>
+        <cite class="vision-attribution">— Callisto Club Founding Charter, Article I</cite>
+      </div>
+    </section>
+
+    <!-- By The Numbers Section -->
+    <section class="stats-section" aria-labelledby="telemetry-heading">
+      <h2 id="telemetry-heading" class="sr-only">Club Telemetry by the Numbers</h2>
+      <div class="stats-grid">
+        {stats.map((s) => (
+          <div class="stat-card">
+            <span class="stat-value">{s.value}</span>
+            <span class="stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Faculty Coordinator Section -->
+    <section class="faculty-section" aria-labelledby="faculty-heading">
+      <div class="faculty-card">
+        <div class="faculty-badge">INSTITUTIONAL OVERSIGHT</div>
+        <h3 id="faculty-heading" class="faculty-name">Faculty Coordinator</h3>
+        <p class="faculty-status">Official Institutional Appointment To Be Announced</p>
+        <p class="faculty-desc">
+          Callisto Club operates under the patronage of Chennai Institute of Technology. Our upcoming academic advisor will steer accreditation, research clearances, and laboratory sponsorships for the upcoming academic cycle.
+        </p>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-md) var(--space-3xl);
+  }
+
+  @media (min-width: 768px) {
+    .about-container {
+      padding: var(--space-3xl) var(--space-xl) var(--space-3xl);
+    }
+  }
+
+  .about-hero {
+    margin-bottom: var(--space-2xl);
+  }
+
+  /* Origin Story Section */
+  .story-section {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .story-card {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--navy) 60%, var(--deep)), var(--deep));
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    position: relative;
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--void) 70%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .story-card {
+      padding: var(--space-2xl) var(--space-3xl);
+    }
+  }
+
+  .story-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--sol-dust);
+    background: color-mix(in srgb, var(--sol-dust) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sol-dust) 35%, transparent);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-sm);
+  }
+
+  .story-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-lg) 0;
+  }
+
+  .story-prose p {
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--star);
+    margin-bottom: var(--space-md);
+  }
+
+  .story-prose p:last-child {
+    margin-bottom: 0;
+  }
+
+  .story-prose strong {
+    color: var(--moon);
+    font-weight: 600;
+  }
+
+  /* Activities Section */
+  .activities-section {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .activities-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+
+  @media (min-width: 640px) {
+    .activities-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .activities-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .activity-card {
+    background-color: color-mix(in srgb, var(--navy) 40%, var(--deep));
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .activity-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--orbit);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--orbit) 20%, transparent);
+  }
+
+  .activity-icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+    line-height: 1;
+  }
+
+  .activity-title {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .activity-desc {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--steel);
+    margin: 0;
+  }
+
+  /* Vision Quote Section */
+  .vision-section {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .vision-card {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--dusk) 30%, var(--deep)), var(--deep));
+    border: 1px solid color-mix(in srgb, var(--orbit) 35%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl) var(--space-xl);
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 30px color-mix(in srgb, var(--orbit) 15%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .vision-card {
+      padding: var(--space-3xl) var(--space-3xl);
+    }
+  }
+
+  .quote-mark {
+    font-family: var(--font-display);
+    font-size: 4rem;
+    line-height: 1;
+    color: var(--orbit);
+    opacity: 0.4;
+    margin-bottom: -1rem;
+  }
+
+  .vision-quote {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.5vw, 1.875rem);
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--moon);
+    margin: 0 auto var(--space-lg);
+    max-width: 800px;
+  }
+
+  .vision-attribution {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--astrophage);
+  }
+
+  /* By The Numbers Section */
+  .stats-section {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 900px) {
+    .stats-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-lg);
+    }
+  }
+
+  .stat-card {
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    color: var(--moon);
+    line-height: 1;
+    text-shadow: 0 0 16px color-mix(in srgb, var(--orbit) 50%, transparent);
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--steel);
+    text-transform: uppercase;
+  }
+
+  /* Faculty Section */
+  .faculty-section {
+    margin-bottom: var(--space-xl);
+  }
+
+  .faculty-card {
+    background-color: color-mix(in srgb, var(--navy) 40%, var(--deep));
+    border: 1px dashed color-mix(in srgb, var(--steel) 40%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .faculty-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--steel);
+    margin-bottom: var(--space-xs);
+  }
+
+  .faculty-name {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 0.25rem 0;
+  }
+
+  .faculty-status {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--astrophage);
+    margin-bottom: var(--space-sm);
+  }
+
+  .faculty-desc {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--steel);
+    margin: 0;
+  }
+</style>

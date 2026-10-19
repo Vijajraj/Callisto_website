@@ -1,0 +1,339 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+
+const upcomingFeatures = [
+  {
+    title: 'Custom Helmet Modules',
+    desc: 'Select from pressurized deep-space helmets, orbital EVA visors, retro-futuristic domes, and planetary exploration hoods.',
+    icon: '🪖',
+  },
+  {
+    title: 'Visor Reflection Tints',
+    desc: 'Toggle between polarized gold, iridescent solar flare, deep obsidian, and ultraviolet optical filter coatings.',
+    icon: '🕶️',
+  },
+  {
+    title: 'Mission Patches & Accents',
+    desc: 'Adorn your suit with departmental badges, Sol milestone bars, expedition flags, and verified starfield achievement pins.',
+    icon: '🎖️',
+  },
+];
+---
+
+<BaseLayout
+  title="Crew Identity & Avatar Builder | Callisto Club"
+  description="Design your custom expedition spacesuit, EVA helmet, and mission patches in the Callisto Crew Avatar Suite."
+>
+  <div class="avatar-page-container">
+    <!-- Header -->
+    <header class="avatar-header">
+      <SectionHeading
+        mono="CREW IDENTITY"
+        title="Build Your Avatar"
+        subtitle="Forge your digital identity for the Callisto flight roster. Suit up for deep-space missions and interactive expeditions."
+        align="center"
+      />
+    </header>
+
+    <!-- Main Silhouette & Teaser Section -->
+    <section class="avatar-stage-section" aria-labelledby="stage-heading">
+      <div class="stage-card">
+        <div class="stage-telemetry-badge">CADET SUIT FABRICATOR // PROTOCOL 0.9</div>
+        <h2 id="stage-heading" class="stage-title">Flight Suit Fitting Bay</h2>
+        <p class="stage-desc">
+          Every crew member embarking on the Callisto Expedition requires verified EVA telemetry gear. Customize your helmet seals, HUD visor coatings, and department flight patches.
+        </p>
+
+        <!-- Stylized Astronaut Silhouette SVG Graphic -->
+        <div class="silhouette-container" aria-label="Astronaut spacesuit silhouette preview">
+          <svg class="astronaut-svg" viewBox="0 0 320 380" width="100%" height="100%" aria-hidden="true">
+            <defs>
+              <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--star)" stop-opacity="0.25" />
+                <stop offset="50%" stop-color="var(--navy)" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="var(--void)" stop-opacity="0.95" />
+              </linearGradient>
+              <radialGradient id="visorGold" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="var(--astrophage)" stop-opacity="0.9" />
+                <stop offset="70%" stop-color="var(--sol-dust)" stop-opacity="0.7" />
+                <stop offset="100%" stop-color="var(--navy)" stop-opacity="0.4" />
+              </radialGradient>
+              <filter id="visorGlow">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            {/* Background Scanner Rings */}
+            <circle cx="160" cy="190" r="140" fill="none" stroke="var(--orbit)" stroke-width="1" stroke-dasharray="6 6" opacity="0.3" />
+            <circle cx="160" cy="190" r="110" fill="none" stroke="var(--steel)" stroke-width="0.75" opacity="0.25" />
+
+            {/* Astronaut Torso / Shoulders */}
+            <path
+              d="M 100 240 Q 80 250 65 290 L 65 370 L 255 370 L 255 290 Q 240 250 220 240 Q 160 260 100 240 Z"
+              fill="url(#suitGrad)"
+              stroke="var(--orbit)"
+              stroke-width="1.5"
+            />
+
+            {/* Chest Telemetry Plate */}
+            <rect x="125" y="275" width="70" height="55" rx="6" fill="color-mix(in srgb, var(--void) 85%, transparent)" stroke="var(--steel)" stroke-width="1" />
+            <circle cx="145" cy="295" r="4" fill="var(--astrophage)" />
+            <line x1="160" y1="295" x2="180" y2="295" stroke="var(--star)" stroke-width="2" stroke-linecap="round" />
+            <line x1="140" y1="312" x2="180" y2="312" stroke="var(--orbit)" stroke-width="1.5" stroke-dasharray="3 2" />
+
+            {/* Neck Ring */}
+            <ellipse cx="160" cy="235" rx="42" ry="14" fill="var(--navy)" stroke="var(--orbit)" stroke-width="2" />
+
+            {/* Helmet Outer Shell */}
+            <circle cx="160" cy="155" r="72" fill="url(#suitGrad)" stroke="var(--star)" stroke-width="2" />
+
+            {/* Helmet Visor Shield with Golden Reflection */}
+            <ellipse
+              cx="160"
+              cy="155"
+              rx="52"
+              ry="42"
+              fill="url(#visorGold)"
+              stroke="var(--astrophage)"
+              stroke-width="2"
+              filter="url(#visorGlow)"
+            />
+
+            {/* Visor Glint Highlight */}
+            <path
+              d="M 130 135 Q 160 125 185 135 Q 165 132 140 145 Z"
+              fill="var(--moon)"
+              opacity="0.8"
+            />
+
+            {/* Side Comms Modules */}
+            <rect x="76" y="142" width="12" height="26" rx="3" fill="var(--navy)" stroke="var(--steel)" stroke-width="1" />
+            <rect x="232" y="142" width="12" height="26" rx="3" fill="var(--navy)" stroke="var(--steel)" stroke-width="1" />
+          </svg>
+        </div>
+
+        <!-- Launching Soon Status -->
+        <div class="status-launch-box">
+          <div class="status-indicator">
+            <span class="pulse-point"></span>
+            <span class="status-text">AVATAR BUILDER LAUNCHING SOON</span>
+          </div>
+          <p class="status-detail">
+            The interactive WebGL 3D suit generator will launch alongside the Phase 2 member portal. You will be able to export high-res mission avatars and avatar ID cards.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Preview Features Coming Soon -->
+    <section class="features-preview-section" aria-labelledby="features-heading">
+      <SectionHeading
+        mono="SUIT CUSTOMIZATION"
+        title="What's Coming to the Wardrobe"
+        subtitle="A look at the modular components being rigged by the Nebula Wing 3D team."
+        align="center"
+      />
+
+      <div class="features-grid">
+        {upcomingFeatures.map((feat) => (
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">{feat.icon}</div>
+            <h3 class="feature-title">{feat.title}</h3>
+            <p class="feature-desc">{feat.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .avatar-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-md) var(--space-3xl);
+  }
+
+  @media (min-width: 768px) {
+    .avatar-page-container {
+      padding: var(--space-3xl) var(--space-xl) var(--space-3xl);
+    }
+  }
+
+  .avatar-header {
+    margin-bottom: var(--space-2xl);
+  }
+
+  /* Stage Card */
+  .avatar-stage-section {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .stage-card {
+    background: linear-gradient(155deg, color-mix(in srgb, var(--navy) 65%, var(--deep)), var(--deep));
+    border: 1px solid color-mix(in srgb, var(--orbit) 35%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl) var(--space-lg);
+    text-align: center;
+    box-shadow: 0 12px 36px color-mix(in srgb, var(--void) 85%, transparent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  @media (min-width: 768px) {
+    .stage-card {
+      padding: var(--space-3xl);
+    }
+  }
+
+  .stage-telemetry-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--orbit);
+    margin-bottom: var(--space-xs);
+  }
+
+  .stage-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .stage-desc {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--star);
+    max-width: 620px;
+    margin: 0 0 var(--space-2xl) 0;
+  }
+
+  /* Silhouette Artwork */
+  .silhouette-container {
+    width: 280px;
+    height: 330px;
+    margin: 0 auto var(--space-2xl);
+    position: relative;
+    filter: drop-shadow(0 0 24px color-mix(in srgb, var(--orbit) 35%, transparent));
+  }
+
+  .astronaut-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Status Launch Box */
+  .status-launch-box {
+    background-color: color-mix(in srgb, var(--void) 65%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--astrophage) 40%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-md) var(--space-xl);
+    max-width: 640px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: var(--space-xs);
+  }
+
+  .pulse-point {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--astrophage);
+    box-shadow: 0 0 8px var(--astrophage);
+    animation: statusPulse 2s infinite ease-in-out;
+  }
+
+  @keyframes statusPulse {
+    0%, 100% {
+      opacity: 0.4;
+      transform: scale(0.9);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+  }
+
+  .status-text {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--astrophage);
+  }
+
+  .status-detail {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--steel);
+    margin: 0;
+  }
+
+  /* Features Grid */
+  .features-preview-section {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+
+  @media (min-width: 768px) {
+    .features-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .feature-card {
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--orbit);
+  }
+
+  .feature-icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+    line-height: 1;
+  }
+
+  .feature-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .feature-desc {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--steel);
+    margin: 0;
+  }
+</style>

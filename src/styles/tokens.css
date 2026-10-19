@@ -1,0 +1,74 @@
+:root {
+  /* Color Palette */
+  --void: #060919;        /* Darkest background */
+  --deep: #0C1237;        /* Section backgrounds, cards */
+  --navy: #14204F;        /* Mid-blue panels */
+  --steel: #4A5A7C;       /* Secondary text, borders */
+  --dusk: #5B4B8A;        /* Hover surfaces */
+  --orbit: #9C84D6;       /* Primary accent, links */
+  --star: #CFCBF2;        /* Highlights, buttons */
+  --moon: #F7F5FF;        /* Headings, primary text */
+  --sol-dust: #C98A66;    /* Mars warmth accent */
+  --astrophage: #FFB86B;  /* First-contact glow */
+
+  /* Gradients */
+  --gradient-main: linear-gradient(160deg, var(--void) 0%, var(--navy) 55%, var(--dusk) 100%);
+  --gradient-surface: linear-gradient(180deg, color-mix(in srgb, var(--navy) 70%, transparent) 0%, color-mix(in srgb, var(--deep) 90%, transparent) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, var(--star) 100%);
+  --gradient-beacon: linear-gradient(135deg, var(--sol-dust) 0%, var(--astrophage) 100%);
+
+  /* Glows and Shadows */
+  --glow-orbit: 0 0 24px color-mix(in srgb, var(--orbit) 45%, transparent);
+  --glow-star: 0 0 24px color-mix(in srgb, var(--star) 45%, transparent);
+  --glow-astrophage: 0 0 24px color-mix(in srgb, var(--astrophage) 50%, transparent);
+  --glow-subtle: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  /* Typography */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Fluid Font Sizes (Clamped) */
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.8125rem);
+  --text-sm: clamp(0.875rem, 0.82rem + 0.28vw, 0.9375rem);
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.0625rem);
+  --text-lg: clamp(1.125rem, 1.05rem + 0.38vw, 1.25rem);
+  --text-xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+  --text-3xl: clamp(1.875rem, 1.62rem + 1.28vw, 2.375rem);
+  --text-4xl: clamp(2.25rem, 1.9rem + 1.75vw, 3rem);
+  --text-5xl: clamp(2.75rem, 2.25rem + 2.5vw, 3.875rem);
+  --text-hero: clamp(3.25rem, 2.5rem + 3.75vw, 5.5rem);
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4.5rem;
+
+  /* Border Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Z-Index Layers */
+  --z-base: 1;
+  --z-above: 10;
+  --z-nav: 50;
+  --z-loader: 100;
+  --z-modal: 1000;
+
+  /* Container Widths */
+  --container-sm: 640px;
+  --container-md: 896px;
+  --container-lg: 1200px;
+}

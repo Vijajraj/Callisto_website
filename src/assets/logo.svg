@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%" aria-label="Callisto Club Logo" role="img">
+  <defs>
+    <!-- Glow Filter -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Crescent Mask: White outer circle cutout by black offset circle -->
+    <mask id="crescent-mask">
+      <rect x="0" y="0" width="200" height="200" fill="black" />
+      <circle cx="88" cy="100" r="75" fill="white" />
+      <circle cx="118" cy="94" r="63" fill="black" />
+    </mask>
+  </defs>
+
+  <!-- Orbit Ring Layer -->
+  <g id="orbit-ring">
+    <ellipse
+      cx="100"
+      cy="108"
+      rx="96"
+      ry="24"
+      transform="rotate(-25 100 108)"
+      stroke="#CFCBF2"
+      stroke-width="1.8"
+      fill="none"
+      opacity="0.5"
+      filter="url(#glow)"
+      class="orbit-path"
+    />
+  </g>
+
+  <!-- Crescent Moon Layer -->
+  <g id="crescent">
+    <circle
+      cx="88"
+      cy="100"
+      r="75"
+      fill="#F7F5FF"
+      mask="url(#crescent-mask)"
+      class="crescent-path"
+    />
+  </g>
+
+  <!-- Four-Point Star Layer -->
+  <g id="star">
+    <path
+      d="M 152 28 L 159 51 L 182 58 L 159 65 L 152 88 L 145 65 L 122 58 L 145 51 Z"
+      fill="#CFCBF2"
+      class="star-shape"
+    />
+  </g>
+</svg>

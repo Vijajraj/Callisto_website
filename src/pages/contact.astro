@@ -1,0 +1,349 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ContactForm from '../components/react/ContactForm';
+---
+
+<BaseLayout
+  title="Establish Comms | Contact Callisto Club"
+  description="Send signal transmissions to Callisto Club commanders. Reach out for institutional partnerships, stargazing clinic inquiries, or media requests."
+>
+  <div class="contact-page-container">
+    <!-- Header -->
+    <header class="contact-header">
+      <SectionHeading
+        mono="ESTABLISH COMMS"
+        title="Contact Us"
+        subtitle="Open transmission relays for collegiate collaborations, astronomical equipment donations, and public inquiries."
+        align="center"
+      />
+    </header>
+
+    <!-- Two-Column Contact Relay -->
+    <div class="contact-layout-grid">
+      <!-- Left Column: Contact Form Island -->
+      <section class="form-wrapper-card" aria-labelledby="form-relay-heading">
+        <div class="card-badge">SIGNAL DISPATCH</div>
+        <h2 id="form-relay-heading" class="card-title">Send a Transmission</h2>
+        <p class="card-subtitle">
+          Our comms officers route incoming messages directly to the designated department lead within 24 to 48 solar hours.
+        </p>
+
+        <ContactForm client:visible />
+      </section>
+
+      <!-- Right Column: Information & Comms Nodes -->
+      <aside class="comms-info-col" aria-label="Direct Communication Relays">
+        <div class="info-card">
+          <div class="info-badge">GROUND CHANNELS</div>
+          <h2 class="info-title">Station Frequencies</h2>
+
+          <div class="comms-channels-list">
+            <!-- Instagram Relay -->
+            <a
+              href="https://instagram.com/callistospace_cit"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="channel-item"
+              aria-label="Callisto Club on Instagram"
+            >
+              <div class="channel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+              </div>
+              <div class="channel-details">
+                <span class="channel-label">INSTAGRAM BEACON</span>
+                <span class="channel-value">@callistospace_cit</span>
+                <span class="channel-hint">Live stories, countdowns & astrophotos</span>
+              </div>
+            </a>
+
+            <!-- Email Relay -->
+            <a
+              href="mailto:callistospace.cit@gmail.com"
+              class="channel-item"
+              aria-label="Direct Comms Email"
+            >
+              <div class="channel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+              </div>
+              <div class="channel-details">
+                <span class="channel-label">GROUND COMMS RELAY</span>
+                <span class="channel-value">callistospace.cit@gmail.com</span>
+                <span class="channel-hint">Formal academic & official queries</span>
+              </div>
+            </a>
+
+            <!-- Campus Base -->
+            <div class="channel-item non-clickable">
+              <div class="channel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+              <div class="channel-details">
+                <span class="channel-label">PHYSICAL OBSERVATORY POST</span>
+                <span class="channel-value">Chennai Institute of Technology</span>
+                <span class="channel-hint">Sarathy Nagar, Kundrathur, Chennai, TN</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="updates-banner">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <p class="updates-text">
+              <strong>Follow us for mission updates:</strong> Nightly weather alerts and telescope deployment times are broadcast live on our Instagram feed.
+            </p>
+          </div>
+        </div>
+
+        <!-- Partnership Note Card -->
+        <div class="partnership-card">
+          <div class="partner-badge">COLLABORATION NOTICE</div>
+          <h3 class="partner-heading">Research & Academic Partnerships</h3>
+          <p class="partner-desc">
+            We actively collaborate with collegiate astronomy societies, space startups, planetariums, and high school STEM clubs. If you are interested in co-hosting an observational star party or computational hackathon, connect with our Constellation Wing.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .contact-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-md) var(--space-3xl);
+  }
+
+  @media (min-width: 768px) {
+    .contact-page-container {
+      padding: var(--space-3xl) var(--space-xl) var(--space-3xl);
+    }
+  }
+
+  .contact-header {
+    margin-bottom: var(--space-2xl);
+  }
+
+  /* Two Column Grid */
+  .contact-layout-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+    align-items: start;
+  }
+
+  @media (min-width: 900px) {
+    .contact-layout-grid {
+      grid-template-columns: 1.4fr 1.1fr;
+    }
+  }
+
+  /* Form Card */
+  .form-wrapper-card {
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: 0 10px 32px color-mix(in srgb, var(--void) 70%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .form-wrapper-card {
+      padding: var(--space-2xl);
+    }
+  }
+
+  .card-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--orbit);
+    margin-bottom: var(--space-xs);
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .card-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--steel);
+    margin: 0 0 var(--space-xl) 0;
+  }
+
+  /* Info Column */
+  .comms-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  .info-card {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--navy) 60%, var(--deep)), var(--deep));
+    border: 1px solid color-mix(in srgb, var(--orbit) 30%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--void) 60%, transparent);
+  }
+
+  .info-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--astrophage);
+    display: inline-block;
+    margin-bottom: var(--space-xs);
+  }
+
+  .info-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-lg) 0;
+  }
+
+  .comms-channels-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+  }
+
+  .channel-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background-color: color-mix(in srgb, var(--navy) 40%, transparent);
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  a.channel-item:hover,
+  a.channel-item:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--orbit);
+    background-color: color-mix(in srgb, var(--navy) 80%, transparent);
+  }
+
+  .channel-icon {
+    color: var(--orbit);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  .channel-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .channel-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--steel);
+    letter-spacing: 0.08em;
+  }
+
+  .channel-value {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--moon);
+  }
+
+  .channel-hint {
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    color: var(--star);
+  }
+
+  .updates-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: var(--space-md);
+    background-color: color-mix(in srgb, var(--void) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+    border-radius: var(--radius-sm);
+  }
+
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--astrophage);
+    box-shadow: 0 0 8px var(--astrophage);
+    flex-shrink: 0;
+    margin-top: 0.35rem;
+  }
+
+  .updates-text {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--star);
+    margin: 0;
+  }
+
+  .updates-text strong {
+    color: var(--moon);
+  }
+
+  /* Partnership Card */
+  .partnership-card {
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+  }
+
+  .partner-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--sol-dust);
+    margin-bottom: var(--space-xs);
+  }
+
+  .partner-heading {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .partner-desc {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--steel);
+    margin: 0;
+  }
+</style>

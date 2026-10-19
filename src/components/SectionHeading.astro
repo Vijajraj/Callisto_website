@@ -1,0 +1,120 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  align?: 'left' | 'center';
+  mono?: string;
+}
+
+const { title, subtitle, align = 'center', mono } = Astro.props;
+---
+
+<div class:list={['section-heading', `align-${align}`]}>
+  {
+    mono && (
+      <div class="mono-badge">
+        <span class="mono-dot" aria-hidden="true"></span>
+        <span class="mono-text">{mono}</span>
+      </div>
+    )
+  }
+
+  <h2 class="heading-title">{title}</h2>
+
+  {subtitle && <p class="heading-subtitle">{subtitle}</p>}
+
+  <div class="decorative-accent" aria-hidden="true"></div>
+</div>
+
+<style>
+  .section-heading {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--space-2xl);
+    position: relative;
+  }
+
+  /* Alignment Variants */
+  .align-center {
+    align-items: center;
+    text-align: center;
+  }
+
+  .align-left {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  /* Mono Badge / Sub-heading */
+  .mono-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--orbit);
+    padding: 0.25rem 0.65rem;
+    background: color-mix(in srgb, var(--navy) 40%, transparent);
+    border: 1px solid color-mix(in srgb, var(--orbit) 25%, transparent);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .mono-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--astrophage);
+    box-shadow: 0 0 6px var(--astrophage);
+  }
+
+  /* Main Title */
+  .heading-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--moon);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  /* Subtitle */
+  .heading-subtitle {
+    font-family: var(--font-body);
+    font-size: clamp(1rem, 1.5vw, 1.125rem);
+    line-height: 1.6;
+    color: var(--steel);
+    margin: var(--space-sm) 0 0 0;
+    max-width: 65ch;
+  }
+
+  /* Decorative Line Accent */
+  .decorative-accent {
+    height: 2px;
+    width: 96px;
+    margin-top: var(--space-md);
+    border-radius: 1px;
+  }
+
+  .align-center .decorative-accent {
+    background: linear-gradient(90deg, transparent, var(--orbit), transparent);
+  }
+
+  .align-left .decorative-accent {
+    background: linear-gradient(90deg, var(--orbit), transparent);
+  }
+
+  @media (max-width: 768px) {
+    .section-heading {
+      margin-bottom: var(--space-xl);
+    }
+
+    .decorative-accent {
+      width: 64px;
+    }
+  }
+</style>

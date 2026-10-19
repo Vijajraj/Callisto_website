@@ -1,0 +1,520 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { departments, type Department } from '../../data/departments';
+
+export function getStaticPaths() {
+  return departments.map((dept) => ({
+    params: { department: dept.id },
+    props: { dept },
+  }));
+}
+
+interface Props {
+  dept: Department;
+}
+
+const { dept } = Astro.props;
+
+// Module schematics data based on ship module
+const getModuleDetails = (moduleName: string) => {
+  return {
+    clearanceLevel: 'LEVEL 3 - FLIGHT OPERATIONS',
+    operationalStatus: 'FULLY PRESSURIZED & ACTIVE',
+    subsystems: [
+      'Primary Telemetry Uplink (Band Ku/Ka)',
+      'Environmental Controls & Argon Scrubber',
+      'Auxiliary Power Bus (Fusion Battery B)',
+    ],
+  };
+};
+
+const moduleDetails = getModuleDetails(dept.shipModule);
+---
+
+<BaseLayout
+  title={`${dept.themedName} (${dept.name}) | Callisto Ship Manifest`}
+  description={`Module Dossier: ${dept.themedName} (${dept.name}) stationed at ${dept.shipModule}, commanded by ${dept.lead}.`}
+>
+  <div class="dept-page-container">
+    <!-- Back Navigation Link -->
+    <nav class="back-nav" aria-label="Breadcrumb navigation">
+      <a href="/crew" class="back-link">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        <span>Back to Ship Manifest</span>
+      </a>
+    </nav>
+
+    <!-- Department Hero -->
+    <header class="dept-hero">
+      <div class="dept-meta-row">
+        <span class="module-chip">{dept.shipModule}</span>
+        <span class="dept-icon-display" aria-hidden="true">{dept.icon}</span>
+      </div>
+
+      <h1 class="dept-title">{dept.themedName}</h1>
+      <p class="dept-subtitle">{dept.name}</p>
+
+      <div class="lead-officer-banner">
+        <span class="lead-label">COMMANDING OFFICER:</span>
+        <span class="lead-value">{dept.lead}</span>
+      </div>
+    </header>
+
+    <div class="dept-content-grid">
+      <!-- Left Column: Department Description & Mission Profile -->
+      <div class="main-column">
+        <section class="section-card" aria-labelledby="mission-profile-heading">
+          <h2 id="mission-profile-heading" class="card-heading">Mission Profile</h2>
+          <div class="prose">
+            <p>{dept.description}</p>
+            <p>
+              As a core division within the Callisto expeditionary architecture, <strong>{dept.themedName}</strong> collaborates directly with adjacent ship modules to synthesize research data, optimize observational telemetry, and execute scheduled public and collegiate campaigns.
+            </p>
+            <p>
+              Crew members assigned here gain hands-on technical proficiencies, project stewardship experience, and mentorship under seasoned student leaders and academic partners.
+            </p>
+          </div>
+        </section>
+
+        <!-- Open Roles List -->
+        {dept.openRoles && dept.openRoles.length > 0 && (
+          <section class="section-card" aria-labelledby="roles-heading">
+            <div class="roles-badge">BOARDING POSITIONS OPEN</div>
+            <h2 id="roles-heading" class="card-heading">Open Flight Roles</h2>
+            <p class="roles-intro">
+              We are actively accepting boarding applications for the following specialized assignments:
+            </p>
+            <ul class="roles-list">
+              {dept.openRoles.map((role) => (
+                <li class="role-item">
+                  <div class="role-bullet" aria-hidden="true"></div>
+                  <div class="role-details">
+                    <span class="role-name">{role}</span>
+                    <span class="role-status">Active Recruitment</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div class="apply-cta-box">
+              <a href="/join" class="btn-primary">
+                <span>Apply to {dept.themedName}</span>
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </a>
+            </div>
+          </section>
+        )}
+      </div>
+
+      <!-- Right Column: Ship Module Schematic & Telemetry -->
+      <aside class="sidebar-column" aria-label="Ship Module Telemetry">
+        <div class="schematic-card">
+          <div class="schematic-header">
+            <span class="schematic-title">MODULE SCHEMATIC</span>
+            <span class="schematic-code">MOD-SYS-{dept.id.toUpperCase()}</span>
+          </div>
+
+          <!-- Stylized Schematic SVG Graphic -->
+          <div class="schematic-art" aria-hidden="true">
+            <svg viewBox="0 0 280 180" width="100%" height="100%">
+              <defs>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="color-mix(in srgb, var(--steel) 20%, transparent)" stroke-width="0.75" />
+                </pattern>
+              </defs>
+              <rect width="280" height="180" fill="url(#grid)" />
+              {/* Outer Module Hexagon */}
+              <polygon points="140,20 230,65 230,135 140,170 50,135 50,65" fill="none" stroke="var(--orbit)" stroke-width="1.5" stroke-dasharray="4 2" />
+              {/* Inner Core Chamber */}
+              <circle cx="140" cy="100" r="32" fill="color-mix(in srgb, var(--navy) 80%, transparent)" stroke="var(--astrophage)" stroke-width="1.5" />
+              <circle cx="140" cy="100" r="16" fill="color-mix(in srgb, var(--astrophage) 25%, transparent)" stroke="var(--moon)" stroke-width="1" />
+              {/* Telemetry Traces */}
+              <line x1="50" y1="65" x2="140" y2="100" stroke="var(--steel)" stroke-width="1" />
+              <line x1="230" y1="65" x2="140" y2="100" stroke="var(--steel)" stroke-width="1" />
+              <line x1="140" y1="170" x2="140" y2="100" stroke="var(--steel)" stroke-width="1" />
+              {/* Sensor Nodes */}
+              <circle cx="50" cy="65" r="3" fill="var(--orbit)" />
+              <circle cx="230" cy="65" r="3" fill="var(--orbit)" />
+              <circle cx="140" cy="20" r="3" fill="var(--star)" />
+              <circle cx="140" cy="170" r="3" fill="var(--star)" />
+            </svg>
+          </div>
+
+          <div class="schematic-details">
+            <div class="telemetry-row">
+              <span class="telemetry-label">STATION MODULE:</span>
+              <span class="telemetry-value">{dept.shipModule}</span>
+            </div>
+            <div class="telemetry-row">
+              <span class="telemetry-label">SECURITY PROTOCOL:</span>
+              <span class="telemetry-value">{moduleDetails.clearanceLevel}</span>
+            </div>
+            <div class="telemetry-row">
+              <span class="telemetry-label">HABITABILITY:</span>
+              <span class="telemetry-value status-active">{moduleDetails.operationalStatus}</span>
+            </div>
+
+            <div class="subsystems-block">
+              <span class="subsystems-heading">ONLINE SUBSYSTEMS:</span>
+              <ul class="subsystems-list">
+                {moduleDetails.subsystems.map((sub) => (
+                  <li>{sub}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .dept-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md) var(--space-3xl);
+  }
+
+  @media (min-width: 768px) {
+    .dept-page-container {
+      padding: var(--space-2xl) var(--space-xl) var(--space-3xl);
+    }
+  }
+
+  /* Back Navigation */
+  .back-nav {
+    margin-bottom: var(--space-xl);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--steel);
+    text-decoration: none;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .back-link:hover,
+  .back-link:focus-visible {
+    color: var(--orbit);
+    transform: translateX(-4px);
+  }
+
+  /* Dept Hero */
+  .dept-hero {
+    margin-bottom: var(--space-2xl);
+    border-bottom: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+    padding-bottom: var(--space-2xl);
+  }
+
+  .dept-meta-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+
+  .module-chip {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--orbit);
+    background: color-mix(in srgb, var(--navy) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--orbit) 35%, transparent);
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .dept-icon-display {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .dept-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .dept-subtitle {
+    font-family: var(--font-body);
+    font-size: clamp(1.125rem, 2vw, 1.35rem);
+    color: var(--star);
+    margin: 0 0 var(--space-lg) 0;
+  }
+
+  .lead-officer-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .lead-label {
+    color: var(--steel);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+  }
+
+  .lead-value {
+    color: var(--astrophage);
+    font-weight: 600;
+  }
+
+  /* Two Column Layout */
+  .dept-content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+
+  @media (min-width: 900px) {
+    .dept-content-grid {
+      grid-template-columns: 1.7fr 1.1fr;
+      align-items: start;
+    }
+  }
+
+  /* Cards */
+  .section-card {
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    margin-bottom: var(--space-xl);
+  }
+
+  .card-heading {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  .prose p {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--star);
+    margin-bottom: var(--space-md);
+  }
+
+  .prose p:last-child {
+    margin-bottom: 0;
+  }
+
+  .prose strong {
+    color: var(--moon);
+  }
+
+  /* Roles */
+  .roles-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--astrophage);
+    margin-bottom: var(--space-xs);
+  }
+
+  .roles-intro {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    color: var(--steel);
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  .roles-list {
+    list-style: none;
+    margin: 0 0 var(--space-xl) 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .role-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background-color: color-mix(in srgb, var(--navy) 40%, transparent);
+    border: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+    border-radius: var(--radius-sm);
+  }
+
+  .role-bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--orbit);
+    box-shadow: 0 0 6px var(--orbit);
+    flex-shrink: 0;
+  }
+
+  .role-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .role-name {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--moon);
+  }
+
+  .role-status {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--steel);
+  }
+
+  .apply-cta-box {
+    margin-top: var(--space-md);
+  }
+
+  /* Schematic Card */
+  .schematic-card {
+    background-color: color-mix(in srgb, var(--navy) 50%, var(--deep));
+    border: 1px solid color-mix(in srgb, var(--orbit) 30%, transparent);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--void) 70%, transparent);
+  }
+
+  .schematic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+    padding-bottom: var(--space-sm);
+  }
+
+  .schematic-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--moon);
+  }
+
+  .schematic-code {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--orbit);
+  }
+
+  .schematic-art {
+    width: 100%;
+    height: 180px;
+    background-color: var(--void);
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-lg);
+    overflow: hidden;
+  }
+
+  .schematic-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .telemetry-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--steel) 15%, transparent);
+    padding-bottom: var(--space-xs);
+  }
+
+  .telemetry-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--steel);
+    letter-spacing: 0.08em;
+  }
+
+  .telemetry-value {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--star);
+  }
+
+  .status-active {
+    color: #4ade80;
+  }
+
+  .subsystems-block {
+    margin-top: var(--space-sm);
+  }
+
+  .subsystems-heading {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--steel);
+    margin-bottom: var(--space-xs);
+    letter-spacing: 0.08em;
+  }
+
+  .subsystems-list {
+    margin: 0;
+    padding-left: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--star);
+    line-height: 1.6;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--orbit), var(--dusk));
+    color: var(--moon);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--orbit) 50%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--orbit) 35%, transparent);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .btn-primary:hover,
+  .btn-primary:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--orbit) 60%, transparent);
+    color: #ffffff;
+    outline: none;
+  }
+</style>

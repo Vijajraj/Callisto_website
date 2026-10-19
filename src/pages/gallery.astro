@@ -1,0 +1,354 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+
+const gallerySlots = [
+  {
+    event: 'Perseid Stargazing & Astrophotography Clinic',
+    date: 'August 2026',
+    target: 'Bolide Meteors & Perseus Double Cluster',
+    slotId: 'ARCHIVE-EXP-0826',
+    aspect: '4:3',
+  },
+  {
+    event: 'Vernal Equinox Cosmic Mixer',
+    date: 'March 2026',
+    target: 'Observatory Rooftop & Lunar Collimation Tournament',
+    slotId: 'ARCHIVE-SOC-0326',
+    aspect: '16:9',
+  },
+  {
+    event: 'Narrowband Deep-Sky Imaging Workshop',
+    date: 'April 2026',
+    target: 'Hydrogen-Alpha Rosetta Nebula Composite',
+    slotId: 'ARCHIVE-WKP-0426',
+    aspect: '1:1',
+  },
+  {
+    event: 'Leonid Meteor Dark Sky Expedition',
+    date: 'November 2026',
+    target: 'Taurus Dark Dust Complexes & Fireballs',
+    slotId: 'ARCHIVE-EXP-1126',
+    aspect: '16:9',
+  },
+  {
+    event: 'Keynote: Interstellar Voyagers and Ocean Moons',
+    date: 'June 2026',
+    target: 'Newton Auditorium Symposium & Q&A Panel',
+    slotId: 'ARCHIVE-TLK-0626',
+    aspect: '4:3',
+  },
+  {
+    event: 'Exoplanet Transit Modeling Hackathon',
+    date: 'December 2026',
+    target: 'Telemetry Data Reduction & Code Sprint Labs',
+    slotId: 'ARCHIVE-HCK-1226',
+    aspect: '16:9',
+  },
+];
+---
+
+<BaseLayout
+  title="Visual Log & Astrophotography Gallery | Callisto Club"
+  description="Astrophotography captures, expedition field photography, and event archives documented by Callisto Club crew members."
+>
+  <div class="gallery-container">
+    <!-- Header -->
+    <header class="gallery-header">
+      <SectionHeading
+        mono="VISUAL LOG"
+        title="Gallery"
+        subtitle="Our visual archives are being compiled. Photos from past events and deep-sky observation campaigns will appear here."
+        align="center"
+      />
+    </header>
+
+    <!-- Archival Status Notice -->
+    <div class="archive-status-banner">
+      <span class="status-radar" aria-hidden="true"></span>
+      <p class="status-msg">
+        <strong>Archival Status:</strong> Nebula Wing is currently calibrating and color-grading raw RAW/FITS frames from recent telescope runs. Final galleries are entering the mission database.
+      </p>
+    </div>
+
+    <!-- 6 Card Grid -->
+    <section class="gallery-grid-section" aria-label="Visual Archives Grid">
+      <div class="gallery-grid">
+        {gallerySlots.map((slot) => (
+          <div class="gallery-card">
+            <div class="image-placeholder-frame">
+              <!-- Geometric Astro SVG Pattern -->
+              <svg class="placeholder-svg" viewBox="0 0 400 260" width="100%" height="100%" aria-hidden="true">
+                <defs>
+                  <radialGradient id={`glow-${slot.slotId}`} cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="var(--orbit)" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="var(--void)" stop-opacity="0" />
+                  </radialGradient>
+                </defs>
+                <rect width="400" height="260" fill="color-mix(in srgb, var(--navy) 60%, var(--void))" />
+                <circle cx="200" cy="130" r="80" fill={`url(#glow-${slot.slotId})`} />
+                {/* Crosshairs & Reticle */}
+                <line x1="200" y1="40" x2="200" y2="220" stroke="color-mix(in srgb, var(--steel) 30%, transparent)" stroke-width="1" stroke-dasharray="4 4" />
+                <line x1="80" y1="130" x2="320" y2="130" stroke="color-mix(in srgb, var(--steel) 30%, transparent)" stroke-width="1" stroke-dasharray="4 4" />
+                <circle cx="200" cy="130" r="45" fill="none" stroke="color-mix(in srgb, var(--orbit) 40%, transparent)" stroke-width="1" />
+                <circle cx="200" cy="130" r="6" fill="none" stroke="var(--astrophage)" stroke-width="1.5" />
+              </svg>
+
+              <div class="frame-tag-overlay">
+                <span class="frame-tag">{slot.slotId}</span>
+              </div>
+            </div>
+
+            <div class="gallery-card-body">
+              <span class="slot-date">{slot.date}</span>
+              <h3 class="slot-title">Image from {slot.event}</h3>
+              <p class="slot-target">Target: {slot.target}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Astrophotography Submission CTA -->
+    <section class="share-cta-section" aria-label="Share Astrophotography">
+      <div class="share-panel">
+        <div class="share-badge">CALL FOR CAPTURES</div>
+        <h2 class="share-title">Share Your Astrophotography</h2>
+        <p class="share-desc">
+          Have you captured the Milky Way core, planetary lunar details, or starry constellations on your camera or phone? Submit your captures to be featured in the official Callisto gallery.
+        </p>
+        <a href="/contact" class="btn-primary">
+          <span>Submit Your Photos &rarr;</span>
+        </a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .gallery-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-md) var(--space-3xl);
+  }
+
+  @media (min-width: 768px) {
+    .gallery-container {
+      padding: var(--space-3xl) var(--space-xl) var(--space-3xl);
+    }
+  }
+
+  .gallery-header {
+    margin-bottom: var(--space-xl);
+  }
+
+  /* Status Banner */
+  .archive-status-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: var(--space-md) var(--space-lg);
+    background-color: color-mix(in srgb, var(--navy) 40%, var(--deep));
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-2xl);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .status-radar {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--astrophage);
+    box-shadow: 0 0 8px var(--astrophage);
+    flex-shrink: 0;
+  }
+
+  .status-msg {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--star);
+    margin: 0;
+  }
+
+  .status-msg strong {
+    color: var(--moon);
+  }
+
+  /* 6 Slot Grid */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-3xl);
+  }
+
+  @media (min-width: 640px) {
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .gallery-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .gallery-card {
+    background-color: var(--deep);
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .gallery-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--orbit);
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--orbit) 25%, transparent);
+  }
+
+  .image-placeholder-frame {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background-color: var(--void);
+    overflow: hidden;
+    border-bottom: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+  }
+
+  .placeholder-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .frame-tag-overlay {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+  }
+
+  .frame-tag {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--steel);
+    background: color-mix(in srgb, var(--void) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.08em;
+  }
+
+  .gallery-card-body {
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .slot-date {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--orbit);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .slot-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--moon);
+    margin: 0;
+  }
+
+  .slot-target {
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    color: var(--steel);
+    margin: var(--space-xs) 0 0 0;
+  }
+
+  /* Share CTA */
+  .share-cta-section {
+    margin-top: var(--space-xl);
+  }
+
+  .share-panel {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--navy) 60%, var(--deep)), var(--deep));
+    border: 1px solid color-mix(in srgb, var(--orbit) 35%, transparent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl) var(--space-xl);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .share-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--astrophage);
+    background: color-mix(in srgb, var(--astrophage) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--astrophage) 35%, transparent);
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-sm);
+  }
+
+  .share-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.875rem, 3.5vw, 2.5rem);
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .share-desc {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--star);
+    max-width: 600px;
+    margin: 0 0 var(--space-xl) 0;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    background: linear-gradient(135deg, var(--orbit), var(--dusk));
+    color: var(--moon);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--orbit) 50%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--orbit) 35%, transparent);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .btn-primary:hover,
+  .btn-primary:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--orbit) 60%, transparent);
+    color: #ffffff;
+    outline: none;
+  }
+</style>

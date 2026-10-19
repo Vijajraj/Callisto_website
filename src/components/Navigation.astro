@@ -1,0 +1,619 @@
+---
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+
+const navLinks: NavLink[] = [
+  { href: '/expedition', label: 'Expedition' },
+  { href: '/about', label: 'About' },
+  { href: '/crew', label: 'Crew' },
+  { href: '/events', label: 'Events' },
+  { href: '/join', label: 'Join' },
+];
+
+const isLinkActive = (href: string): boolean => {
+  if (href === '/') return currentPath === '/';
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+};
+---
+
+<header class="header-container">
+  <nav id="site-nav" class="nav-bar" role="navigation" aria-label="Main navigation">
+    <div class="nav-content">
+      <!-- Left: Logo Link -->
+      <a href="/" class="brand-link" aria-label="Callisto Club — Home">
+        <svg
+          class="nav-logo-svg"
+          viewBox="0 0 40 40"
+          width="40"
+          height="40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <!-- Stylized Celestial Crescent -->
+          <path
+            d="M20 4C11.163 4 4 11.163 4 20C4 28.837 11.163 36 20 36C22.25 36 24.38 35.53 26.31 34.69C20.35 32.96 16 27.48 16 21C16 14.52 20.35 9.04 26.31 7.31C24.38 6.47 22.25 4 20 4Z"
+            fill="url(#crescent-grad)"
+          />
+          <!-- Callisto 4-Point Guide Star -->
+          <path
+            d="M28 14L29.2 18.2L33.4 19.4L29.2 20.6L28 24.8L26.8 20.6L22.6 19.4L26.8 18.2L28 14Z"
+            fill="var(--star)"
+          />
+          <circle cx="28" cy="19.4" r="1.2" fill="var(--moon)" />
+          <defs>
+            <linearGradient id="crescent-grad" x1="4" y1="4" x2="30" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="var(--star)" />
+              <stop offset="55%" stop-color="var(--orbit)" />
+              <stop offset="100%" stop-color="var(--dusk)" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="brand-title">CALLISTO</span>
+      </a>
+
+      <!-- Center: Desktop Nav Links -->
+      <div class="desktop-links">
+        {
+          navLinks.map((link) => {
+            const active = isLinkActive(link.href);
+            return (
+              <a
+                href={link.href}
+                class:list={['nav-link', { active }]}
+                aria-current={active ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            );
+          })
+        }
+      </div>
+
+      <!-- Right: Flat Mode Toggle & Actions -->
+      <div class="nav-right">
+        <button
+          type="button"
+          class="flat-mode-btn"
+          data-flat-toggle
+          aria-label="Toggle Flat Mode"
+          title="Toggle Flat Mode / Immersive Visuals"
+        >
+          <!-- Sun Icon for Immersive Mode -->
+          <svg
+            class="mode-icon icon-sun"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <!-- Moon Icon for Flat Mode -->
+          <svg
+            class="mode-icon icon-moon"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span class="mode-label">FLAT</span>
+        </button>
+
+        <!-- Mobile Hamburger Button -->
+        <button
+          type="button"
+          id="mobile-menu-btn"
+          class="hamburger-btn"
+          aria-label="Toggle navigation menu"
+          aria-expanded="false"
+          aria-controls="mobile-nav-panel"
+        >
+          <span class="bar line-top"></span>
+          <span class="bar line-middle"></span>
+          <span class="bar line-bottom"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-nav-panel" class="mobile-menu-panel" aria-hidden="true">
+      <div class="mobile-menu-links">
+        {
+          navLinks.map((link) => {
+            const active = isLinkActive(link.href);
+            return (
+              <a
+                href={link.href}
+                class:list={['mobile-nav-link', { active }]}
+                aria-current={active ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            );
+          })
+        }
+      </div>
+
+      <div class="mobile-menu-footer">
+        <button
+          type="button"
+          class="flat-mode-btn mobile-flat-btn"
+          data-flat-toggle
+          aria-label="Toggle Flat Mode"
+        >
+          <svg
+            class="mode-icon icon-sun"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg
+            class="mode-icon icon-moon"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span>Switch Display Mode</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .header-container {
+    position: relative;
+    z-index: var(--z-nav, 900);
+  }
+
+  .nav-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    background: rgba(6, 9, 25, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .nav-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Logo Link */
+  .brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--moon);
+    transition: opacity 0.2s ease;
+  }
+
+  .nav-logo-svg {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    transition: filter 0.3s ease, transform 0.3s ease;
+  }
+
+  .brand-link:hover .nav-logo-svg,
+  .brand-link:focus-visible .nav-logo-svg {
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--orbit) 75%, transparent));
+    transform: scale(1.05);
+  }
+
+  .brand-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--moon);
+  }
+
+  /* Desktop Nav Links */
+  .desktop-links {
+    display: none;
+    align-items: center;
+    gap: var(--space-lg);
+  }
+
+  .nav-link {
+    position: relative;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--star);
+    text-decoration: none;
+    padding: 0.5rem 0.25rem;
+    transition: color 0.2s ease;
+  }
+
+  /* Subtle Underline Animation */
+  .nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--orbit), var(--astrophage));
+    border-radius: 1px;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nav-link:hover {
+    color: var(--moon);
+  }
+
+  .nav-link:hover::before {
+    transform: scaleX(1);
+  }
+
+  /* Active Link with Dot Indicator */
+  .nav-link.active {
+    color: var(--orbit);
+    font-weight: 600;
+  }
+
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--orbit);
+    box-shadow: 0 0 8px var(--orbit);
+  }
+
+  /* Right Section & Flat Mode Toggle */
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .flat-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    background: color-mix(in srgb, var(--navy) 65%, transparent);
+    border: 1px solid color-mix(in srgb, var(--steel) 40%, transparent);
+    border-radius: var(--radius-md);
+    color: var(--star);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .flat-mode-btn:hover,
+  .flat-mode-btn:focus-visible {
+    color: var(--moon);
+    border-color: var(--orbit);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--orbit) 35%, transparent);
+    outline: none;
+  }
+
+  .mode-icon {
+    display: inline-flex;
+  }
+
+  :global(html:not(.flat-mode)) .icon-moon {
+    display: none !important;
+  }
+
+  :global(html:not(.flat-mode)) .icon-sun {
+    display: inline-flex !important;
+  }
+
+  :global(html.flat-mode) .icon-sun {
+    display: none !important;
+  }
+
+  :global(html.flat-mode) .icon-moon {
+    display: inline-flex !important;
+  }
+
+  :global(html.flat-mode) .mode-label::before {
+    content: 'DEEP ';
+  }
+
+  :global(html:not(.flat-mode)) .mode-label::before {
+    content: '';
+  }
+
+  /* Mobile Hamburger Toggle */
+  .hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 38px;
+    height: 38px;
+    padding: 8px 6px;
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--moon);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .hamburger-btn:hover,
+  .hamburger-btn:focus-visible {
+    border-color: var(--orbit);
+    background: color-mix(in srgb, var(--navy) 40%, transparent);
+    outline: none;
+  }
+
+  .bar {
+    width: 100%;
+    height: 2px;
+    background-color: var(--moon);
+    border-radius: 2px;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    transform-origin: center;
+  }
+
+  /* Hamburger to 'X' animation */
+  .nav-bar[data-open='true'] .line-top {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .nav-bar[data-open='true'] .line-middle {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  .nav-bar[data-open='true'] .line-bottom {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* Mobile Menu Overlay */
+  .mobile-menu-panel {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 64px);
+    background: rgba(6, 9, 25, 0.98);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2xl) var(--space-md);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .nav-bar[data-open='true'] .mobile-menu-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .mobile-menu-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xl);
+    width: 100%;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
+  .mobile-nav-link {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--star);
+    text-decoration: none;
+    position: relative;
+    padding: 0.5rem 1rem;
+    transition: color 0.2s ease;
+  }
+
+  .mobile-nav-link:hover,
+  .mobile-nav-link:focus-visible {
+    color: var(--moon);
+    outline: none;
+  }
+
+  .mobile-nav-link.active {
+    color: var(--orbit);
+  }
+
+  .mobile-nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--orbit);
+    box-shadow: 0 0 10px var(--orbit);
+  }
+
+  .mobile-menu-footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: var(--space-xl);
+    border-top: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+  }
+
+  .mobile-flat-btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  /* Desktop Breakpoint */
+  @media (min-width: 769px) {
+    .nav-content {
+      padding: 0 var(--space-xl);
+    }
+
+    .desktop-links {
+      display: flex;
+    }
+
+    .hamburger-btn {
+      display: none;
+    }
+
+    .mobile-menu-panel {
+      display: none;
+    }
+  }
+
+  /* Focus ring management */
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--orbit);
+    outline-offset: 3px;
+  }
+</style>
+
+<script>
+  function initializeNav() {
+    const nav = document.getElementById('site-nav');
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const flatButtons = document.querySelectorAll('[data-flat-toggle]');
+    const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+    const mobilePanel = document.getElementById('mobile-nav-panel');
+
+    if (!nav || !menuBtn) return;
+
+    function openMobileMenu() {
+      nav.setAttribute('data-open', 'true');
+      menuBtn.setAttribute('aria-expanded', 'true');
+      if (mobilePanel) mobilePanel.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      nav.removeAttribute('data-open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+      if (mobilePanel) mobilePanel.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    menuBtn.addEventListener('click', () => {
+      const isOpen = nav.getAttribute('data-open') === 'true';
+      if (isOpen) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    });
+
+    // Close on Escape key press
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && nav.getAttribute('data-open') === 'true') {
+        closeMobileMenu();
+        menuBtn.focus();
+      }
+    });
+
+    // Close when mobile navigation links are clicked
+    mobileLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        closeMobileMenu();
+      });
+    });
+
+    // Flat Mode Toggle handler
+    flatButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const isCurrentlyFlat = document.documentElement.classList.toggle('flat-mode');
+        try {
+          localStorage.setItem('callisto-flat-mode', isCurrentlyFlat ? 'true' : 'false');
+        } catch (e) {
+          /* LocalStorage access might be disabled */
+        }
+      });
+    });
+  }
+
+  // Run on initial page load and on Astro view transition updates
+  initializeNav();
+  document.addEventListener('astro:page-load', initializeNav);
+</script>
