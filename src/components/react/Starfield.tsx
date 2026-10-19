@@ -24,11 +24,36 @@ interface Star {
   colorRgb: string; // e.g., '247, 245, 255'
 }
 
+interface Meteor {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  length: number;
+  thickness: number;
+  opacity: number;
+  decay: number;
+  color: string;
+}
+
+interface CosmicRipple {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  opacity: number;
+  color: string;
+}
+
 /**
- * Starfield: Canvas-based performant background starfield.
- * Features slow organic drift, subtle mouse parallax depth,
- * sinusoidal twinkling, chromatic stellar classification tints,
- * and telescopic diffraction spikes on beacon stars.
+ * Starfield: High-performance interactive background starfield.
+ * Features:
+ * - Sinusoidal twinkling & parallax depth
+ * - Interactive click/touch cosmic ripple waves
+ * - Warp drive acceleration pulse on click or 'W' keypress
+ * - Spontaneous luminous shooting stars (meteors)
+ * - Telescopic diffraction spikes on beacon stars
+ * - Strict prefers-reduced-motion support
  */
 export default function Starfield({
   density = 1.0,
@@ -55,12 +80,16 @@ export default function Starfield({
     let currentMouseX = 0;
     let currentMouseY = 0;
 
+    // Warp acceleration state
+    let warpFactor = 1.0;
+    let targetWarpFactor = 1.0;
+
     // Detect prefers-reduced-motion
     const prefersReducedMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches;
 
-    // Palette tints based on design system
+    // Palette tints based on design system tokens
     const colorPalette = [
       '247, 245, 255', // --moon (primary stellar white)
       '247, 245, 255',
@@ -72,37 +101,34 @@ export default function Starfield({
       '201, 138, 102', // --sol-dust (warm reddish star)
     ];
 
-    // Compute star count based on viewport area and density prop (clamped between 400 and 800 at 1x density)
     const computeStarCount = (w: number, h: number): number => {
       const area = w * h;
-      const base = Math.floor(Math.min(800, Math.max(400, area / 2400)));
+      const base = Math.floor(Math.min(750, Math.max(380, area / 2600)));
       return Math.round(base * Math.max(0.2, Math.min(density, 2.5)));
     };
 
     let stars: Star[] = [];
+    let meteors: Meteor[] = [];
+    let ripples: CosmicRipple[] = [];
+    let nextMeteorTime = performance.now() + 3000 + Math.random() * 4000;
 
     const initStars = () => {
       const starCount = computeStarCount(width, height);
       stars = [];
 
-      // Determine spike count (5 to 10 prominent stars)
       const spikeIndices = new Set<number>();
-      const totalSpikes = Math.floor(Math.random() * 6) + 5; // 5 - 10
+      const totalSpikes = Math.floor(Math.random() * 6) + 6;
       while (spikeIndices.size < totalSpikes && spikeIndices.size < starCount) {
         spikeIndices.add(Math.floor(Math.random() * starCount));
       }
 
       for (let i = 0; i < starCount; i++) {
         const isSpikeStar = spikeIndices.has(i);
-        // Size: 0.5px - 2.5px. Spiked stars are in the upper range (1.8 - 2.5px)
         const size = isSpikeStar
           ? Math.random() * 0.7 + 1.8
           : Math.random() * 1.8 + 0.5;
 
-        // Depth correlates with size
         const parallaxDepth = 0.15 + (size / 2.5) * 0.75;
-
-        // Base opacity
         const baseOpacity = isSpikeStar
           ? Math.random() * 0.2 + 0.8
           : Math.random() * 0.75 + 0.2;
@@ -125,7 +151,46 @@ export default function Starfield({
       }
     };
 
-    // Handle high DPI scaling
+    const spawnMeteor = (startX?: number, startY?: number) => {
+      if (prefersReducedMotion) return;
+      const originX = startX !== undefined ? startX : Math.random() * width * 0.8 + width * 0.1;
+      const originY = startY !== undefined ? startY : Math.random() * (height * 0.4);
+      const angle = (Math.PI / 4) + (Math.random() * 0.4 - 0.2); // ~45 deg downward-right
+      const velocity = 550 + Math.random() * 400; // px/sec
+
+      meteors.push({
+        x: originX,
+        y: originY,
+        vx: Math.cos(angle) * velocity,
+        vy: Math.sin(angle) * velocity,
+        length: 100 + Math.random() * 140,
+        thickness: 1.5 + Math.random() * 1.5,
+        opacity: 0.95,
+        decay: 0.7 + Math.random() * 0.4,
+        color: Math.random() > 0.4 ? '255, 184, 107' : '207, 203, 242',
+      });
+    };
+
+    const spawnRipple = (x: number, y: number) => {
+      if (prefersReducedMotion) return;
+      ripples.push({
+        x,
+        y,
+        radius: 2,
+        maxRadius: 140,
+        opacity: 0.8,
+        color: '156, 132, 214', // var(--orbit)
+      });
+    };
+
+    const triggerWarpPulse = () => {
+      if (prefersReducedMotion) return;
+      targetWarpFactor = 7.5;
+      window.setTimeout(() => {
+        targetWarpFactor = 1.0;
+      }, 700);
+    };
+
     const resizeCanvas = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
@@ -142,7 +207,6 @@ export default function Starfield({
 
     // Mouse movement listener
     const handleMouseMove = (e: MouseEvent) => {
-      // Offset relative to center of screen: -1 to +1
       targetMouseX = (e.clientX - width / 2) / (width / 2);
       targetMouseY = (e.clientY - height / 2) / (height / 2);
     };
@@ -155,10 +219,34 @@ export default function Starfield({
       }
     };
 
+    // Click handler: trigger cosmic ripple and subtle warp impulse
+    const handleWindowClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      // Don't interfere with form inputs, buttons or link clicks
+      if (target && (target.closest('input') || target.closest('textarea') || target.closest('select'))) {
+        return;
+      }
+      spawnRipple(e.clientX, e.clientY);
+      if (Math.random() > 0.5) {
+        spawnMeteor(e.clientX - 60, e.clientY - 60);
+      }
+      triggerWarpPulse();
+    };
+
+    // Keyboard 'W' key for warp drive toggle
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'w' || e.key === 'W') {
+        triggerWarpPulse();
+        spawnMeteor();
+      }
+    };
+
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('click', handleWindowClick, { passive: true });
+    window.addEventListener('keydown', handleKeyDown);
 
-    // Debounced window resize
     let resizeTimeout: number;
     const handleResize = () => {
       window.clearTimeout(resizeTimeout);
@@ -177,28 +265,29 @@ export default function Starfield({
       currentMouseX += (targetMouseX - currentMouseX) * 0.05;
       currentMouseY += (targetMouseY - currentMouseY) * 0.05;
 
+      // Smooth warp lerp
+      warpFactor += (targetWarpFactor - warpFactor) * 0.1;
+
       ctx.clearRect(0, 0, width, height);
 
-      // Parallax max pixel shift
       const maxParallaxShift = 30;
 
+      // 1. Draw Starfield
       for (let i = 0; i < stars.length; i++) {
         const star = stars[i];
 
         if (!prefersReducedMotion) {
-          // Slow continuous drift to left and slightly up
-          const driftX = -10 * star.parallaxDepth * speed * dt;
-          const driftY = -4 * star.parallaxDepth * speed * dt;
+          const effectiveSpeed = speed * (warpFactor > 1.2 ? warpFactor * 3.5 : 1.0);
+          const driftX = -12 * star.parallaxDepth * effectiveSpeed * dt;
+          const driftY = -5 * star.parallaxDepth * effectiveSpeed * dt;
           star.x += driftX;
           star.y += driftY;
 
-          // Wrap around canvas boundaries
-          if (star.x < -10) star.x = width + 10;
-          if (star.x > width + 10) star.x = -10;
-          if (star.y < -10) star.y = height + 10;
-          if (star.y > height + 10) star.y = -10;
+          if (star.x < -20) star.x = width + 20;
+          if (star.x > width + 20) star.x = -20;
+          if (star.y < -20) star.y = height + 20;
+          if (star.y > height + 20) star.y = -20;
 
-          // Twinkle formula: sinusoidal oscillation
           const twinkle = Math.sin(now * 0.001 * star.twinkleSpeed + star.twinklePhase);
           star.currentOpacity = Math.max(
             0.15,
@@ -208,62 +297,129 @@ export default function Starfield({
           star.currentOpacity = star.baseOpacity;
         }
 
-        // Apply mouse shift opposite to cursor
         const shiftedX =
           star.x - currentMouseX * maxParallaxShift * star.parallaxDepth;
         const shiftedY =
           star.y - currentMouseY * maxParallaxShift * star.parallaxDepth;
 
-        // Normalised drawing position with screen wrap for seamless edges
         const drawX = ((shiftedX % width) + width) % width;
         const drawY = ((shiftedY % height) + height) % height;
 
-        // Draw radial star body
-        const radius = star.size;
-        const gradient = ctx.createRadialGradient(
-          drawX,
-          drawY,
-          0,
-          drawX,
-          drawY,
-          radius * 1.5
-        );
-        gradient.addColorStop(0, `rgba(${star.colorRgb}, ${star.currentOpacity})`);
-        gradient.addColorStop(
-          0.4,
-          `rgba(${star.colorRgb}, ${star.currentOpacity * 0.7})`
-        );
-        gradient.addColorStop(1, `rgba(${star.colorRgb}, 0)`);
-
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(drawX, drawY, radius * 1.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw diffraction cross spikes for designated beacon stars
-        if (star.hasSpike) {
-          const spikeLength = radius * 4.5;
-          const spikeAlpha = star.currentOpacity * 0.6;
-
-          ctx.strokeStyle = `rgba(${star.colorRgb}, ${spikeAlpha})`;
-          ctx.lineWidth = 0.75;
-
-          // Horizontal spike
+        // Warp Streak Effect when warpFactor > 1.8
+        if (warpFactor > 1.8 && !prefersReducedMotion) {
+          const streakLen = star.size * warpFactor * 4 * star.parallaxDepth;
+          ctx.strokeStyle = `rgba(${star.colorRgb}, ${star.currentOpacity * 0.8})`;
+          ctx.lineWidth = Math.max(0.75, star.size * 0.8);
           ctx.beginPath();
-          ctx.moveTo(drawX - spikeLength, drawY);
-          ctx.lineTo(drawX + spikeLength, drawY);
+          ctx.moveTo(drawX, drawY);
+          ctx.lineTo(drawX + streakLen, drawY + streakLen * 0.4);
+          ctx.stroke();
+        } else {
+          // Standard radial star body
+          const radius = star.size;
+          const gradient = ctx.createRadialGradient(
+            drawX,
+            drawY,
+            0,
+            drawX,
+            drawY,
+            radius * 1.5
+          );
+          gradient.addColorStop(0, `rgba(${star.colorRgb}, ${star.currentOpacity})`);
+          gradient.addColorStop(
+            0.4,
+            `rgba(${star.colorRgb}, ${star.currentOpacity * 0.7})`
+          );
+          gradient.addColorStop(1, `rgba(${star.colorRgb}, 0)`);
+
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(drawX, drawY, radius * 1.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Diffraction cross spikes for designated beacon stars
+          if (star.hasSpike) {
+            const spikeLength = radius * 4.5;
+            const spikeAlpha = star.currentOpacity * 0.6;
+
+            ctx.strokeStyle = `rgba(${star.colorRgb}, ${spikeAlpha})`;
+            ctx.lineWidth = 0.75;
+
+            ctx.beginPath();
+            ctx.moveTo(drawX - spikeLength, drawY);
+            ctx.lineTo(drawX + spikeLength, drawY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(drawX, drawY - spikeLength);
+            ctx.lineTo(drawX, drawY + spikeLength);
+            ctx.stroke();
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${star.currentOpacity})`;
+            ctx.beginPath();
+            ctx.arc(drawX, drawY, 0.75, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // 2. Cosmic Ripples
+      if (!prefersReducedMotion) {
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const rip = ripples[i];
+          rip.radius += 120 * dt;
+          rip.opacity -= 1.1 * dt;
+
+          if (rip.opacity <= 0 || rip.radius >= rip.maxRadius) {
+            ripples.splice(i, 1);
+            continue;
+          }
+
+          ctx.strokeStyle = `rgba(${rip.color}, ${rip.opacity})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(rip.x, rip.y, rip.radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      // 3. Spontaneous Shooting Stars / Meteors
+      if (!prefersReducedMotion) {
+        if (now > nextMeteorTime) {
+          spawnMeteor();
+          nextMeteorTime = now + 5000 + Math.random() * 7000;
+        }
+
+        for (let i = meteors.length - 1; i >= 0; i--) {
+          const m = meteors[i];
+          m.x += m.vx * dt;
+          m.y += m.vy * dt;
+          m.opacity -= m.decay * dt;
+
+          if (m.opacity <= 0 || m.x > width + 200 || m.y > height + 200) {
+            meteors.splice(i, 1);
+            continue;
+          }
+
+          const tailX = m.x - (m.vx / 500) * m.length;
+          const tailY = m.y - (m.vy / 500) * m.length;
+
+          const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
+          grad.addColorStop(0, `rgba(255, 255, 255, ${m.opacity})`);
+          grad.addColorStop(0.3, `rgba(${m.color}, ${m.opacity * 0.8})`);
+          grad.addColorStop(1, `rgba(${m.color}, 0)`);
+
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = m.thickness;
+          ctx.beginPath();
+          ctx.moveTo(m.x, m.y);
+          ctx.lineTo(tailX, tailY);
           ctx.stroke();
 
-          // Vertical spike
+          // Meteor core glow
+          ctx.fillStyle = `rgba(255, 255, 255, ${m.opacity})`;
           ctx.beginPath();
-          ctx.moveTo(drawX, drawY - spikeLength);
-          ctx.lineTo(drawX, drawY + spikeLength);
-          ctx.stroke();
-
-          // Core pinpoint
-          ctx.fillStyle = `rgba(255, 255, 255, ${star.currentOpacity})`;
-          ctx.beginPath();
-          ctx.arc(drawX, drawY, 0.75, 0, Math.PI * 2);
+          ctx.arc(m.x, m.y, m.thickness * 1.2, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -274,7 +430,6 @@ export default function Starfield({
     };
 
     if (prefersReducedMotion) {
-      // Draw single frame for users who prefer reduced motion
       drawScene(performance.now());
     } else {
       animationFrameId = requestAnimationFrame(drawScene);
@@ -284,6 +439,8 @@ export default function Starfield({
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('click', handleWindowClick);
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
       window.clearTimeout(resizeTimeout);
     };

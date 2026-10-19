@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
+import TelescopeSimulator from '../components/react/TelescopeSimulator';
 
 const celestialTargets = [
   { name: 'Jupiter (Great Red Spot Transit)', constellation: 'Taurus', magnitude: '-2.7', bestViewing: '22:00 – 02:30 IST' },
@@ -24,6 +25,11 @@ const celestialTargets = [
         align="center"
       />
     </header>
+
+    <!-- Interactive Telescope Eyepiece Simulator Island -->
+    <section class="simulator-section" aria-label="Interactive Optical Telescope Eyepiece">
+      <TelescopeSimulator client:load />
+    </section>
 
     <!-- Tonight's Sky Section -->
     <section class="sky-section" aria-labelledby="sky-heading">

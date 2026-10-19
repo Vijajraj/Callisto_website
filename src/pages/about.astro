@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
+import JovianOrrery from '../components/react/JovianOrrery';
 import { getSolCount } from '../lib/utils';
 import { departments } from '../data/departments';
 import { events } from '../data/events';
@@ -79,6 +80,10 @@ const stats = [
             We took the name <strong>Callisto</strong> because our club was founded upon the same ethos. We are a sanctuary for curious minds—a student-led vessel where engineers, artists, astrophysicists, and night-sky dreamers congregate to build tools, chart constellations, and venture fearlessly toward the horizon of discovery.
           </p>
         </div>
+      </div>
+
+      <div class="orrery-wrapper">
+        <JovianOrrery client:visible />
       </div>
     </section>
 
@@ -160,6 +165,10 @@ const stats = [
   /* Origin Story Section */
   .story-section {
     margin-bottom: var(--space-3xl);
+  }
+
+  .orrery-wrapper {
+    margin-top: var(--space-2xl);
   }
 
   .story-card {

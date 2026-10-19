@@ -1,13 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
-import EventCard from '../../components/EventCard.astro';
 import EventCountdown from '../../components/react/EventCountdown';
-import { getUpcomingEvents, getPastEvents } from '../../data/events';
+import EventExplorer from '../../components/react/EventExplorer';
+import { events, getUpcomingEvents } from '../../data/events';
 
 const upcomingEvents = getUpcomingEvents();
-const pastEvents = getPastEvents();
-
 const nextUpcoming = upcomingEvents.length > 0 ? upcomingEvents[0] : null;
 ---
 
@@ -21,7 +19,7 @@ const nextUpcoming = upcomingEvents.length > 0 ? upcomingEvents[0] : null;
       <SectionHeading
         mono="LAUNCH SCHEDULE"
         title="Events & Expeditions"
-        subtitle="From all-night dark sky star parties to 36-hour data science sprints, join our upcoming astronomical missions."
+        subtitle="From all-night dark sky star parties to 36-hour data science sprints, explore our mission logs with real-time telemetry filters."
         align="center"
       />
     </header>
@@ -40,62 +38,9 @@ const nextUpcoming = upcomingEvents.length > 0 ? upcomingEvents[0] : null;
       </section>
     )}
 
-    <!-- Upcoming Events Section -->
-    <section class="events-group-section" aria-labelledby="upcoming-heading">
-      <div class="group-header">
-        <div class="group-title-wrap">
-          <span class="status-indicator-green" aria-hidden="true"></span>
-          <h2 id="upcoming-heading" class="group-title">Upcoming Launches</h2>
-        </div>
-        <span class="group-count">{upcomingEvents.length} Active Missions</span>
-      </div>
-
-      {upcomingEvents.length > 0 ? (
-        <div class="events-grid">
-          {upcomingEvents.map((event) => (
-            <EventCard
-              slug={event.slug}
-              title={event.title}
-              date={event.date}
-              description={event.description}
-              location={event.location}
-              type={event.type}
-              registrationOpen={event.registrationOpen}
-            />
-          ))}
-        </div>
-      ) : (
-        <div class="empty-state">
-          <p>All scheduled expeditions have successfully completed. New mission trajectories will be announced shortly.</p>
-        </div>
-      )}
-    </section>
-
-    <!-- Past Missions Section -->
-    <section class="events-group-section past-group-section" aria-labelledby="past-heading">
-      <div class="group-header">
-        <div class="group-title-wrap">
-          <span class="status-indicator-muted" aria-hidden="true"></span>
-          <h2 id="past-heading" class="group-title">Past Missions Archive</h2>
-        </div>
-        <span class="group-count">{pastEvents.length} Concluded Expeditions</span>
-      </div>
-
-      <div class="events-grid past-grid">
-        {pastEvents.map((event) => (
-          <div class="past-card-wrapper">
-            <EventCard
-              slug={event.slug}
-              title={event.title}
-              date={event.date}
-              description={event.description}
-              location={event.location}
-              type={event.type}
-              registrationOpen={false}
-            />
-          </div>
-        ))}
-      </div>
+    <!-- Interactive Event Explorer Island -->
+    <section class="events-explorer-section" aria-label="Interactive Expedition Event Browser">
+      <EventExplorer client:load initialEvents={events} />
     </section>
 
     <!-- Suggest Event CTA -->
@@ -156,97 +101,9 @@ const nextUpcoming = upcomingEvents.length > 0 ? upcomingEvents[0] : null;
     margin-bottom: var(--space-md);
   }
 
-  /* Group Header */
-  .events-group-section {
+  /* Explorer Section */
+  .events-explorer-section {
     margin-bottom: var(--space-3xl);
-  }
-
-  .group-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
-    padding-bottom: var(--space-sm);
-    margin-bottom: var(--space-xl);
-  }
-
-  .group-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .status-indicator-green {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #22c55e;
-    box-shadow: 0 0 8px #22c55e;
-  }
-
-  .status-indicator-muted {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--steel);
-  }
-
-  .group-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: 600;
-    color: var(--moon);
-    margin: 0;
-  }
-
-  .group-count {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--steel);
-    letter-spacing: 0.08em;
-  }
-
-  /* Events Grid */
-  .events-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-xl);
-  }
-
-  @media (min-width: 640px) {
-    .events-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .events-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  /* Past Grid Muted Styling */
-  .past-group-section {
-    opacity: 0.9;
-  }
-
-  .past-card-wrapper {
-    filter: grayscale(0.25);
-    transition: filter 0.25s ease;
-  }
-
-  .past-card-wrapper:hover {
-    filter: grayscale(0);
-  }
-
-  .empty-state {
-    padding: var(--space-2xl);
-    text-align: center;
-    background-color: var(--deep);
-    border-radius: var(--radius-md);
-    border: 1px dashed color-mix(in srgb, var(--steel) 30%, transparent);
-    font-family: var(--font-body);
-    color: var(--steel);
   }
 
   /* Suggest CTA */

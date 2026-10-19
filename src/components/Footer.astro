@@ -6,12 +6,20 @@ interface FooterLink {
   label: string;
 }
 
-const quickLinks: FooterLink[] = [
-  { href: '/about', label: 'About' },
-  { href: '/crew', label: 'Crew' },
-  { href: '/events', label: 'Events' },
-  { href: '/join', label: 'Join' },
-  { href: '/join#contact', label: 'Contact' },
+const expeditionLinks: FooterLink[] = [
+  { href: '/expedition', label: 'Flight Deck Simulator' },
+  { href: '/observatory', label: 'Virtual Telescope' },
+  { href: '/missions', label: 'Classified Missions' },
+  { href: '/gallery', label: 'Astrophotography' },
+  { href: '/avatar', label: 'Spacesuit Fabricator' },
+];
+
+const operationsLinks: FooterLink[] = [
+  { href: '/events', label: 'Launch Schedule' },
+  { href: '/crew', label: 'Ship Modules & Crew' },
+  { href: '/about', label: 'Mission Charter' },
+  { href: '/join', label: 'Cadet Recruitment' },
+  { href: '/contact', label: 'Transmissions' },
 ];
 ---
 
@@ -57,12 +65,28 @@ const quickLinks: FooterLink[] = [
         </div>
       </div>
 
-      <!-- Column 2: Quick Links -->
+      <!-- Column 2: Expedition Systems Links -->
       <div class="footer-col links-col">
-        <h3 class="footer-heading">Navigation</h3>
+        <h3 class="footer-heading">Expedition</h3>
         <ul class="footer-links-list">
           {
-            quickLinks.map((item) => (
+            expeditionLinks.map((item) => (
+              <li>
+                <a href={item.href} class="footer-link">
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- Column 3: Club Operations Links -->
+      <div class="footer-col links-col">
+        <h3 class="footer-heading">Operations</h3>
+        <ul class="footer-links-list">
+          {
+            operationsLinks.map((item) => (
               <li>
                 <a href={item.href} class="footer-link">
                   {item.label}
@@ -394,11 +418,11 @@ const quickLinks: FooterLink[] = [
     transform: translateY(-2px);
   }
 
-  /* Desktop 3 Columns Layout */
+  /* Desktop 4 Columns Layout */
   @media (min-width: 768px) {
     .footer-grid {
-      grid-template-columns: 2fr 1fr 1.5fr;
-      gap: var(--space-2xl);
+      grid-template-columns: 1.8fr 1fr 1fr 1.3fr;
+      gap: var(--space-xl);
     }
 
     .footer-bottom {

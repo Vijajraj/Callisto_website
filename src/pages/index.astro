@@ -5,6 +5,7 @@ import DepartmentCard from '../components/DepartmentCard.astro';
 import Starfield from '../components/react/Starfield';
 import CrescentLoader from '../components/react/CrescentLoader';
 import EventCountdown from '../components/react/EventCountdown';
+import JovianOrrery from '../components/react/JovianOrrery';
 import { departments } from '../data/departments';
 import { getUpcomingEvents } from '../data/events';
 import { getSolCount } from '../lib/utils';
@@ -98,6 +99,21 @@ const previewDepartments = departments.slice(0, 5);
             Find your flight crew among 11 interdisciplinary ship wings. Build enduring bonds at stargazing campouts, campus hackathons, and global space symposia.
           </p>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jovian System Orrery Section -->
+  <section class="orrery-section" aria-label="Jovian System Orbital Orrery">
+    <div class="content-wrapper">
+      <SectionHeading
+        mono="CELESTIAL HARBOR"
+        title="Explore The Jovian System"
+        subtitle="Callisto orbits safely beyond Jupiter's intense radiation belt. Explore the Galilean moons, simulate orbital periods in real-time, and inspect telemetry."
+        align="center"
+      />
+      <div class="orrery-island-wrapper">
+        <JovianOrrery client:visible />
       </div>
     </div>
   </section>
@@ -707,5 +723,15 @@ const previewDepartments = departments.slice(0, 5);
 
   .cta-btn {
     min-width: 180px;
+  }
+
+  /* Jovian Orrery Section */
+  .orrery-section {
+    padding: var(--space-3xl) 0;
+    position: relative;
+  }
+
+  .orrery-island-wrapper {
+    margin-top: var(--space-2xl);
   }
 </style>

@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
+import SoundHud from '../components/react/SoundHud';
 
 interface Props {
   title: string;
@@ -76,6 +77,8 @@ const ogImageUrl = ogImage
     </main>
 
     <Footer />
+
+    <SoundHud client:idle />
   </body>
 </html>
 

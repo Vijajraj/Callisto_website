@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
+import ExpeditionSimulator from '../components/react/ExpeditionSimulator';
 
 const acts = [
   {
@@ -65,17 +66,10 @@ const acts = [
       />
     </header>
 
-    <!-- Coming Soon Callout -->
-    <div class="teaser-alert-box">
-      <div class="alert-pulse"></div>
-      <div class="alert-content">
-        <span class="alert-tag">SIMULATION PROTOCOL IN DEVELOPMENT</span>
-        <h2 class="alert-title">Coming Soon — The Full Interactive Odyssey</h2>
-        <p class="alert-desc">
-          Phase 2 will unlock full 3D WebGL orbital mechanics, interactive cockpit controls, soundscapes, and branching narrative decisions. Below is your early mission briefing.
-        </p>
-      </div>
-    </div>
+    <!-- Interactive Cockpit Flight Simulator Island -->
+    <section class="simulator-section" aria-label="Interactive Expedition Flight Deck">
+      <ExpeditionSimulator client:load />
+    </section>
 
     <!-- Vertical Timeline of Acts -->
     <section class="timeline-section" aria-label="Expedition Acts Timeline">
@@ -166,69 +160,9 @@ const acts = [
     margin-bottom: var(--space-2xl);
   }
 
-  /* Teaser Alert Box */
-  .teaser-alert-box {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-md);
-    background: linear-gradient(135deg, color-mix(in srgb, var(--navy) 70%, var(--deep)), var(--deep));
-    border: 1px solid color-mix(in srgb, var(--orbit) 35%, transparent);
-    border-radius: var(--radius-lg);
-    padding: var(--space-xl);
+  /* Flight Simulator Section */
+  .simulator-section {
     margin-bottom: var(--space-3xl);
-    box-shadow: 0 0 24px color-mix(in srgb, var(--orbit) 15%, transparent);
-  }
-
-  .alert-pulse {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--astrophage);
-    box-shadow: 0 0 10px var(--astrophage);
-    flex-shrink: 0;
-    margin-top: 0.35rem;
-    animation: alertPulse 2s infinite ease-in-out;
-  }
-
-  @keyframes alertPulse {
-    0%, 100% {
-      opacity: 0.5;
-      transform: scale(0.9);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.2);
-    }
-  }
-
-  .alert-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .alert-tag {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    color: var(--astrophage);
-  }
-
-  .alert-title {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--moon);
-    margin: 0;
-  }
-
-  .alert-desc {
-    font-family: var(--font-body);
-    font-size: 0.9375rem;
-    line-height: 1.6;
-    color: var(--star);
-    margin: 0;
   }
 
   /* Timeline */
