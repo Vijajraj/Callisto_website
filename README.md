@@ -1,15 +1,15 @@
-# 🪐 Callisto Astronomy Club — Expedition Portal
+# Callisto Astronomy Club — Expedition Portal
 
 > **A journey to the edge of wonder. Your mission begins here.**  
 > The official web portal for Callisto Club — the collegiate astronomy, space robotics, and observational astrophysics collective of Chennai Institute of Technology (CIT).
 
 ---
 
-## 🛰️ Overview
+## Overview
 
 The **Callisto Expedition** website is an immersive, space-grade web experience designed with Astro 5 and interactive React 19 islands. Built as an interstellar vessel manifest, each club division represents an active module on the ship, leading stargazing expeditions, telescope clinics, exoplanet transit research, and space hackathons.
 
-### ✨ Key Features
+### Key Features
 - **Act 0 Pre-Launch Loader**: Custom SVG arc drawing, starburst morphing, and typewriter telemetry initialization.
 - **Dynamic Starfield Engine**: Multi-depth canvas starfield with organic drift, twinkling, and mouse parallax.
 - **Live Launch Countdown**: Real-time telemetry countdown timers with launched state handling.
@@ -20,7 +20,7 @@ The **Callisto Expedition** website is an immersive, space-grade web experience 
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## Tech Stack & Architecture
 
 | Layer | Technology |
 |---|---|
@@ -33,7 +33,7 @@ The **Callisto Expedition** website is an immersive, space-grade web experience 
 
 ---
 
-## 🎨 Design System
+## Design System
 
 All components utilize the core Callisto chromatic design tokens:
 
@@ -57,7 +57,7 @@ All components utilize the core Callisto chromatic design tokens:
 
 ---
 
-## 🚀 Quickstart & Setup Guide
+## Quickstart & Setup Guide
 
 ### 1. Prerequisites
 Ensure you have the following installed on your local workstation:
@@ -131,7 +131,7 @@ npm run preview
 
 ---
 
-## 📁 Project Directory Structure
+## Project Directory Structure
 
 ```text
 callisto/
@@ -188,7 +188,7 @@ callisto/
 
 ---
 
-## 🌐 Pages & Route Manifest
+## Pages & Route Manifest
 
 | Path | Description | Key Components |
 |---|---|---|
@@ -209,7 +209,7 @@ callisto/
 
 ---
 
-## ☁️ Deployment
+## Deployment
 
 ### Deploying to Cloudflare Pages via Wrangler
 The repository is pre-configured with `wrangler.toml` for seamless deployment to Cloudflare:
@@ -236,7 +236,7 @@ npx wrangler pages deploy dist --project-name=callisto-website
 
 ---
 
-## 📡 Transmissions & Community
+## Transmissions & Community
 
 - **Instagram**: [@callistospace_cit](https://instagram.com/callistospace_cit)
 - **Official Inquiries**: `callistospace.cit@gmail.com`
@@ -244,7 +244,7 @@ npx wrangler pages deploy dist --project-name=callisto-website
 
 ---
 
-## 📜 License
+## License
 
 Distributed under the [MIT License](LICENSE).  
 &copy; 2026 Callisto Club. *All systems nominal.*
