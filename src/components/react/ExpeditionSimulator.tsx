@@ -97,6 +97,7 @@ export default function ExpeditionSimulator(): React.ReactElement {
       warp: false,
     },
     camera: { x: 0, y: 0, scale: 1 },
+    graceFrames: 150, // Staging invulnerability protection
     touchControls: {
       thrust: false,
       left: false,
@@ -115,12 +116,12 @@ export default function ExpeditionSimulator(): React.ReactElement {
       originName: 'Earth (Low Orbit)',
       targetName: 'Lunar Gateway',
       targetDistKm: '384,400 km',
-      shipStart: { x: 120, y: 320, vx: 2.2, vy: -0.4 },
+      shipStart: { x: 120, y: 190, vx: 2.2, vy: 0.1 },
       planets: [
-        { x: 100, y: 320, radius: 55, mass: 2200, name: 'Earth', color: '#38bdf8', glowColor: 'rgba(56, 189, 248, 0.4)' },
-        { x: 620, y: 220, radius: 26, mass: 650, name: 'Moon', color: '#e2e8f0', glowColor: 'rgba(226, 232, 240, 0.3)' },
+        { x: 120, y: 440, radius: 52, mass: 1800, name: 'Earth', color: '#38bdf8', glowColor: 'rgba(56, 189, 248, 0.4)' },
+        { x: 620, y: 200, radius: 24, mass: 550, name: 'Moon', color: '#e2e8f0', glowColor: 'rgba(226, 232, 240, 0.3)' },
       ],
-      target: { x: 960, y: 300, radius: 36, name: 'Lunar Gateway' },
+      target: { x: 1020, y: 260, radius: 42, name: 'Lunar Gateway' },
       asteroidsCount: 3,
       badge: 'Departure Vanguard',
     },
@@ -132,13 +133,13 @@ export default function ExpeditionSimulator(): React.ReactElement {
       originName: 'Phobos Relay',
       targetName: 'Mars Orbital Station',
       targetDistKm: '78.3 Million km',
-      shipStart: { x: 100, y: 180, vx: 2.8, vy: 0.8 },
+      shipStart: { x: 110, y: 260, vx: 2.4, vy: 0.1 },
       planets: [
-        { x: 500, y: 360, radius: 60, mass: 2600, name: 'Mars', color: '#c98a66', glowColor: 'rgba(201, 138, 102, 0.45)' },
-        { x: 260, y: 160, radius: 16, mass: 220, name: 'Phobos', color: '#94a3b8', glowColor: 'rgba(148, 163, 184, 0.3)' },
+        { x: 560, y: 360, radius: 56, mass: 2200, name: 'Mars', color: '#c98a66', glowColor: 'rgba(201, 138, 102, 0.45)' },
+        { x: 280, y: 150, radius: 18, mass: 240, name: 'Phobos', color: '#94a3b8', glowColor: 'rgba(148, 163, 184, 0.3)' },
       ],
-      target: { x: 980, y: 440, radius: 40, name: 'Mars Orbital Station' },
-      asteroidsCount: 8,
+      target: { x: 1020, y: 260, radius: 42, name: 'Mars Orbital Station' },
+      asteroidsCount: 6,
       badge: 'Red Planet Navigator',
     },
     {
@@ -149,29 +150,29 @@ export default function ExpeditionSimulator(): React.ReactElement {
       originName: 'Inner Belt',
       targetName: 'Ceres Outpost',
       targetDistKm: '418 Million km',
-      shipStart: { x: 80, y: 300, vx: 2.5, vy: 0 },
+      shipStart: { x: 100, y: 260, vx: 2.2, vy: 0 },
       planets: [
-        { x: 480, y: 140, radius: 38, mass: 900, name: 'Ceres', color: '#cbd5e1', glowColor: 'rgba(203, 213, 225, 0.3)' },
+        { x: 520, y: 160, radius: 32, mass: 700, name: 'Ceres', color: '#cbd5e1', glowColor: 'rgba(203, 213, 225, 0.3)' },
       ],
-      target: { x: 1020, y: 320, radius: 38, name: 'Jupiter Gateway' },
-      asteroidsCount: 22,
+      target: { x: 1040, y: 260, radius: 42, name: 'Jupiter Gateway' },
+      asteroidsCount: 16,
       badge: 'Asteroid Belt Survivor',
     },
     {
       id: 3,
       act: 'ACT IV',
       name: 'Callisto Base Landing',
-      objective: 'Jovian insertion! Retro-brake smoothly and touch down in Valhalla Crater (< 3.0 m/s).',
+      objective: 'Jovian insertion! Retro-brake smoothly and touch down in Valhalla Crater (< 4.2 km/s).',
       originName: 'Jovian Orbit',
       targetName: 'Callisto Base',
       targetDistKm: '628 Million km',
-      shipStart: { x: 90, y: 140, vx: 3.2, vy: 1.1 },
+      shipStart: { x: 100, y: 180, vx: 2.6, vy: 0.3 },
       planets: [
-        { x: 440, y: 480, radius: 105, mass: 5500, name: 'Jupiter', color: '#e0b588', glowColor: 'rgba(224, 181, 136, 0.45)' },
-        { x: 860, y: 220, radius: 24, mass: 450, name: 'Ganymede', color: '#a5b4fc', glowColor: 'rgba(165, 180, 252, 0.3)' },
+        { x: 500, y: 430, radius: 88, mass: 3800, name: 'Jupiter', color: '#e0b588', glowColor: 'rgba(224, 181, 136, 0.45)' },
+        { x: 820, y: 180, radius: 22, mass: 420, name: 'Ganymede', color: '#a5b4fc', glowColor: 'rgba(165, 180, 252, 0.3)' },
       ],
-      target: { x: 1050, y: 260, radius: 48, name: 'Callisto Base' },
-      asteroidsCount: 6,
+      target: { x: 1040, y: 260, radius: 46, name: 'Callisto Base' },
+      asteroidsCount: 5,
       badge: 'Callisto Expedition Pioneer',
     },
   ];
@@ -191,29 +192,38 @@ export default function ExpeditionSimulator(): React.ReactElement {
     eng.ship.angVel = 0;
     eng.ship.fuel = 100;
     eng.ship.exploded = false;
+    eng.graceFrames = 180; // 3 seconds immunity upon mission launch
 
     eng.planets = m.planets.map((p) => ({ ...p }));
     eng.target = { ...m.target };
 
-    // Spawn 4 science beacons per mission
+    // Spawn 4 science beacons per mission (positioned safely along flight trajectory)
     eng.collectibles = [
-      { x: m.shipStart.x + 180, y: m.shipStart.y - 40, collected: false, name: 'Optical Telemetry' },
-      { x: (m.shipStart.x + m.target.x) * 0.45, y: 320, collected: false, name: 'Cosmic Ray Spectrum' },
+      { x: m.shipStart.x + 180, y: m.shipStart.y + 20, collected: false, name: 'Optical Telemetry' },
+      { x: (m.shipStart.x + m.target.x) * 0.45, y: 300, collected: false, name: 'Cosmic Ray Spectrum' },
       { x: (m.shipStart.x + m.target.x) * 0.72, y: 220, collected: false, name: 'Gravitational Wave Data' },
-      { x: m.target.x - 90, y: m.target.y - 30, collected: false, name: 'Jovian Ice Core Core' },
+      { x: m.target.x - 90, y: m.target.y - 30, collected: false, name: 'Jovian Ice Core' },
     ];
 
-    // Spawn asteroids
+    // Spawn asteroids (guaranteed minimum 240px distance from ship start)
     eng.asteroids = [];
     for (let i = 0; i < m.asteroidsCount; i++) {
+      let ax = 0, ay = 0;
+      let attempts = 0;
+      do {
+        ax = 260 + Math.random() * 680;
+        ay = 60 + Math.random() * 400;
+        attempts++;
+      } while (Math.hypot(ax - m.shipStart.x, ay - m.shipStart.y) < 240 && attempts < 25);
+
       eng.asteroids.push({
-        x: 250 + Math.random() * 650,
-        y: 80 + Math.random() * 460,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8,
-        radius: 12 + Math.random() * 18,
+        x: ax,
+        y: ay,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        radius: 12 + Math.random() * 16,
         angle: Math.random() * Math.PI * 2,
-        vRot: (Math.random() - 0.5) * 0.04,
+        vRot: (Math.random() - 0.5) * 0.03,
       });
     }
 
@@ -367,6 +377,11 @@ export default function ExpeditionSimulator(): React.ReactElement {
           ship.fuel = Math.max(0, ship.fuel - 0.04);
         }
 
+        // Tick launch grace period
+        if (eng.graceFrames > 0) {
+          eng.graceFrames--;
+        }
+
         // Gravity Wells from Planets
         eng.planets.forEach((p) => {
           const dx = p.x - ship.x;
@@ -380,8 +395,8 @@ export default function ExpeditionSimulator(): React.ReactElement {
             ship.vy += (dy / dist) * force;
           }
 
-          // Crash into Planet
-          if (dist < p.radius + 10) {
+          // Crash into Planet (only after staging grace period)
+          if (eng.graceFrames === 0 && dist < p.radius + 8) {
             triggerExplosion(ship.x, ship.y, '#ef4444');
             ship.exploded = true;
             setStage('crashed');
@@ -409,10 +424,10 @@ export default function ExpeditionSimulator(): React.ReactElement {
           if (ast.y < 0) ast.y = canvas.height;
           if (ast.y > canvas.height) ast.y = 0;
 
-          // Check hit
+          // Check hit (only after staging grace period)
           const dx = ast.x - ship.x;
           const dy = ast.y - ship.y;
-          if (Math.hypot(dx, dy) < ast.radius + 10) {
+          if (eng.graceFrames === 0 && Math.hypot(dx, dy) < ast.radius + 8) {
             triggerExplosion(ship.x, ship.y, '#f97316');
             ship.exploded = true;
             setStage('crashed');
@@ -437,8 +452,8 @@ export default function ExpeditionSimulator(): React.ReactElement {
         const targetDist = Math.hypot(eng.target.x - ship.x, eng.target.y - ship.y);
         const currentSpeed = Math.hypot(ship.vx, ship.vy);
 
-        if (targetDist < eng.target.radius + 12) {
-          if (currentSpeed < 3.2) {
+        if (targetDist < eng.target.radius + 14) {
+          if (currentSpeed < 4.2) {
             // SUCCESSFUL LANDING / INJECTION!
             setStage('landed');
             const bonusFuel = Math.round(ship.fuel * 5);
@@ -538,10 +553,24 @@ export default function ExpeditionSimulator(): React.ReactElement {
     ctx.rotate(ship.angle);
 
     // Glowing shield aura
-    ctx.beginPath();
-    ctx.arc(0, 0, 18, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(158, 130, 222, 0.15)';
-    ctx.fill();
+    const eng = engineRef.current;
+    if (eng.graceFrames > 0) {
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(56, 189, 248, ${0.4 + Math.sin(Date.now() * 0.01) * 0.35})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, 0, 18, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(158, 130, 222, 0.15)';
+      ctx.fill();
+    }
 
     // Solar Wings
     ctx.fillStyle = '#38bdf8';
