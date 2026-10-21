@@ -78,18 +78,18 @@ const isLinkActive = (href: string): boolean => {
         }
       </div>
 
-      <!-- Right: Flat Mode Toggle & Actions -->
+      <!-- Right: Theme Toggle & Actions -->
       <div class="nav-right">
         <button
           type="button"
-          class="flat-mode-btn"
+          class="theme-toggle-btn"
           data-flat-toggle
-          aria-label="Toggle Flat Mode"
-          title="Toggle Flat Mode / Immersive Visuals"
+          aria-label="Switch to Solar mode"
+          title="Toggle Deep Space / Solar mode"
         >
-          <!-- Sun Icon for Immersive Mode -->
+          <!-- Stars icon — shown in Deep Space mode (click to go Solar) -->
           <svg
-            class="mode-icon icon-sun"
+            class="mode-icon icon-deepspace"
             viewBox="0 0 24 24"
             width="18"
             height="18"
@@ -110,9 +110,9 @@ const isLinkActive = (href: string): boolean => {
             <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
           </svg>
-          <!-- Moon Icon for Flat Mode -->
+          <!-- Crescent icon — shown in Solar mode (click to go Deep Space) -->
           <svg
-            class="mode-icon icon-moon"
+            class="mode-icon icon-solar"
             viewBox="0 0 24 24"
             width="18"
             height="18"
@@ -166,12 +166,12 @@ const isLinkActive = (href: string): boolean => {
       <div class="mobile-menu-footer">
         <button
           type="button"
-          class="flat-mode-btn mobile-flat-btn"
+          class="theme-toggle-btn mobile-flat-btn"
           data-flat-toggle
-          aria-label="Toggle Flat Mode"
+          aria-label="Switch viewing mode"
         >
           <svg
-            class="mode-icon icon-sun"
+            class="mode-icon icon-deepspace"
             viewBox="0 0 24 24"
             width="18"
             height="18"
@@ -193,7 +193,7 @@ const isLinkActive = (href: string): boolean => {
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
           </svg>
           <svg
-            class="mode-icon icon-moon"
+            class="mode-icon icon-solar"
             viewBox="0 0 24 24"
             width="18"
             height="18"
@@ -206,7 +206,7 @@ const isLinkActive = (href: string): boolean => {
           >
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
-          <span>Switch Display Mode</span>
+          <span class="mobile-mode-text"></span>
         </button>
       </div>
     </div>
@@ -343,7 +343,7 @@ const isLinkActive = (href: string): boolean => {
     gap: 0.75rem;
   }
 
-  .flat-mode-btn {
+  .theme-toggle-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -361,8 +361,8 @@ const isLinkActive = (href: string): boolean => {
     transition: all 0.2s ease;
   }
 
-  .flat-mode-btn:hover,
-  .flat-mode-btn:focus-visible {
+  .theme-toggle-btn:hover,
+  .theme-toggle-btn:focus-visible {
     color: var(--moon);
     border-color: var(--orbit);
     box-shadow: 0 0 14px color-mix(in srgb, var(--orbit) 35%, transparent);
@@ -373,31 +373,39 @@ const isLinkActive = (href: string): boolean => {
     display: inline-flex;
   }
 
-  :global(html:not(.light-mode):not(.flat-mode)) .icon-moon {
+  :global(html[data-theme="deep-space"]) .icon-solar,
+  :global(html:not(.theme-solar-flare):not(.light-mode)) .icon-solar {
     display: none !important;
   }
 
-  :global(html:not(.light-mode):not(.flat-mode)) .icon-sun {
+  :global(html[data-theme="deep-space"]) .icon-deepspace,
+  :global(html:not(.theme-solar-flare):not(.light-mode)) .icon-deepspace {
     display: inline-flex !important;
   }
 
-  :global(html.light-mode) .icon-sun,
-  :global(html.flat-mode) .icon-sun {
+  :global(html[data-theme="solar-flare"]) .icon-deepspace,
+  :global(html.theme-solar-flare) .icon-deepspace,
+  :global(html.light-mode) .icon-deepspace {
     display: none !important;
   }
 
-  :global(html.light-mode) .icon-moon,
-  :global(html.flat-mode) .icon-moon {
+  :global(html[data-theme="solar-flare"]) .icon-solar,
+  :global(html.theme-solar-flare) .icon-solar,
+  :global(html.light-mode) .icon-solar {
     display: inline-flex !important;
   }
 
-  :global(html:not(.light-mode):not(.flat-mode)) .mode-label::before {
-    content: 'LIGHT';
+  /* When in Deep Space: button indicates option to engage Solar Flare */
+  :global(html[data-theme="deep-space"]) .mode-label::before,
+  :global(html:not(.theme-solar-flare):not(.light-mode)) .mode-label::before {
+    content: 'SOLAR FLARE';
   }
 
-  :global(html.light-mode) .mode-label::before,
-  :global(html.flat-mode) .mode-label::before {
-    content: 'DARK';
+  /* When in Solar Flare: button indicates option to engage Deep Space */
+  :global(html[data-theme="solar-flare"]) .mode-label::before,
+  :global(html.theme-solar-flare) .mode-label::before,
+  :global(html.light-mode) .mode-label::before {
+    content: 'DEEP SPACE';
   }
 
   /* Mobile Hamburger Toggle */
@@ -533,6 +541,18 @@ const isLinkActive = (href: string): boolean => {
     font-size: 0.875rem;
   }
 
+  /* Mobile mode text mirrors the desktop label */
+  :global(html[data-theme="deep-space"]) .mobile-mode-text::before,
+  :global(html:not(.theme-solar-flare):not(.light-mode)) .mobile-mode-text::before {
+    content: 'Switch to Solar Flare';
+  }
+
+  :global(html[data-theme="solar-flare"]) .mobile-mode-text::before,
+  :global(html.theme-solar-flare) .mobile-mode-text::before,
+  :global(html.light-mode) .mobile-mode-text::before {
+    content: 'Switch to Deep Space';
+  }
+
   /* Desktop Breakpoint */
   @media (min-width: 769px) {
     .nav-content {
@@ -608,27 +628,33 @@ const isLinkActive = (href: string): boolean => {
       });
     });
 
-    // Dark & Light Mode Toggle handler
+    // Deep Space / Solar Flare Mode Toggle handler
     flatButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
-        const isCurrentlyLight =
+        const isCurrentlySolar =
+          document.documentElement.classList.contains('theme-solar-flare') ||
           document.documentElement.classList.contains('light-mode') ||
-          document.documentElement.classList.contains('flat-mode');
-        const nextIsLight = !isCurrentlyLight;
+          document.documentElement.getAttribute('data-theme') === 'solar-flare';
+        const nextIsSolar = !isCurrentlySolar;
 
-        if (nextIsLight) {
+        if (nextIsSolar) {
+          document.documentElement.classList.add('theme-solar-flare');
           document.documentElement.classList.add('light-mode');
-          document.documentElement.classList.add('flat-mode');
-          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.classList.remove('theme-deep-space');
+          document.documentElement.setAttribute('data-theme', 'solar-flare');
+          btn.setAttribute('aria-label', 'Switch to Deep Space mode');
+          btn.setAttribute('title', 'Switch to Deep Space mode');
         } else {
+          document.documentElement.classList.add('theme-deep-space');
+          document.documentElement.classList.remove('theme-solar-flare');
           document.documentElement.classList.remove('light-mode');
-          document.documentElement.classList.remove('flat-mode');
-          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.setAttribute('data-theme', 'deep-space');
+          btn.setAttribute('aria-label', 'Switch to Solar Flare mode');
+          btn.setAttribute('title', 'Switch to Solar Flare mode');
         }
 
         try {
-          localStorage.setItem('callisto-theme', nextIsLight ? 'light' : 'dark');
-          localStorage.setItem('callisto-flat-mode', nextIsLight ? 'true' : 'false');
+          localStorage.setItem('callisto-theme', nextIsSolar ? 'solar-flare' : 'deep-space');
         } catch (e) {
           /* LocalStorage fallback */
         }

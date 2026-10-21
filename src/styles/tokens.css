@@ -1,28 +1,32 @@
 :root,
-html[data-theme="dark"] {
-  /* Dark Mode Color Palette (Default Deep-Space Theme) */
-  --void: #060919;        /* Darkest background */
-  --deep: #0C1237;        /* Section backgrounds, cards */
-  --navy: #14204F;        /* Mid-blue panels */
-  --steel: #4A5A7C;       /* Secondary text, borders */
-  --dusk: #5B4B8A;        /* Hover surfaces */
-  --orbit: #9C84D6;       /* Primary accent, links */
-  --star: #CFCBF2;        /* Highlights, buttons */
-  --moon: #F7F5FF;        /* Headings, primary text */
-  --sol-dust: #C98A66;    /* Mars warmth accent */
-  --astrophage: #FFB86B;  /* First-contact glow */
+html[data-theme="deep-space"],
+html[data-theme="dark"],
+html.theme-deep-space {
+  /* ========================================================
+     DEEP SPACE MODE (Default Cosmic Palette from Callisto Logo)
+     ======================================================== */
+  --void: #070B1F;        /* Deep midnight nebula base */
+  --deep: #0D1438;        /* Rich cosmic card & module surfaces */
+  --navy: #152254;        /* Nebula mid-blue panels & gradients */
+  --steel: #5E709C;       /* Starlight-slate text, telemetry, subtle borders */
+  --dusk: #533F85;        /* Glowing purple haze from the logo orbit */
+  --orbit: #9E82DE;       /* Radiant violet orbit ring, links & primary glow */
+  --star: #D4CEF8;        /* Four-point lavender star, highlights & badges */
+  --moon: #F8F6FF;        /* Crescent pure white headings & telemetry */
+  --sol-dust: #D2875D;    /* Martian sol warmth */
+  --astrophage: #FFB366;  /* First-contact golden glow */
 
-  /* Gradients */
-  --gradient-main: linear-gradient(160deg, var(--void) 0%, var(--navy) 55%, var(--dusk) 100%);
-  --gradient-surface: linear-gradient(180deg, color-mix(in srgb, var(--navy) 70%, transparent) 0%, color-mix(in srgb, var(--deep) 90%, transparent) 100%);
+  /* Gradients reflecting the Callisto logo nebula */
+  --gradient-main: linear-gradient(160deg, #070B1F 0%, #152254 55%, #533F85 100%);
+  --gradient-surface: linear-gradient(180deg, color-mix(in srgb, #152254 75%, transparent) 0%, color-mix(in srgb, #0D1438 90%, transparent) 100%);
   --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, var(--star) 100%);
   --gradient-beacon: linear-gradient(135deg, var(--sol-dust) 0%, var(--astrophage) 100%);
 
-  /* Glows and Shadows */
-  --glow-orbit: 0 0 24px color-mix(in srgb, var(--orbit) 45%, transparent);
-  --glow-star: 0 0 24px color-mix(in srgb, var(--star) 45%, transparent);
-  --glow-astrophage: 0 0 24px color-mix(in srgb, var(--astrophage) 50%, transparent);
-  --glow-subtle: 0 4px 20px rgba(0, 0, 0, 0.4);
+  /* Atmospheric Logo Glows */
+  --glow-orbit: 0 0 24px color-mix(in srgb, var(--orbit) 55%, transparent);
+  --glow-star: 0 0 20px color-mix(in srgb, var(--star) 50%, transparent);
+  --glow-astrophage: 0 0 24px color-mix(in srgb, var(--astrophage) 55%, transparent);
+  --glow-subtle: 0 4px 24px rgba(4, 7, 22, 0.6);
 
   /* Typography */
   --font-display: 'Cormorant Garamond', Georgia, serif;
@@ -74,28 +78,31 @@ html[data-theme="dark"] {
   --container-lg: 1200px;
 }
 
-/* Light Mode & Flat Mode Palette */
-html.light-mode,
-html.flat-mode,
-html[data-theme="light"] {
-  --void: #F5F7FB;        /* Clean light canvas background */
-  --deep: #FFFFFF;        /* Solid card and section backgrounds */
-  --navy: #E9EEF7;        /* Soft tinted container panels */
-  --steel: #5E6982;       /* Slate secondary text & clean borders */
-  --dusk: #D5DCED;        /* Hover surface color */
-  --orbit: #5B3FB8;       /* High-contrast purple accent & links */
-  --star: #2D2258;        /* Dark accent text & buttons */
-  --moon: #0F172A;        /* Dark headings & primary readable text */
-  --sol-dust: #B85D26;    /* Mars warmth readable on light surface */
-  --astrophage: #C2410C;  /* Amber highlight readable on light surface */
+/* ========================================================
+   SOLAR FLARE MODE (Light Mode with Cosmic Elegance)
+   ======================================================== */
+html[data-theme="solar-flare"],
+html[data-theme="light"],
+html.theme-solar-flare,
+html.light-mode {
+  --void: #EFF1F9;        /* Pale stellar dawn wash */
+  --deep: #FFFFFF;        /* Crisp solar-clean card surfaces */
+  --navy: #E0E5F4;        /* Soft tinted celestial panels */
+  --steel: #5B6686;       /* Clean observatory slate text & borders */
+  --dusk: #C8BEE8;        /* Lavender solar halo hover surface */
+  --orbit: #6A4BC9;        /* Deep ultraviolet accent & focused links */
+  --star: #35256D;        /* Dark violet-indigo for high-contrast glyphs */
+  --moon: #0B0E24;        /* Deep void-black headings & telemetry */
+  --sol-dust: #B25A24;    /* Mars warmth, AA contrast */
+  --astrophage: #C4570E;  /* Radiant flare amber, AA contrast */
 
-  --gradient-main: linear-gradient(160deg, #F5F7FB 0%, #E9EEF7 55%, #D5DCED 100%);
-  --gradient-surface: linear-gradient(180deg, #FFFFFF 0%, #F5F7FB 100%);
-  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, var(--star) 100%);
+  --gradient-main: linear-gradient(160deg, #EFF1F9 0%, #E0E5F4 55%, #C8BEE8 100%);
+  --gradient-surface: linear-gradient(180deg, #FFFFFF 0%, #EFF1F9 100%);
+  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, #9E82DE 100%);
   --gradient-beacon: linear-gradient(135deg, var(--sol-dust) 0%, var(--astrophage) 100%);
 
-  --glow-orbit: 0 0 16px rgba(91, 63, 184, 0.25);
-  --glow-star: 0 0 16px rgba(45, 34, 88, 0.2);
-  --glow-astrophage: 0 0 16px rgba(194, 65, 12, 0.25);
-  --glow-subtle: 0 4px 20px rgba(15, 23, 42, 0.08);
+  --glow-orbit: 0 0 16px rgba(106, 75, 201, 0.22);
+  --glow-star: 0 0 16px rgba(53, 37, 109, 0.18);
+  --glow-astrophage: 0 0 16px rgba(196, 87, 14, 0.22);
+  --glow-subtle: 0 4px 20px rgba(11, 14, 36, 0.07);
 }

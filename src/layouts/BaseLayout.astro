@@ -52,20 +52,22 @@ const ogImageUrl = ogImage
     <meta name="theme-color" content="#060919" />
     <meta name="generator" content={Astro.generator} />
 
-    <!-- Prevent flash of unstyled theme / Dark & Light Mode preference script -->
+    <!-- Prevent flash of unstyled theme / Space Theme preference script -->
     <script is:inline>
       (function () {
         try {
           var savedTheme = localStorage.getItem('callisto-theme');
-          var savedFlat = localStorage.getItem('callisto-flat-mode');
-          if (savedTheme === 'light' || savedFlat === 'true') {
+          var isSolar = savedTheme === 'solar-flare' || savedTheme === 'light';
+          if (isSolar) {
+            document.documentElement.classList.add('theme-solar-flare');
             document.documentElement.classList.add('light-mode');
-            document.documentElement.classList.add('flat-mode');
-            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.classList.remove('theme-deep-space');
+            document.documentElement.setAttribute('data-theme', 'solar-flare');
           } else {
+            document.documentElement.classList.add('theme-deep-space');
+            document.documentElement.classList.remove('theme-solar-flare');
             document.documentElement.classList.remove('light-mode');
-            document.documentElement.classList.remove('flat-mode');
-            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.setAttribute('data-theme', 'deep-space');
           }
         } catch (e) {
           /* LocalStorage fallback */
@@ -90,39 +92,6 @@ const ogImageUrl = ogImage
 </html>
 
 <style>
-  :global(:root) {
-    --void: #060919;
-    --deep: #0c1237;
-    --navy: #14204f;
-    --steel: #4a5a7c;
-    --dusk: #5b4b8a;
-    --orbit: #9c84d6;
-    --star: #cfcbf2;
-    --moon: #f7f5ff;
-    --sol-dust: #c98a66;
-    --astrophage: #ffb86b;
-
-    --font-display: 'Cormorant Garamond', Georgia, serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
-
-    --space-xs: 0.25rem;
-    --space-sm: 0.5rem;
-    --space-md: 1rem;
-    --space-lg: 1.5rem;
-    --space-xl: 2rem;
-    --space-2xl: 3rem;
-    --space-3xl: 4.5rem;
-
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-full: 9999px;
-
-    --z-nav: 900;
-    --z-modal: 1000;
-  }
-
   html {
     background-color: var(--void);
     color: var(--moon);

@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = 'http://127.0.0.1:4321';
+const BASE_URL = 'http://localhost:4321';
 const DIST_DIR = path.join(__dirname, 'dist');
 
 const routesToTest = [

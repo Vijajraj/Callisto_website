@@ -28,26 +28,39 @@ body {
   font-family: var(--font-body);
   color: var(--moon);
   background-color: var(--void);
+  /* Ambient cosmic nebula gradient reproducing the Callisto logo atmosphere */
+  background-image:
+    radial-gradient(ellipse 65% 45% at 75% 20%, rgba(83, 63, 133, 0.28) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 55% at 18% 70%, rgba(21, 34, 84, 0.45) 0%, transparent 70%),
+    linear-gradient(160deg, #070B1F 0%, #0d1438 45%, #151030 100%);
+  background-attachment: fixed;
+  background-size: cover;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   overflow-x: hidden;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Light Mode Overrides */
-html.light-mode body,
-html.flat-mode body,
-html[data-theme="light"] body {
+/* Solar Flare Mode Overrides */
+html[data-theme="solar-flare"] body,
+html[data-theme="light"] body,
+html.theme-solar-flare body,
+html.light-mode body {
   background-color: var(--void);
+  background-image:
+    radial-gradient(ellipse 60% 40% at 80% 15%, rgba(200, 190, 232, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 15% 75%, rgba(224, 229, 244, 0.55) 0%, transparent 65%),
+    linear-gradient(160deg, #EFF1F9 0%, #E0E5F4 50%, #D8DCF0 100%);
   color: var(--moon);
 }
 
-html.light-mode canvas[aria-hidden="true"],
-html.flat-mode canvas[aria-hidden="true"],
-html[data-theme="light"] canvas[aria-hidden="true"] {
-  opacity: 0.15;
+html[data-theme="solar-flare"] canvas[aria-hidden="true"],
+html[data-theme="light"] canvas[aria-hidden="true"],
+html.theme-solar-flare canvas[aria-hidden="true"],
+html.light-mode canvas[aria-hidden="true"] {
+  opacity: 0.18;
   filter: invert(1);
 }
 
