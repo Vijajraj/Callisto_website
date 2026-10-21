@@ -1,683 +1,1124 @@
-import React, { useState, useEffect } from 'react';
-import { playTelemetryBeep, playThrusterBurst, toggleAmbientSound, isAudioEnabled } from '../../lib/audio';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  playTelemetryBeep,
+  playThrusterBurst,
+  playBeaconPing,
+  playWarpSurge,
+  toggleAmbientSound,
+  isAudioEnabled,
+} from '../../lib/audio';
 
-interface ActData {
-  id: number;
-  actRoman: string;
-  title: string;
-  subtitle: string;
-  location: string;
-  velocity: number;
-  distance: number;
-  oxygen: number;
-  pressure: number;
-  description: string;
-  challenge: {
-    prompt: string;
-    choices: { text: string; outcome: string; bonus: string }[];
-  };
-  visualTone: string;
-  beaconFrequency: number;
+interface Planet {
+  x: number;
+  y: number;
+  radius: number;
+  mass: number;
+  name: string;
+  color: string;
+  glowColor: string;
+  hasRings?: boolean;
 }
 
-const ACTS: ActData[] = [
-  {
-    id: 1,
-    actRoman: 'ACT I',
-    title: 'Earth Orbital Departure',
-    subtitle: 'Leaving the Cradle of Humanity',
-    location: 'Low Earth Orbit (380 km)',
-    velocity: 11.2, // km/s
-    distance: 0.0004, // Mkm
-    oxygen: 99.8,
-    pressure: 101.3,
-    visualTone: 'var(--orbit)',
-    beaconFrequency: 1420.4,
-    description:
-      'Atmospheric friction fades into the silent void. Below, Earth’s blue limb curves against the black abyss. Main fusion drives are armed for trans-planetary injection.',
-    challenge: {
-      prompt: 'Flight Controller: Orbital injection window is opening. Confirm departure vector:',
-      choices: [
-        {
-          text: 'Direct Hohmann Transfer (Fuel conservative, standard orbital curve)',
-          outcome: 'Course locked. Velocity steady at 11.2 km/s. Trajectory nominal.',
-          bonus: '+0.5% Reaction Mass Reserve',
-        },
-        {
-          text: 'Lunar Gravity Assist Slingshot (High delta-V boost, tighter window)',
-          outcome: 'Lunar swing-by successful! Gravitational acceleration boost +2.8 km/s.',
-          bonus: 'Transit Time Reduced by 14 Sols',
-        },
-      ],
-    },
-  },
-  {
-    id: 2,
-    actRoman: 'ACT II',
-    title: 'Sol 1 — Martian Waypoint',
-    subtitle: 'Regolith, Red Horizon, Survival',
-    location: 'Chryse Planitia Outpost (Mars)',
-    velocity: 24.6,
-    distance: 78.3,
-    oxygen: 96.2,
-    pressure: 98.4,
-    visualTone: 'var(--sol-dust)',
-    beaconFrequency: 2290.0,
-    description:
-      'The red dust settling over the habitat airlocks. Cosmic radiation meters tick rhythmically. You step out onto the rust-colored iron oxide sands of Mars to deploy deep-sky sensors.',
-    challenge: {
-      prompt: 'A seasonal dust front approaches the solar tracking array. Choose your protocol:',
-      choices: [
-        {
-          text: 'Retract primary panels and rely on radioactive thermal generators (RTG)',
-          outcome: 'Optical sensors protected. Essential life support maintained without grit abrasion.',
-          bonus: 'Array Structural Health: 100%',
-        },
-        {
-          text: 'Deploy electrostatic repulsion field and maintain continuous spectral logging',
-          outcome: 'Electrostatically deflected particulate storm! Captured rare Martian lightning spectra.',
-          bonus: 'Atmospheric Research Data +400 MB',
-        },
-      ],
-    },
-  },
-  {
-    id: 3,
-    actRoman: 'ACT III',
-    title: 'The Cruiser Habitat',
-    subtitle: 'Deep-Space Enigma & The Hail Mary Protocol',
-    location: 'Asteroid Belt Crossing (2.8 AU)',
-    velocity: 38.1,
-    distance: 418.5,
-    oxygen: 94.1,
-    pressure: 99.0,
-    visualTone: 'var(--astrophage)',
-    beaconFrequency: 4850.5,
-    description:
-      'Months into the void. The centrifuge habitat ring spins gently to simulate 0.4g. The radio telescope array has picked up an anomalous narrowband carrier wave from the Jovian magnetosphere.',
-    challenge: {
-      prompt: 'Quasar and Tesseract wings detect harmonic modulation. Calibrate receiver:',
-      choices: [
-        {
-          text: 'Shift narrowband filter to 21cm Neutral Hydrogen interstellar line',
-          outcome: 'Decoded signal! It is Callisto Base automated orbital beacon confirming arrival readiness.',
-          bonus: 'Navigational Telemetry Locked',
-        },
-        {
-          text: 'Run Fourier transform algorithm across the Jovian radio burst burst spectra',
-          outcome: 'Identified Io plasma torus interference. Synthesized filter cleared all telemetry channels.',
-          bonus: 'Signal-to-Noise Ratio +18 dB',
-        },
-      ],
-    },
-  },
-  {
-    id: 4,
-    actRoman: 'ACT IV',
-    title: 'Touchdown: Callisto Base',
-    subtitle: 'Permanent Observatory in Jovian Orbit',
-    location: 'Valhalla Crater Rim, Callisto',
-    velocity: 4.8,
-    distance: 628.3,
-    oxygen: 98.5,
-    pressure: 100.2,
-    visualTone: 'var(--star)',
-    beaconFrequency: 8400.0,
-    description:
-      'Landing thrusters extinguish in the crater basin of Callisto. Above the icy horizon, Jupiter hangs immense and silent—a marbled canvas of amber storms and bands. Humanity’s furthest collegiate astronomical observatory is active.',
-    challenge: {
-      prompt: 'All modules are on station. Inaugurate the first scientific campaign:',
-      choices: [
-        {
-          text: 'Power on the 2.5-meter Schmidt-Cassegrain cryogenic optical array',
-          outcome: 'First light achieved! Imaging deep exoplanetary systems without atmospheric scatter.',
-          bonus: 'Callisto Sky Survey Initiated',
-        },
-        {
-          text: 'Deploy deep ice core acoustic sensors to map the subsurface ocean',
-          outcome: 'Saline layer depth verified at 120 km! Life detection telemetry initialized.',
-          bonus: 'Ocean Discovery Log Certified',
-        },
-      ],
-    },
-  },
-];
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  color: string;
+  size: number;
+}
+
+interface Collectible {
+  x: number;
+  y: number;
+  collected: boolean;
+  name: string;
+}
+
+interface Asteroid {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  angle: number;
+  vRot: number;
+}
 
 export default function ExpeditionSimulator(): React.ReactElement {
-  const [activeActIndex, setActiveActIndex] = useState<number>(0);
-  const [isThrusting, setIsThrusting] = useState<boolean>(false);
-  const [logMessages, setLogMessages] = useState<string[]>([
-    'T-00:00:00 - Expedition Simulator Initialized. All telemetry systems nominal.',
-  ]);
-  const [soundActive, setSoundActive] = useState<boolean>(false);
-  const [userDecisions, setUserDecisions] = useState<{ [actId: number]: number }>({});
-  const [customFrequency, setCustomFrequency] = useState<number>(1420.4);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const currentAct = ACTS[activeActIndex];
+  // Mission State
+  const [stage, setStage] = useState<'briefing' | 'flying' | 'landed' | 'crashed'>('briefing');
+  const [missionIndex, setMissionIndex] = useState<number>(0);
+  const [score, setScore] = useState<number>(0);
+  const [scienceCollected, setScienceCollected] = useState<number>(0);
+  const [earnedBadge, setEarnedBadge] = useState<string | null>(null);
 
+  // Live Telemetry Readouts
+  const [telemetry, setTelemetry] = useState({
+    speed: 0,
+    fuel: 100,
+    altitude: 0,
+    targetDist: 0,
+    gForce: 1.0,
+    status: 'SYSTEMS NOMINAL',
+  });
+
+  // Game Engine Mutable State Ref (for 60fps canvas loop without react re-render lag)
+  const engineRef = useRef({
+    ship: {
+      x: 120,
+      y: 350,
+      vx: 1.8,
+      vy: 0,
+      angle: 0, // radians, 0 is right
+      angVel: 0,
+      thrust: false,
+      reverse: false,
+      turnLeft: false,
+      turnRight: false,
+      fuel: 100,
+      exploded: false,
+    },
+    planets: [] as Planet[],
+    target: { x: 950, y: 350, radius: 45, name: 'Callisto Base' },
+    collectibles: [] as Collectible[],
+    asteroids: [] as Asteroid[],
+    particles: [] as Particle[],
+    stars: [] as { x: number; y: number; size: number; speed: number }[],
+    keys: {
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+      warp: false,
+    },
+    camera: { x: 0, y: 0, scale: 1 },
+    touchControls: {
+      thrust: false,
+      left: false,
+      right: false,
+      brake: false,
+    },
+    lastTime: 0,
+  });
+
+  const MISSIONS = [
+    {
+      id: 0,
+      act: 'ACT I',
+      name: 'Earth Departure & Lunar Slingshot',
+      objective: 'Clear Earth orbit, collect the telemetry beacon, and slingshot to deep space.',
+      originName: 'Earth (Low Orbit)',
+      targetName: 'Lunar Gateway',
+      targetDistKm: '384,400 km',
+      shipStart: { x: 120, y: 320, vx: 2.2, vy: -0.4 },
+      planets: [
+        { x: 100, y: 320, radius: 55, mass: 2200, name: 'Earth', color: '#38bdf8', glowColor: 'rgba(56, 189, 248, 0.4)' },
+        { x: 620, y: 220, radius: 26, mass: 650, name: 'Moon', color: '#e2e8f0', glowColor: 'rgba(226, 232, 240, 0.3)' },
+      ],
+      target: { x: 960, y: 300, radius: 36, name: 'Lunar Gateway' },
+      asteroidsCount: 3,
+      badge: 'Departure Vanguard',
+    },
+    {
+      id: 1,
+      act: 'ACT II',
+      name: 'Martian Gravity Slingshot',
+      objective: 'Navigate the Martian gravity well to gain delta-V while avoiding orbital dust.',
+      originName: 'Phobos Relay',
+      targetName: 'Mars Orbital Station',
+      targetDistKm: '78.3 Million km',
+      shipStart: { x: 100, y: 180, vx: 2.8, vy: 0.8 },
+      planets: [
+        { x: 500, y: 360, radius: 60, mass: 2600, name: 'Mars', color: '#c98a66', glowColor: 'rgba(201, 138, 102, 0.45)' },
+        { x: 260, y: 160, radius: 16, mass: 220, name: 'Phobos', color: '#94a3b8', glowColor: 'rgba(148, 163, 184, 0.3)' },
+      ],
+      target: { x: 980, y: 440, radius: 40, name: 'Mars Orbital Station' },
+      asteroidsCount: 8,
+      badge: 'Red Planet Navigator',
+    },
+    {
+      id: 2,
+      act: 'ACT III',
+      name: 'Asteroid Belt Crossing',
+      objective: 'Pilot through the dense main asteroid belt. Collect classified research canisters.',
+      originName: 'Inner Belt',
+      targetName: 'Ceres Outpost',
+      targetDistKm: '418 Million km',
+      shipStart: { x: 80, y: 300, vx: 2.5, vy: 0 },
+      planets: [
+        { x: 480, y: 140, radius: 38, mass: 900, name: 'Ceres', color: '#cbd5e1', glowColor: 'rgba(203, 213, 225, 0.3)' },
+      ],
+      target: { x: 1020, y: 320, radius: 38, name: 'Jupiter Gateway' },
+      asteroidsCount: 22,
+      badge: 'Asteroid Belt Survivor',
+    },
+    {
+      id: 3,
+      act: 'ACT IV',
+      name: 'Callisto Base Landing',
+      objective: 'Jovian insertion! Retro-brake smoothly and touch down in Valhalla Crater (< 3.0 m/s).',
+      originName: 'Jovian Orbit',
+      targetName: 'Callisto Base',
+      targetDistKm: '628 Million km',
+      shipStart: { x: 90, y: 140, vx: 3.2, vy: 1.1 },
+      planets: [
+        { x: 440, y: 480, radius: 105, mass: 5500, name: 'Jupiter', color: '#e0b588', glowColor: 'rgba(224, 181, 136, 0.45)' },
+        { x: 860, y: 220, radius: 24, mass: 450, name: 'Ganymede', color: '#a5b4fc', glowColor: 'rgba(165, 180, 252, 0.3)' },
+      ],
+      target: { x: 1050, y: 260, radius: 48, name: 'Callisto Base' },
+      asteroidsCount: 6,
+      badge: 'Callisto Expedition Pioneer',
+    },
+  ];
+
+  const currentMission = MISSIONS[missionIndex];
+
+  // Initialize Mission Setup
+  const initMission = useCallback((index: number) => {
+    const m = MISSIONS[index];
+    const eng = engineRef.current;
+
+    eng.ship.x = m.shipStart.x;
+    eng.ship.y = m.shipStart.y;
+    eng.ship.vx = m.shipStart.vx;
+    eng.ship.vy = m.shipStart.vy;
+    eng.ship.angle = Math.atan2(m.shipStart.vy, m.shipStart.vx);
+    eng.ship.angVel = 0;
+    eng.ship.fuel = 100;
+    eng.ship.exploded = false;
+
+    eng.planets = m.planets.map((p) => ({ ...p }));
+    eng.target = { ...m.target };
+
+    // Spawn 4 science beacons per mission
+    eng.collectibles = [
+      { x: m.shipStart.x + 180, y: m.shipStart.y - 40, collected: false, name: 'Optical Telemetry' },
+      { x: (m.shipStart.x + m.target.x) * 0.45, y: 320, collected: false, name: 'Cosmic Ray Spectrum' },
+      { x: (m.shipStart.x + m.target.x) * 0.72, y: 220, collected: false, name: 'Gravitational Wave Data' },
+      { x: m.target.x - 90, y: m.target.y - 30, collected: false, name: 'Jovian Ice Core Core' },
+    ];
+
+    // Spawn asteroids
+    eng.asteroids = [];
+    for (let i = 0; i < m.asteroidsCount; i++) {
+      eng.asteroids.push({
+        x: 250 + Math.random() * 650,
+        y: 80 + Math.random() * 460,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8,
+        radius: 12 + Math.random() * 18,
+        angle: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.04,
+      });
+    }
+
+    // Stars background
+    if (eng.stars.length === 0) {
+      for (let i = 0; i < 140; i++) {
+        eng.stars.push({
+          x: Math.random() * 1280,
+          y: Math.random() * 620,
+          size: Math.random() * 2 + 0.5,
+          speed: Math.random() * 0.4 + 0.1,
+        });
+      }
+    }
+
+    eng.particles = [];
+    setStage('flying');
+    setEarnedBadge(null);
+  }, []);
+
+  const startMission = () => {
+    initMission(missionIndex);
+    playTelemetryBeep(980, 0.12);
+  };
+
+  // Keyboard controls listener
   useEffect(() => {
-    setCustomFrequency(currentAct.beaconFrequency);
-  }, [activeActIndex]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const eng = engineRef.current;
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+        eng.keys.up = true;
+        e.preventDefault();
+      }
+      if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+        eng.keys.down = true;
+        e.preventDefault();
+      }
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+        eng.keys.left = true;
+        e.preventDefault();
+      }
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+        eng.keys.right = true;
+        e.preventDefault();
+      }
+      if (e.code === 'Space') {
+        eng.keys.warp = true;
+        e.preventDefault();
+      }
+    };
 
-  const addLog = (msg: string) => {
-    const timestamp = new Date().toISOString().substring(11, 19);
-    setLogMessages((prev) => [`[${timestamp}] ${msg}`, ...prev.slice(0, 7)]);
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const eng = engineRef.current;
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') eng.keys.up = false;
+      if (e.code === 'ArrowDown' || e.code === 'KeyS') eng.keys.down = false;
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') eng.keys.left = false;
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') eng.keys.right = false;
+      if (e.code === 'Space') eng.keys.warp = false;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  // Main 60 FPS Physics & Animation Loop
+  useEffect(() => {
+    let animId: number;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let soundThrottle = 0;
+
+    const gameLoop = (time: number) => {
+      animId = requestAnimationFrame(gameLoop);
+      const eng = engineRef.current;
+      const ship = eng.ship;
+
+      // Clear Screen with deep cosmic gradient
+      ctx.fillStyle = '#06091A';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Starfield background
+      ctx.fillStyle = '#FFFFFF';
+      eng.stars.forEach((star) => {
+        star.x -= star.speed * (1 + Math.abs(ship.vx) * 0.3);
+        if (star.x < 0) star.x = canvas.width;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // If briefing, draw static preview
+      if (stage === 'briefing') {
+        drawBriefingView(ctx, canvas);
+        return;
+      }
+
+      // PHYSICS UPDATE
+      if (stage === 'flying' && !ship.exploded) {
+        // Controls Handling
+        const isUp = eng.keys.up || eng.touchControls.thrust;
+        const isDown = eng.keys.down || eng.touchControls.brake;
+        const isLeft = eng.keys.left || eng.touchControls.left;
+        const isRight = eng.keys.right || eng.touchControls.right;
+        const isWarp = eng.keys.warp;
+
+        if (isLeft) ship.angVel -= 0.005;
+        if (isRight) ship.angVel += 0.005;
+        ship.angVel *= 0.94; // Rotational damping
+        ship.angle += ship.angVel;
+
+        // Thrust Propulsion
+        if (isUp && ship.fuel > 0) {
+          const power = isWarp ? 0.22 : 0.085;
+          ship.vx += Math.cos(ship.angle) * power;
+          ship.vy += Math.sin(ship.angle) * power;
+          ship.fuel = Math.max(0, ship.fuel - (isWarp ? 0.35 : 0.08));
+
+          // Spawn Ion Thruster Exhaust Particles
+          for (let p = 0; p < (isWarp ? 5 : 2); p++) {
+            const exhaustAngle = ship.angle + Math.PI + (Math.random() - 0.5) * 0.4;
+            const spd = 3 + Math.random() * 4;
+            eng.particles.push({
+              x: ship.x - Math.cos(ship.angle) * 16,
+              y: ship.y - Math.sin(ship.angle) * 16,
+              vx: Math.cos(exhaustAngle) * spd + ship.vx * 0.4,
+              vy: Math.sin(exhaustAngle) * spd + ship.vy * 0.4,
+              life: 1,
+              maxLife: 20 + Math.random() * 15,
+              color: isWarp ? '#a855f7' : Math.random() > 0.4 ? '#38bdf8' : '#f8fafc',
+              size: Math.random() * 3 + 2,
+            });
+          }
+
+          soundThrottle++;
+          if (soundThrottle % 8 === 0) {
+            playThrusterBurst();
+          }
+        }
+
+        // Retro-Braking RCS
+        if (isDown && ship.fuel > 0) {
+          ship.vx *= 0.975;
+          ship.vy *= 0.975;
+          ship.fuel = Math.max(0, ship.fuel - 0.04);
+        }
+
+        // Gravity Wells from Planets
+        eng.planets.forEach((p) => {
+          const dx = p.x - ship.x;
+          const dy = p.y - ship.y;
+          const distSq = dx * dx + dy * dy;
+          const dist = Math.sqrt(distSq);
+
+          if (dist > p.radius) {
+            const force = (p.mass / Math.max(distSq, 1000)) * 0.45;
+            ship.vx += (dx / dist) * force;
+            ship.vy += (dy / dist) * force;
+          }
+
+          // Crash into Planet
+          if (dist < p.radius + 10) {
+            triggerExplosion(ship.x, ship.y, '#ef4444');
+            ship.exploded = true;
+            setStage('crashed');
+            playWarpSurge();
+          }
+        });
+
+        // Update Ship Position
+        ship.x += ship.vx;
+        ship.y += ship.vy;
+
+        // Boundaries Wrapping
+        if (ship.x < 0) ship.x = canvas.width;
+        if (ship.x > canvas.width) ship.x = 0;
+        if (ship.y < 0) ship.y = canvas.height;
+        if (ship.y > canvas.height) ship.y = 0;
+
+        // Asteroids motion & collisions
+        eng.asteroids.forEach((ast) => {
+          ast.x += ast.vx;
+          ast.y += ast.vy;
+          ast.angle += ast.vRot;
+          if (ast.x < 0) ast.x = canvas.width;
+          if (ast.x > canvas.width) ast.x = 0;
+          if (ast.y < 0) ast.y = canvas.height;
+          if (ast.y > canvas.height) ast.y = 0;
+
+          // Check hit
+          const dx = ast.x - ship.x;
+          const dy = ast.y - ship.y;
+          if (Math.hypot(dx, dy) < ast.radius + 10) {
+            triggerExplosion(ship.x, ship.y, '#f97316');
+            ship.exploded = true;
+            setStage('crashed');
+            playWarpSurge();
+          }
+        });
+
+        // Collect Science Beacons
+        eng.collectibles.forEach((item) => {
+          if (!item.collected) {
+            const d = Math.hypot(item.x - ship.x, item.y - ship.y);
+            if (d < 30) {
+              item.collected = true;
+              setScore((s) => s + 250);
+              setScienceCollected((c) => c + 1);
+              playBeaconPing(1320, 0.25);
+            }
+          }
+        });
+
+        // Check Target Landing Zone
+        const targetDist = Math.hypot(eng.target.x - ship.x, eng.target.y - ship.y);
+        const currentSpeed = Math.hypot(ship.vx, ship.vy);
+
+        if (targetDist < eng.target.radius + 12) {
+          if (currentSpeed < 3.2) {
+            // SUCCESSFUL LANDING / INJECTION!
+            setStage('landed');
+            const bonusFuel = Math.round(ship.fuel * 5);
+            const totalScore = 1000 + bonusFuel + scienceCollected * 250;
+            setScore(totalScore);
+            setEarnedBadge(currentMission.badge);
+            playBeaconPing(1760, 0.6);
+          } else {
+            // TOO FAST CRASH
+            triggerExplosion(ship.x, ship.y, '#ef4444');
+            ship.exploded = true;
+            setStage('crashed');
+            playWarpSurge();
+          }
+        }
+
+        // Live Telemetry Sync
+        setTelemetry({
+          speed: Number((currentSpeed * 4.2).toFixed(1)),
+          fuel: Math.round(ship.fuel),
+          altitude: Math.round(targetDist * 8),
+          targetDist: Math.round(targetDist),
+          gForce: Number((1 + (currentSpeed * 0.3)).toFixed(2)),
+          status:
+            currentSpeed > 3.8
+              ? 'WARNING: RETRO-BRAKE REQUIRED'
+              : targetDist < 120
+              ? 'APPROACHING TARGET HARBOR'
+              : 'TRAJECTORY STABLE',
+        });
+      }
+
+      // RENDER GAME WORLD
+
+      // 1. Draw Target Landing Harbor
+      drawTarget(ctx, eng.target);
+
+      // 2. Draw Planets & Gravitational Halos
+      eng.planets.forEach((p) => drawPlanet(ctx, p));
+
+      // 3. Draw Predictive Trajectory Arc (Flight Path)
+      drawPredictiveTrajectory(ctx, ship, eng.planets);
+
+      // 4. Draw Collectibles
+      eng.collectibles.forEach((col) => drawCollectible(ctx, col));
+
+      // 5. Draw Asteroids
+      eng.asteroids.forEach((ast) => drawAsteroid(ctx, ast));
+
+      // 6. Update and Draw Particles
+      eng.particles = eng.particles.filter((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 1 / p.maxLife;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        return p.life > 0;
+      });
+
+      // 7. Draw Player Spaceship
+      if (!ship.exploded) {
+        drawShip(ctx, ship);
+      }
+    };
+
+    animId = requestAnimationFrame(gameLoop);
+    return () => cancelAnimationFrame(animId);
+  }, [stage, missionIndex, scienceCollected]);
+
+  // Trigger ship explosion particle shockwave
+  const triggerExplosion = (x: number, y: number, color: string) => {
+    const eng = engineRef.current;
+    for (let i = 0; i < 45; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = 1 + Math.random() * 6;
+      eng.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        life: 1,
+        maxLife: 35 + Math.random() * 25,
+        color: Math.random() > 0.4 ? color : '#f8fafc',
+        size: Math.random() * 4 + 2,
+      });
+    }
   };
 
-  const handleActSelect = (index: number) => {
-    playTelemetryBeep(700 + index * 150, 0.08);
-    setActiveActIndex(index);
-    addLog(`Navigational vector transferred to ${ACTS[index].actRoman}: ${ACTS[index].title}`);
+  // Visual Renderers
+  const drawShip = (ctx: CanvasRenderingContext2D, ship: typeof engineRef.current.ship) => {
+    ctx.save();
+    ctx.translate(ship.x, ship.y);
+    ctx.rotate(ship.angle);
+
+    // Glowing shield aura
+    ctx.beginPath();
+    ctx.arc(0, 0, 18, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(158, 130, 222, 0.15)';
+    ctx.fill();
+
+    // Solar Wings
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-8, -18, 12, 6);
+    ctx.fillRect(-8, 12, 12, 6);
+
+    // Main Fuselage (Arrowhead spaceship)
+    ctx.beginPath();
+    ctx.moveTo(18, 0); // Nose cone
+    ctx.lineTo(-14, -12); // Left wingtip
+    ctx.lineTo(-8, 0); // Engine socket
+    ctx.lineTo(-14, 12); // Right wingtip
+    ctx.closePath();
+    ctx.fillStyle = '#F8F6FF';
+    ctx.fill();
+    ctx.strokeStyle = '#9E82DE';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Cockpit Visor
+    ctx.beginPath();
+    ctx.ellipse(4, 0, 6, 3, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffb366';
+    ctx.fill();
+
+    ctx.restore();
   };
 
-  const handleThrust = () => {
-    setIsThrusting(true);
-    playThrusterBurst();
-    addLog(`MAIN THRUSTERS ENGAGED: Pulsed delta-V burn in ${currentAct.location}`);
+  const drawPlanet = (ctx: CanvasRenderingContext2D, p: Planet) => {
+    // Gravitational Atmospheric Glow
+    const grad = ctx.createRadialGradient(p.x, p.y, p.radius * 0.7, p.x, p.y, p.radius * 1.6);
+    grad.addColorStop(0, p.color);
+    grad.addColorStop(0.6, p.glowColor);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius * 1.6, 0, Math.PI * 2);
+    ctx.fill();
 
-    setTimeout(() => {
-      setIsThrusting(false);
-      addLog(`Thrust cut-off verified. Orbital velocity adjusted +1.4 km/s.`);
-    }, 700);
+    // Planet Solid Body
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Name Label
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.name.toUpperCase(), p.x, p.y + p.radius + 16);
   };
 
-  const handleChoice = (choiceIndex: number) => {
-    playTelemetryBeep(1100, 0.1);
-    setUserDecisions((prev) => ({ ...prev, [currentAct.id]: choiceIndex }));
-    const choice = currentAct.challenge.choices[choiceIndex];
-    addLog(`DECISION LOG: ${choice.outcome} (${choice.bonus})`);
+  const drawTarget = (ctx: CanvasRenderingContext2D, t: typeof engineRef.current.target) => {
+    // Rotating Reticle Rings
+    const now = Date.now() * 0.002;
+    ctx.save();
+    ctx.translate(t.x, t.y);
+
+    ctx.strokeStyle = '#4ade80';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.arc(0, 0, t.radius, now, now + Math.PI * 2);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(0, 0, t.radius * 0.45, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(74, 222, 128, 0.2)';
+    ctx.fill();
+    ctx.stroke();
+
+    // Pulsing Beacon Core
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#4ade80';
+    ctx.fill();
+
+    ctx.fillStyle = '#4ade80';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('LANDING VECTOR', 0, t.radius + 18);
+    ctx.fillText(t.name.toUpperCase(), 0, t.radius + 30);
+    ctx.restore();
   };
 
-  const handleSoundToggle = () => {
-    const active = toggleAmbientSound();
-    setSoundActive(active);
-    addLog(`Audio synthesizer ${active ? 'ENGAGED [Ambient Cosmic Drone]' : 'MUTED'}`);
+  const drawCollectible = (ctx: CanvasRenderingContext2D, col: Collectible) => {
+    if (col.collected) return;
+    const pulse = Math.sin(Date.now() * 0.005) * 3;
+    ctx.save();
+    ctx.translate(col.x, col.y);
+
+    // Beacon diamond
+    ctx.beginPath();
+    ctx.moveTo(0, -10 - pulse);
+    ctx.lineTo(8 + pulse, 0);
+    ctx.lineTo(0, 10 + pulse);
+    ctx.lineTo(-8 - pulse, 0);
+    ctx.closePath();
+    ctx.fillStyle = '#ffb366';
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.restore();
+  };
+
+  const drawAsteroid = (ctx: CanvasRenderingContext2D, ast: Asteroid) => {
+    ctx.save();
+    ctx.translate(ast.x, ast.y);
+    ctx.rotate(ast.angle);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, ast.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#475569';
+    ctx.fill();
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Crater mark
+    ctx.beginPath();
+    ctx.arc(ast.radius * 0.3, ast.radius * 0.2, ast.radius * 0.25, 0, Math.PI * 2);
+    ctx.fillStyle = '#334155';
+    ctx.fill();
+
+    ctx.restore();
+  };
+
+  // Trajectory Prediction Arc
+  const drawPredictiveTrajectory = (
+    ctx: CanvasRenderingContext2D,
+    ship: typeof engineRef.current.ship,
+    planets: Planet[]
+  ) => {
+    let simX = ship.x;
+    let simY = ship.y;
+    let simVx = ship.vx;
+    let simVy = ship.vy;
+
+    ctx.beginPath();
+    ctx.moveTo(simX, simY);
+
+    for (let step = 0; step < 40; step++) {
+      planets.forEach((p) => {
+        const dx = p.x - simX;
+        const dy = p.y - simY;
+        const distSq = dx * dx + dy * dy;
+        const dist = Math.sqrt(distSq);
+        if (dist > p.radius) {
+          const force = (p.mass / Math.max(distSq, 1000)) * 0.45;
+          simVx += (dx / dist) * force;
+          simVy += (dy / dist) * force;
+        }
+      });
+      simX += simVx;
+      simY += simVy;
+      ctx.lineTo(simX, simY);
+    }
+
+    ctx.strokeStyle = 'rgba(158, 130, 222, 0.4)';
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
+  const drawBriefingView = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#F8F6FF';
+    ctx.font = '22px "Cormorant Garamond", Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`FLIGHT MANIFEST — ${currentMission.act}: ${currentMission.name}`, canvas.width / 2, 220);
+
+    ctx.fillStyle = 'var(--steel)';
+    ctx.font = '12px "JetBrains Mono", monospace';
+    ctx.fillText(currentMission.objective, canvas.width / 2, 255);
+    ctx.fillText(`TARGET HARBOR: ${currentMission.targetName} [${currentMission.targetDistKm}]`, canvas.width / 2, 280);
+
+    ctx.fillStyle = '#4ade80';
+    ctx.fillText('CLICK [LAUNCH FLIGHT SIMULATOR] TO ENGAGE THRUSTERS', canvas.width / 2, 340);
   };
 
   return (
     <div
       style={{
-        backgroundColor: 'var(--deep)',
-        border: '1px solid color-mix(in srgb, var(--orbit) 35%, transparent)',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'var(--space-lg)',
-        color: 'var(--moon)',
-        boxShadow: '0 12px 40px color-mix(in srgb, var(--void) 85%, transparent)',
-        position: 'relative',
+        backgroundColor: '#070B1F',
+        border: '1px solid rgba(158, 130, 222, 0.35)',
+        borderRadius: '16px',
         overflow: 'hidden',
-        transition: 'transform 0.3s ease',
-        transform: isThrusting ? 'scale(1.008) translateY(-2px)' : 'none',
+        boxShadow: '0 16px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(158, 130, 222, 0.2)',
+        fontFamily: 'var(--font-mono)',
+        color: '#F8F6FF',
       }}
     >
-      <style>{`
-        .cockpit-tab:hover {
-          background-color: color-mix(in srgb, var(--orbit) 25%, transparent) !important;
-          color: var(--moon) !important;
-        }
-        .cockpit-choice-btn:hover {
-          border-color: var(--orbit) !important;
-          background-color: color-mix(in srgb, var(--navy) 90%, transparent) !important;
-          transform: translateX(4px);
-        }
-        .thrust-btn:active {
-          transform: scale(0.97);
-        }
-        @keyframes sweepLine {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(300%); }
-        }
-      `}</style>
-
-      {/* Cockpit HUD Top Bar */}
+      {/* Flight Control Cockpit Header */}
       <div
         style={{
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 'var(--space-md)',
-          borderBottom: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-          paddingBottom: 'var(--space-md)',
-          marginBottom: 'var(--space-lg)',
+          padding: '0.85rem 1.25rem',
+          backgroundColor: 'rgba(13, 20, 56, 0.95)',
+          borderBottom: '1px solid rgba(158, 130, 222, 0.25)',
+          gap: '0.75rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span
             style={{
               width: '10px',
               height: '10px',
               borderRadius: '50%',
-              backgroundColor: isThrusting ? '#ef4444' : 'var(--astrophage)',
-              boxShadow: `0 0 10px ${isThrusting ? '#ef4444' : 'var(--astrophage)'}`,
-              transition: 'background-color 0.2s',
+              backgroundColor: stage === 'flying' ? '#4ade80' : stage === 'crashed' ? '#ef4444' : '#38bdf8',
+              boxShadow: `0 0 10px ${stage === 'flying' ? '#4ade80' : '#38bdf8'}`,
             }}
           />
-          <span
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.8125rem',
-              fontWeight: 700,
-              letterSpacing: '0.14em',
-              color: 'var(--moon)',
-            }}
-          >
-            FLIGHT DECK TELEMETRY // SIMULATOR
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-          <button
-            type="button"
-            onClick={handleSoundToggle}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              background: soundActive ? 'color-mix(in srgb, var(--orbit) 25%, transparent)' : 'color-mix(in srgb, var(--navy) 60%, transparent)',
-              border: `1px solid ${soundActive ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 30%, transparent)'}`,
-              color: soundActive ? 'var(--moon)' : 'var(--steel)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.75rem',
-              padding: '0.35rem 0.75rem',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            title="Toggle procedural synthesizer sound"
-          >
-            <span>{soundActive ? '🔊 AUDIO ON' : '🔈 AUDIO OFF'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleThrust}
-            className="thrust-btn"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              background: isThrusting ? 'var(--astrophage)' : 'linear-gradient(135deg, var(--orbit), var(--dusk))',
-              color: isThrusting ? 'var(--void)' : 'var(--moon)',
-              border: 'none',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              padding: '0.35rem 0.85rem',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-              letterSpacing: '0.08em',
-              boxShadow: '0 0 16px color-mix(in srgb, var(--orbit) 40%, transparent)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <span>🚀 ENGAGE THRUST</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Act Navigation Tabs */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-          gap: 'var(--space-xs)',
-          marginBottom: 'var(--space-xl)',
-        }}
-      >
-        {ACTS.map((act, index) => {
-          const isActive = index === activeActIndex;
-          return (
-            <button
-              key={act.id}
-              type="button"
-              onClick={() => handleActSelect(index)}
-              className="cockpit-tab"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: 'var(--space-sm)',
-                backgroundColor: isActive ? 'color-mix(in srgb, var(--navy) 90%, transparent)' : 'color-mix(in srgb, var(--void) 50%, transparent)',
-                border: `1px solid ${isActive ? act.visualTone : 'color-mix(in srgb, var(--steel) 25%, transparent)'}`,
-                borderTop: isActive ? `3px solid ${act.visualTone}` : '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  color: isActive ? act.visualTone : 'var(--steel)',
-                }}
-              >
-                {act.actRoman}
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '0.9375rem',
-                  fontWeight: 600,
-                  color: isActive ? 'var(--moon)' : 'var(--star)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '100%',
-                }}
-              >
-                {act.title.split(' ')[0]}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Telemetry Flight Gauges */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-          gap: 'var(--space-sm)',
-          marginBottom: 'var(--space-xl)',
-        }}
-      >
-        <div style={gaugeBoxStyle}>
-          <span style={gaugeLabelStyle}>COORDINATES</span>
-          <span style={gaugeValStyle}>{currentAct.location}</span>
-        </div>
-        <div style={gaugeBoxStyle}>
-          <span style={gaugeLabelStyle}>VELOCITY</span>
-          <span style={{ ...gaugeValStyle, color: 'var(--orbit)' }}>
-            {currentAct.velocity.toFixed(1)} km/s
-          </span>
-        </div>
-        <div style={gaugeBoxStyle}>
-          <span style={gaugeLabelStyle}>DISTANCE / SUN</span>
-          <span style={gaugeValStyle}>{currentAct.distance} Mkm</span>
-        </div>
-        <div style={gaugeBoxStyle}>
-          <span style={gaugeLabelStyle}>CABIN O2 / HAB</span>
-          <span style={{ ...gaugeValStyle, color: '#4ade80' }}>
-            {currentAct.oxygen}%
-          </span>
-        </div>
-      </div>
-
-      {/* Active Act Display & Visual Radar Screen */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 'var(--space-xl)',
-          marginBottom: 'var(--space-xl)',
-          alignItems: 'start',
-        }}
-      >
-        {/* Left: Narrative & Interactive Challenge */}
-        <div>
-          <div
-            style={{
-              display: 'inline-block',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              letterSpacing: '0.15em',
-              color: currentAct.visualTone,
-              marginBottom: 'var(--space-xs)',
-            }}
-          >
-            MISSION STAGE {currentAct.id} OF 4
-          </div>
-          <h3
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '2rem',
-              fontWeight: 600,
-              color: 'var(--moon)',
-              margin: '0 0 0.25rem 0',
-            }}
-          >
-            {currentAct.title}
-          </h3>
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '0.9375rem',
-              color: 'var(--star)',
-              margin: '0 0 var(--space-md) 0',
-            }}
-          >
-            {currentAct.subtitle}
-          </p>
-
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '0.9375rem',
-              lineHeight: 1.65,
-              color: 'var(--steel)',
-              marginBottom: 'var(--space-lg)',
-            }}
-          >
-            {currentAct.description}
-          </p>
-
-          {/* Interactive Flight Decision */}
-          <div
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--navy) 60%, var(--deep))',
-              border: `1px solid color-mix(in srgb, ${currentAct.visualTone} 40%, transparent)`,
-              borderRadius: 'var(--radius-md)',
-              padding: 'var(--space-md)',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                color: currentAct.visualTone,
-                display: 'block',
-                marginBottom: 'var(--space-xs)',
-              }}
-            >
-              DECISION PROTOCOL:
-            </span>
-            <p
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '0.875rem',
-                color: 'var(--moon)',
-                margin: '0 0 var(--space-md) 0',
-              }}
-            >
-              {currentAct.challenge.prompt}
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-              {currentAct.challenge.choices.map((choice, cIndex) => {
-                const isSelected = userDecisions[currentAct.id] === cIndex;
-                return (
-                  <button
-                    key={cIndex}
-                    type="button"
-                    onClick={() => handleChoice(cIndex)}
-                    className="cockpit-choice-btn"
-                    style={{
-                      textAlign: 'left',
-                      padding: 'var(--space-sm) var(--space-md)',
-                      backgroundColor: isSelected ? 'color-mix(in srgb, var(--orbit) 25%, var(--navy))' : 'color-mix(in srgb, var(--void) 70%, transparent)',
-                      border: `1px solid ${isSelected ? currentAct.visualTone : 'color-mix(in srgb, var(--steel) 30%, transparent)'}`,
-                      borderRadius: 'var(--radius-sm)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.8125rem', color: isSelected ? 'var(--moon)' : 'var(--star)', fontWeight: 500 }}>
-                      {choice.text}
-                    </div>
-                    {isSelected && (
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '0.6875rem',
-                          color: '#4ade80',
-                          marginTop: '0.25rem',
-                        }}
-                      >
-                        ✔ {choice.outcome} — [{choice.bonus}]
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
+          <div>
+            <div style={{ fontSize: '0.8125rem', fontWeight: 700, letterSpacing: '0.08em' }}>
+              ORBITAL FLIGHT SIMULATOR // {currentMission.act}
+            </div>
+            <div style={{ fontSize: '0.625rem', color: '#9E82DE' }}>
+              {currentMission.name.toUpperCase()}
             </div>
           </div>
         </div>
 
-        {/* Right: Radar Display & Spectral Scanner */}
-        <div
-          style={{
-            backgroundColor: 'var(--void)',
-            border: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-            borderRadius: 'var(--radius-md)',
-            padding: 'var(--space-md)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
+        {/* Mission Level Switcher */}
+        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+          {MISSIONS.map((m, idx) => (
+            <button
+              key={m.id}
+              onClick={() => {
+                setMissionIndex(idx);
+                initMission(idx);
+              }}
+              style={{
+                padding: '0.3rem 0.6rem',
+                backgroundColor: missionIndex === idx ? '#9E82DE' : 'rgba(21, 34, 84, 0.6)',
+                color: missionIndex === idx ? '#070B1F' : '#D4CEF8',
+                border: '1px solid rgba(158, 130, 222, 0.35)',
+                borderRadius: '4px',
+                fontSize: '0.6875rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {m.act}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Canvas Flight Viewport */}
+      <div style={{ position: 'relative', width: '100%', height: '520px', backgroundColor: '#06091A' }}>
+        <canvas
+          ref={canvasRef}
+          width={1160}
+          height={520}
+          style={{ width: '100%', height: '100%', display: 'block' }}
+        />
+
+        {/* HUD Overlay Gauges */}
+        {stage === 'flying' && (
           <div
             style={{
               position: 'absolute',
-              top: 'var(--space-xs)',
-              left: 'var(--space-sm)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.6875rem',
-              color: 'var(--steel)',
-              letterSpacing: '0.08em',
-            }}
-          >
-            RADAR SCOPE // 360° SWEEP
-          </div>
-
-          {/* Radar Screen Graphic */}
-          <div
-            style={{
-              width: '200px',
-              height: '200px',
-              borderRadius: '50%',
-              border: `2px solid color-mix(in srgb, ${currentAct.visualTone} 60%, transparent)`,
-              margin: 'var(--space-lg) 0',
-              position: 'relative',
+              top: '1rem',
+              left: '1rem',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: `inset 0 0 20px color-mix(in srgb, ${currentAct.visualTone} 25%, transparent)`,
+              flexDirection: 'column',
+              gap: '0.4rem',
+              pointerEvents: 'none',
+              backgroundColor: 'rgba(7, 11, 31, 0.75)',
+              padding: '0.65rem 0.95rem',
+              borderRadius: '8px',
+              border: '1px solid rgba(158, 130, 222, 0.3)',
+              backdropFilter: 'blur(8px)',
             }}
           >
-            {/* Concentric rings */}
-            <div style={{ position: 'absolute', width: '130px', height: '130px', borderRadius: '50%', border: '1px dashed color-mix(in srgb, var(--steel) 30%, transparent)' }} />
-            <div style={{ position: 'absolute', width: '60px', height: '60px', borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--steel) 40%, transparent)' }} />
-            {/* Crosshairs */}
-            <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: 'color-mix(in srgb, var(--steel) 25%, transparent)' }} />
-            <div style={{ position: 'absolute', height: '100%', width: '1px', backgroundColor: 'color-mix(in srgb, var(--steel) 25%, transparent)' }} />
-
-            {/* Target Blip */}
+            <div style={{ fontSize: '0.625rem', color: '#9E82DE', letterSpacing: '0.1em' }}>FLIGHT TELEMETRY</div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>
+              VELOCITY: <span style={{ color: telemetry.speed > 16 ? '#f87171' : '#38bdf8' }}>{telemetry.speed} km/s</span>
+            </div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>
+              FUEL CELL: <span style={{ color: telemetry.fuel < 25 ? '#ef4444' : '#4ade80' }}>{telemetry.fuel}%</span>
+            </div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>
+              TARGET RANGE: <span style={{ color: '#D4CEF8' }}>{telemetry.targetDist} km</span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#ffb366', marginTop: '0.2rem' }}>
+              SCIENCE BEACONS: {scienceCollected}/4
+            </div>
             <div
               style={{
-                position: 'absolute',
-                top: `${40 + currentAct.id * 15}%`,
-                left: `${30 + currentAct.id * 12}%`,
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: currentAct.visualTone,
-                boxShadow: `0 0 10px ${currentAct.visualTone}`,
+                fontSize: '0.6875rem',
+                color: telemetry.status.includes('WARNING') ? '#ef4444' : '#4ade80',
+                fontWeight: 700,
+                marginTop: '0.25rem',
               }}
-            />
-
-            {/* Center Ship Beacon */}
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--moon)' }} />
-          </div>
-
-          {/* Interactive Receiver Frequency Slider */}
-          <div style={{ width: '100%', marginTop: 'var(--space-xs)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: 'var(--steel)', marginBottom: '0.25rem' }}>
-              <span>BEACON FREQ:</span>
-              <span style={{ color: currentAct.visualTone }}>{customFrequency.toFixed(1)} MHz</span>
+            >
+              // {telemetry.status}
             </div>
-            <input
-              type="range"
-              min="1000"
-              max="9000"
-              step="10"
-              value={customFrequency}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setCustomFrequency(val);
-                if (Math.abs(val - currentAct.beaconFrequency) < 50) {
-                  playTelemetryBeep(1400, 0.05);
-                }
-              }}
-              style={{ width: '100%', cursor: 'pointer', accentColor: currentAct.visualTone }}
-            />
           </div>
-        </div>
+        )}
+
+        {/* Flight Modal Overlays: Briefing, Landed, or Crashed */}
+        {stage === 'briefing' && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(7, 11, 31, 0.88)',
+              padding: '2rem',
+              textAlign: 'center',
+            }}
+          >
+            <img src="/logo.jpg" alt="" width="80" height="80" style={{ borderRadius: '50%', marginBottom: '1rem', border: '2px solid #9E82DE' }} />
+            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.4rem', fontFamily: 'var(--font-display)' }}>
+              MISSION: {currentMission.name}
+            </div>
+            <p style={{ maxWidth: '580px', fontSize: '0.85rem', color: '#D4CEF8', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+              {currentMission.objective} Use thrusters to navigate celestial gravity wells, collect science data beacons, and touch down safely at the target harbor.
+            </p>
+            <div style={{ fontSize: '0.75rem', color: '#9E82DE', marginBottom: '1.5rem', display: 'flex', gap: '1.5rem' }}>
+              <span>CONTROLS: [W / UP] = Thrust</span>
+              <span>[A / D / ARROWS] = Steer</span>
+              <span>[S / DOWN] = Airbrake</span>
+              <span>[SPACE] = Warp Boost</span>
+            </div>
+            <button
+              onClick={startMission}
+              style={{
+                padding: '0.85rem 2.2rem',
+                backgroundColor: '#9E82DE',
+                color: '#070B1F',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 0 24px rgba(158, 130, 222, 0.65)',
+                transition: 'transform 0.2s',
+              }}
+            >
+              LAUNCH EXPEDITION CRAFT
+            </button>
+          </div>
+        )}
+
+        {stage === 'landed' && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(7, 11, 31, 0.92)',
+              padding: '2rem',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🎉</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#4ade80', marginBottom: '0.3rem', fontFamily: 'var(--font-display)' }}>
+              TOUCHDOWN NOMINAL — HARBOR SECURED
+            </div>
+            <p style={{ color: '#D4CEF8', fontSize: '0.875rem', marginBottom: '1rem' }}>
+              You successfully landed at {currentMission.targetName} with flight velocity nominal!
+            </p>
+            <div
+              style={{
+                backgroundColor: 'rgba(21, 34, 84, 0.7)',
+                padding: '0.8rem 1.6rem',
+                borderRadius: '8px',
+                border: '1px solid #4ade80',
+                marginBottom: '1.25rem',
+              }}
+            >
+              <div style={{ fontSize: '0.75rem', color: '#9E82DE' }}>MISSION SCORE & BADGE AWARDED</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FFFFFF' }}>{score} PTS</div>
+              <div style={{ fontSize: '0.85rem', color: '#ffb366', fontWeight: 700, marginTop: '0.2rem' }}>
+                BADGE: {earnedBadge}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => initMission(missionIndex)}
+                style={{
+                  padding: '0.65rem 1.4rem',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #9E82DE',
+                  color: '#F8F6FF',
+                  borderRadius: '6px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Replay Mission
+              </button>
+              {missionIndex < MISSIONS.length - 1 && (
+                <button
+                  onClick={() => {
+                    const next = missionIndex + 1;
+                    setMissionIndex(next);
+                    initMission(next);
+                  }}
+                  style={{
+                    padding: '0.65rem 1.4rem',
+                    backgroundColor: '#9E82DE',
+                    border: 'none',
+                    color: '#070B1F',
+                    borderRadius: '6px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 0 16px rgba(158, 130, 222, 0.5)',
+                  }}
+                >
+                  Proceed to Next Act &rarr;
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {stage === 'crashed' && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(7, 11, 31, 0.9)',
+              padding: '2rem',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ef4444', marginBottom: '0.4rem', fontFamily: 'var(--font-display)' }}>
+              HULL BREACH DETECTED — CRAFT DESTROYED
+            </div>
+            <p style={{ color: '#D4CEF8', fontSize: '0.85rem', maxWidth: '460px', marginBottom: '1.25rem' }}>
+              Impact force exceeded structural threshold or high-velocity orbital collision occurred. Deploy maneuvering retro-thrusters earlier to slow your descent.
+            </p>
+            <button
+              onClick={() => initMission(missionIndex)}
+              style={{
+                padding: '0.75rem 1.8rem',
+                backgroundColor: '#ef4444',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 0 18px rgba(239, 68, 68, 0.5)',
+              }}
+            >
+              RESPAWN SHIP & RETRY
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Real-time Telemetry Terminal Logs */}
+      {/* Flight Control Cockpit Deck / Interactive Controller Panel */}
       <div
         style={{
-          backgroundColor: 'color-mix(in srgb, var(--void) 90%, transparent)',
-          border: '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
-          borderRadius: 'var(--radius-sm)',
-          padding: 'var(--space-sm) var(--space-md)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.75rem',
-          lineHeight: 1.5,
-          color: 'var(--star)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          padding: '1rem 1.25rem',
+          backgroundColor: 'rgba(13, 20, 56, 0.95)',
+          borderTop: '1px solid rgba(158, 130, 222, 0.25)',
+          gap: '1rem',
+          alignItems: 'center',
         }}
       >
-        <div style={{ color: 'var(--steel)', fontSize: '0.6875rem', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>
-          TERMINAL DISPATCH BUFFER:
-        </div>
-        {logMessages.map((log, lIdx) => (
-          <div key={lIdx} style={{ opacity: Math.max(0.35, 1 - lIdx * 0.1) }}>
-            {log}
+        {/* Left: Mission Objectives & Instructions */}
+        <div>
+          <div style={{ fontSize: '0.625rem', color: '#9E82DE', letterSpacing: '0.08em' }}>MISSION DIRECTIVE</div>
+          <div style={{ fontSize: '0.8125rem', color: '#F8F6FF', fontWeight: 600, marginTop: '0.2rem' }}>
+            {currentMission.objective}
           </div>
-        ))}
+          <div style={{ fontSize: '0.6875rem', color: '#5E709C', marginTop: '0.35rem' }}>
+            Keyboard: [W] Thrust • [A/D] Steer • [S] Brake • [SPACE] Warp
+          </div>
+        </div>
+
+        {/* Center: Interactive On-Screen Touch / Click Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+          <button
+            onMouseDown={() => (engineRef.current.touchControls.left = true)}
+            onMouseUp={() => (engineRef.current.touchControls.left = false)}
+            onTouchStart={() => (engineRef.current.touchControls.left = true)}
+            onTouchEnd={() => (engineRef.current.touchControls.left = false)}
+            style={cockpitControlBtnStyle}
+            title="Rotate Left"
+          >
+            ◀ ROTATE
+          </button>
+          <button
+            onMouseDown={() => (engineRef.current.touchControls.thrust = true)}
+            onMouseUp={() => (engineRef.current.touchControls.thrust = false)}
+            onTouchStart={() => (engineRef.current.touchControls.thrust = true)}
+            onTouchEnd={() => (engineRef.current.touchControls.thrust = false)}
+            style={{ ...cockpitControlBtnStyle, backgroundColor: '#9E82DE', color: '#070B1F', fontWeight: 800 }}
+            title="Fire Main Engines"
+          >
+            🚀 MAIN THRUST
+          </button>
+          <button
+            onMouseDown={() => (engineRef.current.touchControls.right = true)}
+            onMouseUp={() => (engineRef.current.touchControls.right = false)}
+            onTouchStart={() => (engineRef.current.touchControls.right = true)}
+            onTouchEnd={() => (engineRef.current.touchControls.right = false)}
+            style={cockpitControlBtnStyle}
+            title="Rotate Right"
+          >
+            ROTATE ▶
+          </button>
+          <button
+            onMouseDown={() => (engineRef.current.touchControls.brake = true)}
+            onMouseUp={() => (engineRef.current.touchControls.brake = false)}
+            onTouchStart={() => (engineRef.current.touchControls.brake = true)}
+            onTouchEnd={() => (engineRef.current.touchControls.brake = false)}
+            style={{ ...cockpitControlBtnStyle, borderColor: '#f87171' }}
+            title="Retro-Brake"
+          >
+            🛑 RETRO
+          </button>
+        </div>
+
+        {/* Right: Restart & Audio */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+          <button
+            onClick={() => initMission(missionIndex)}
+            style={{
+              padding: '0.45rem 0.85rem',
+              backgroundColor: 'rgba(21, 34, 84, 0.7)',
+              border: '1px solid rgba(158, 130, 222, 0.4)',
+              borderRadius: '4px',
+              color: '#D4CEF8',
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            🔄 RESTART FLIGHT
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-const gaugeBoxStyle: React.CSSProperties = {
-  backgroundColor: 'color-mix(in srgb, var(--navy) 50%, var(--deep))',
-  border: '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
-  borderRadius: 'var(--radius-sm)',
-  padding: 'var(--space-xs) var(--space-sm)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.15rem',
-};
-
-const gaugeLabelStyle: React.CSSProperties = {
+const cockpitControlBtnStyle: React.CSSProperties = {
+  padding: '0.55rem 0.85rem',
+  backgroundColor: 'rgba(21, 34, 84, 0.9)',
+  border: '1px solid rgba(158, 130, 222, 0.5)',
+  borderRadius: '6px',
+  color: '#FFFFFF',
   fontFamily: 'var(--font-mono)',
-  fontSize: '0.625rem',
-  letterSpacing: '0.08em',
-  color: 'var(--steel)',
-  textTransform: 'uppercase',
-};
-
-const gaugeValStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.8125rem',
-  fontWeight: 600,
-  color: 'var(--moon)',
+  fontSize: '0.6875rem',
+  fontWeight: 700,
+  cursor: 'pointer',
+  userSelect: 'none',
+  transition: 'transform 0.1s',
 };
