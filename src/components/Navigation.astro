@@ -38,22 +38,22 @@ const isLinkActive = (href: string): boolean => {
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
-          <!-- Stylized Celestial Crescent -->
+          <!-- Stylized Celestial Crescent (Pure bright crescent matching the official logo) -->
           <path
             d="M20 4C11.163 4 4 11.163 4 20C4 28.837 11.163 36 20 36C22.25 36 24.38 35.53 26.31 34.69C20.35 32.96 16 27.48 16 21C16 14.52 20.35 9.04 26.31 7.31C24.38 6.47 22.25 4 20 4Z"
-            fill="url(#crescent-grad)"
+            fill="url(#crescent-bright-grad)"
           />
           <!-- Callisto 4-Point Guide Star -->
           <path
             d="M28 14L29.2 18.2L33.4 19.4L29.2 20.6L28 24.8L26.8 20.6L22.6 19.4L26.8 18.2L28 14Z"
-            fill="var(--star)"
+            fill="#FFFFFF"
           />
-          <circle cx="28" cy="19.4" r="1.2" fill="var(--moon)" />
+          <circle cx="28" cy="19.4" r="1.5" fill="#FFFFFF" />
           <defs>
-            <linearGradient id="crescent-grad" x1="4" y1="4" x2="30" y2="36" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="var(--star)" />
-              <stop offset="55%" stop-color="var(--orbit)" />
-              <stop offset="100%" stop-color="var(--dusk)" />
+            <linearGradient id="crescent-bright-grad" x1="4" y1="4" x2="30" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFFFFF" />
+              <stop offset="65%" stop-color="#F2EFFF" />
+              <stop offset="100%" stop-color="#9E82DE" />
             </linearGradient>
           </defs>
         </svg>
@@ -225,11 +225,21 @@ const isLinkActive = (href: string): boolean => {
     left: 0;
     width: 100%;
     height: 64px;
-    background: rgba(6, 9, 25, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+    background: rgba(7, 11, 31, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(158, 130, 222, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Solar Flare (Light Mode) Navbar */
+  :global(html[data-theme="solar-flare"]) .nav-bar,
+  :global(html.theme-solar-flare) .nav-bar,
+  :global(html.light-mode) .nav-bar {
+    background: rgba(245, 247, 253, 0.95);
+    border-bottom: 1px solid rgba(106, 75, 201, 0.2);
+    box-shadow: 0 2px 14px rgba(11, 14, 36, 0.08);
   }
 
   .nav-content {
@@ -248,7 +258,6 @@ const isLinkActive = (href: string): boolean => {
     align-items: center;
     gap: 0.75rem;
     text-decoration: none;
-    color: var(--moon);
     transition: opacity 0.2s ease;
   }
 
@@ -256,41 +265,51 @@ const isLinkActive = (href: string): boolean => {
     width: 40px;
     height: 40px;
     flex-shrink: 0;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.45));
     transition: filter 0.3s ease, transform 0.3s ease;
   }
 
   .brand-link:hover .nav-logo-svg,
   .brand-link:focus-visible .nav-logo-svg {
-    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--orbit) 75%, transparent));
+    filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.8));
     transform: scale(1.05);
   }
 
   .brand-title {
     font-family: var(--font-display);
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--moon);
+    letter-spacing: 0.16em;
+    color: #FFFFFF;
+    text-shadow: 0 0 14px rgba(255, 255, 255, 0.5);
+    transition: color 0.25s ease;
+  }
+
+  :global(html[data-theme="solar-flare"]) .brand-title,
+  :global(html.theme-solar-flare) .brand-title,
+  :global(html.light-mode) .brand-title {
+    color: #070B1F;
+    text-shadow: none;
   }
 
   /* Desktop Nav Links */
   .desktop-links {
     display: none;
     align-items: center;
-    gap: clamp(0.35rem, 1.1vw, 1.1rem);
+    gap: clamp(0.4rem, 1.2vw, 1.2rem);
   }
 
   .nav-link {
     position: relative;
     font-family: var(--font-body);
     font-size: 0.8125rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--star);
+    color: #E8E4FC; /* Crystal clear high-contrast starlight lavender */
     text-decoration: none;
-    padding: 0.5rem 0.2rem;
-    transition: color 0.2s ease;
+    padding: 0.5rem 0.35rem;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
     white-space: nowrap;
   }
 
@@ -302,7 +321,7 @@ const isLinkActive = (href: string): boolean => {
     left: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, var(--orbit), var(--astrophage));
+    background: linear-gradient(90deg, #9E82DE, #FFB366);
     border-radius: 1px;
     transform: scaleX(0);
     transform-origin: center;
@@ -310,7 +329,8 @@ const isLinkActive = (href: string): boolean => {
   }
 
   .nav-link:hover {
-    color: var(--moon);
+    color: #FFFFFF;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.85);
   }
 
   .nav-link:hover::before {
@@ -319,8 +339,9 @@ const isLinkActive = (href: string): boolean => {
 
   /* Active Link with Dot Indicator */
   .nav-link.active {
-    color: var(--orbit);
-    font-weight: 600;
+    color: #FFFFFF;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(158, 130, 222, 0.6);
   }
 
   .nav-link.active::after {
@@ -329,11 +350,33 @@ const isLinkActive = (href: string): boolean => {
     bottom: -6px;
     left: 50%;
     transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    background-color: var(--orbit);
-    box-shadow: 0 0 8px var(--orbit);
+    background-color: #9E82DE;
+    box-shadow: 0 0 10px #9E82DE, 0 0 18px #FFFFFF;
+  }
+
+  /* Solar Flare mode nav-link overrides */
+  :global(html[data-theme="solar-flare"]) .nav-link,
+  :global(html.theme-solar-flare) .nav-link,
+  :global(html.light-mode) .nav-link {
+    color: #2D2057; /* Deep, crisp contrast indigo */
+  }
+
+  :global(html[data-theme="solar-flare"]) .nav-link:hover,
+  :global(html.theme-solar-flare) .nav-link:hover,
+  :global(html.light-mode) .nav-link:hover {
+    color: #000000;
+    text-shadow: none;
+  }
+
+  :global(html[data-theme="solar-flare"]) .nav-link.active,
+  :global(html.theme-solar-flare) .nav-link.active,
+  :global(html.light-mode) .nav-link.active {
+    color: #6A4BC9;
+    font-weight: 700;
+    text-shadow: none;
   }
 
   /* Right Section & Flat Mode Toggle */
@@ -461,9 +504,9 @@ const isLinkActive = (href: string): boolean => {
     left: 0;
     width: 100%;
     height: calc(100vh - 64px);
-    background: rgba(6, 9, 25, 0.98);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(7, 11, 31, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -474,6 +517,12 @@ const isLinkActive = (href: string): boolean => {
     transform: translateY(-12px);
     transition: opacity 0.25s ease, transform 0.25s ease;
     overflow-y: auto;
+  }
+
+  :global(html[data-theme="solar-flare"]) .mobile-menu-panel,
+  :global(html.theme-solar-flare) .mobile-menu-panel,
+  :global(html.light-mode) .mobile-menu-panel {
+    background: rgba(245, 247, 253, 0.98);
   }
 
   .nav-bar[data-open='true'] .mobile-menu-panel {
@@ -498,7 +547,7 @@ const isLinkActive = (href: string): boolean => {
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--star);
+    color: #EDE8FF;
     text-decoration: none;
     position: relative;
     padding: 0.25rem 0.75rem;
@@ -507,12 +556,31 @@ const isLinkActive = (href: string): boolean => {
 
   .mobile-nav-link:hover,
   .mobile-nav-link:focus-visible {
-    color: var(--moon);
+    color: #FFFFFF;
     outline: none;
   }
 
   .mobile-nav-link.active {
-    color: var(--orbit);
+    color: #FFFFFF;
+    font-weight: 700;
+  }
+
+  :global(html[data-theme="solar-flare"]) .mobile-nav-link,
+  :global(html.theme-solar-flare) .mobile-nav-link,
+  :global(html.light-mode) .mobile-nav-link {
+    color: #2D2057;
+  }
+
+  :global(html[data-theme="solar-flare"]) .mobile-nav-link:hover,
+  :global(html.theme-solar-flare) .mobile-nav-link:hover,
+  :global(html.light-mode) .mobile-nav-link:hover {
+    color: #000000;
+  }
+
+  :global(html[data-theme="solar-flare"]) .mobile-nav-link.active,
+  :global(html.theme-solar-flare) .mobile-nav-link.active,
+  :global(html.light-mode) .mobile-nav-link.active {
+    color: #6A4BC9;
   }
 
   .mobile-nav-link.active::after {

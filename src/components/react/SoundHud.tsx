@@ -6,21 +6,32 @@ import {
   playBeaconPing,
   playWarpSurge,
   isAudioEnabled,
+  getCurrentChordName,
 } from '../../lib/audio';
 
 export default function SoundHud(): React.ReactElement {
   const [enabled, setEnabled] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [currentChord, setCurrentChord] = useState<string>('A MINOR');
   const [lastAction, setLastAction] = useState<string>('STANDBY');
 
   useEffect(() => {
     setEnabled(isAudioEnabled());
+    const interval = setInterval(() => {
+      if (isAudioEnabled()) {
+        setCurrentChord(getCurrentChordName());
+      }
+    }, 500);
+    return () => clearInterval(interval);
   }, []);
 
   const handleToggleSound = () => {
     const newState = toggleAmbientSound();
     setEnabled(newState);
-    setLastAction(newState ? 'ATMOSPHERIC AUDIO ACTIVE' : 'AUDIO MUTED');
+    setLastAction(newState ? 'HANS ZIMMER INTERSTELLAR SCORE ENGAGED' : 'SCORE MUTED');
+    if (newState) {
+      setCurrentChord(getCurrentChordName());
+    }
   };
 
   const handlePing = () => {
@@ -47,20 +58,20 @@ export default function SoundHud(): React.ReactElement {
         zIndex: 'var(--z-fixed, 800)',
         fontFamily: 'var(--font-mono)',
       }}
-      aria-label="Expedition Audio Synthesizer Controls"
+      aria-label="Interstellar Audio Synthesizer Controls"
     >
       {/* Expanded Controls Drawer */}
       {expanded && (
         <div
           style={{
             marginBottom: '0.5rem',
-            backgroundColor: 'var(--deep)',
-            border: '1px solid color-mix(in srgb, var(--orbit) 40%, transparent)',
+            backgroundColor: 'color-mix(in srgb, var(--deep) 94%, black)',
+            border: '1px solid color-mix(in srgb, var(--orbit) 50%, transparent)',
             borderRadius: 'var(--radius-md)',
-            padding: '0.85rem',
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.65)',
-            backdropFilter: 'blur(12px)',
-            width: '240px',
+            padding: '1rem',
+            boxShadow: '0 12px 36px rgba(0, 0, 0, 0.75), 0 0 20px color-mix(in srgb, var(--orbit) 25%, transparent)',
+            backdropFilter: 'blur(16px)',
+            width: '270px',
             animation: 'fadeIn 0.2s ease',
           }}
         >
@@ -70,20 +81,31 @@ export default function SoundHud(): React.ReactElement {
               justifyContent: 'space-between',
               alignItems: 'center',
               borderBottom: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-              paddingBottom: '0.4rem',
-              marginBottom: '0.65rem',
+              paddingBottom: '0.5rem',
+              marginBottom: '0.75rem',
             }}
           >
-            <span
-              style={{
-                fontSize: '0.6875rem',
-                fontWeight: 600,
-                color: 'var(--star)',
-                letterSpacing: '0.1em',
-              }}
-            >
-              AUDIO SYNTHESIZER
-            </span>
+            <div>
+              <div
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: 'var(--moon)',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                HANS ZIMMER SCORE
+              </div>
+              <div
+                style={{
+                  fontSize: '0.625rem',
+                  color: 'var(--orbit)',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                INTERSTELLAR PIPE ORGAN
+              </div>
+            </div>
             <button
               onClick={() => setExpanded(false)}
               style={{
@@ -91,7 +113,7 @@ export default function SoundHud(): React.ReactElement {
                 border: 'none',
                 color: 'var(--steel)',
                 cursor: 'pointer',
-                fontSize: '0.875rem',
+                fontSize: '1.1rem',
                 padding: '0 0.25rem',
               }}
               aria-label="Close Sound Controls"
@@ -100,165 +122,185 @@ export default function SoundHud(): React.ReactElement {
             </button>
           </div>
 
+          {/* Current Live Chord Monitor */}
           <div
             style={{
-              fontSize: '0.625rem',
-              color: 'var(--orbit)',
-              marginBottom: '0.65rem',
-              letterSpacing: '0.05em',
-              minHeight: '1rem',
+              backgroundColor: 'color-mix(in srgb, var(--void) 80%, black)',
+              border: '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.5rem 0.65rem',
+              marginBottom: '0.75rem',
             }}
           >
-            &gt; {lastAction}
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <button
-              onClick={handleToggleSound}
-              style={{
-                padding: '0.45rem 0.65rem',
-                fontSize: '0.6875rem',
-                fontFamily: 'var(--font-mono)',
-                fontWeight: 600,
-                color: enabled ? 'var(--moon)' : 'var(--star)',
-                backgroundColor: enabled
-                  ? 'color-mix(in srgb, var(--astrophage) 20%, transparent)'
-                  : 'color-mix(in srgb, var(--navy) 60%, transparent)',
-                border: `1px solid ${
-                  enabled
-                    ? 'color-mix(in srgb, var(--astrophage) 50%, transparent)'
-                    : 'color-mix(in srgb, var(--steel) 30%, transparent)'
-                }`,
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <span>AMBIENT DRONE</span>
-              <span
-                style={{
-                  color: enabled ? 'var(--astrophage)' : 'var(--steel)',
-                  fontWeight: 700,
-                }}
-              >
-                {enabled ? 'ONLINE' : 'MUTED'}
-              </span>
-            </button>
-
+            <div style={{ fontSize: '0.5625rem', color: 'var(--steel)', letterSpacing: '0.1em' }}>
+              ACTIVE TEMPLE HARMONIC
+            </div>
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                gap: '0.35rem',
-                marginTop: '0.25rem',
+                fontSize: '0.8125rem',
+                color: enabled ? 'var(--astrophage)' : 'var(--steel)',
+                fontWeight: 700,
+                marginTop: '0.15rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
               }}
             >
-              <button
-                onClick={handlePing}
-                title="Procedural Comms Ping"
+              <span
                 style={{
-                  padding: '0.4rem 0.2rem',
-                  fontSize: '0.625rem',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--moon)',
-                  backgroundColor: 'color-mix(in srgb, var(--navy) 70%, transparent)',
-                  border: '1px solid color-mix(in srgb, var(--orbit) 35%, transparent)',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
+                  display: 'inline-block',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: enabled ? '#4ade80' : 'var(--steel)',
+                  boxShadow: enabled ? '0 0 8px #4ade80' : 'none',
                 }}
-              >
-                PING
-              </button>
-              <button
-                onClick={handleThruster}
-                title="Procedural Thruster Noise Burst"
-                style={{
-                  padding: '0.4rem 0.2rem',
-                  fontSize: '0.625rem',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--moon)',
-                  backgroundColor: 'color-mix(in srgb, var(--navy) 70%, transparent)',
-                  border: '1px solid color-mix(in srgb, var(--sol-dust) 35%, transparent)',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                }}
-              >
-                BURST
-              </button>
-              <button
-                onClick={handleWarp}
-                title="Procedural Warp Surge Sound"
-                style={{
-                  padding: '0.4rem 0.2rem',
-                  fontSize: '0.625rem',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--moon)',
-                  backgroundColor: 'color-mix(in srgb, var(--navy) 70%, transparent)',
-                  border: '1px solid color-mix(in srgb, var(--star) 35%, transparent)',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                }}
-              >
-                WARP
-              </button>
+              />
+              {enabled ? `${currentChord} • CATHEDRAL ORGAN` : 'SYNTHESIZER STANDBY'}
             </div>
+          </div>
+
+          {/* Master Score Toggle */}
+          <button
+            onClick={handleToggleSound}
+            style={{
+              width: '100%',
+              padding: '0.55rem 0.75rem',
+              backgroundColor: enabled
+                ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
+                : 'color-mix(in srgb, var(--navy) 60%, transparent)',
+              border: `1px solid ${
+                enabled ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 40%, transparent)'
+              }`,
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--moon)',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              marginBottom: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s ease',
+              boxShadow: enabled ? '0 0 12px color-mix(in srgb, var(--orbit) 40%, transparent)' : 'none',
+            }}
+          >
+            <span>{enabled ? '⏸ PAUSE INTERSTELLAR SCORE' : '▶ ENGAGE INTERSTELLAR SCORE'}</span>
+          </button>
+
+          {/* Telemetry SFX Action Buttons */}
+          <div
+            style={{
+              fontSize: '0.5625rem',
+              color: 'var(--steel)',
+              letterSpacing: '0.08em',
+              marginBottom: '0.35rem',
+            }}
+          >
+            SPATIAL EXPEDITION FX
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.35rem' }}>
+            <button
+              onClick={handlePing}
+              style={{
+                padding: '0.35rem 0.2rem',
+                backgroundColor: 'color-mix(in srgb, var(--navy) 50%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--star)',
+                fontSize: '0.625rem',
+                cursor: 'pointer',
+              }}
+              title="Transmit navigational acoustic beacon"
+            >
+              BEACON
+            </button>
+            <button
+              onClick={handleThruster}
+              style={{
+                padding: '0.35rem 0.2rem',
+                backgroundColor: 'color-mix(in srgb, var(--navy) 50%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--star)',
+                fontSize: '0.625rem',
+                cursor: 'pointer',
+              }}
+              title="Test maneuvering thruster impulse"
+            >
+              RCS
+            </button>
+            <button
+              onClick={handleWarp}
+              style={{
+                padding: '0.35rem 0.2rem',
+                backgroundColor: 'color-mix(in srgb, var(--navy) 50%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--star)',
+                fontSize: '0.625rem',
+                cursor: 'pointer',
+              }}
+              title="Trigger warp engine burst"
+            >
+              WARP
+            </button>
+          </div>
+
+          <div
+            style={{
+              marginTop: '0.65rem',
+              fontSize: '0.5625rem',
+              color: 'var(--steel)',
+              textAlign: 'center',
+              letterSpacing: '0.04em',
+            }}
+          >
+            STATUS: {lastAction}
           </div>
         </div>
       )}
 
-      {/* Pill Toggle Button */}
+      {/* Floating Pill HUD Button */}
       <button
-        type="button"
-        onClick={() => {
-          if (!expanded) {
-            setExpanded(true);
-            if (!enabled) handleToggleSound();
-          } else {
-            handleToggleSound();
-          }
-        }}
-        aria-label="Toggle Cosmic Audio"
+        onClick={handleToggleSound}
         style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.45rem 0.75rem',
-          backgroundColor: 'color-mix(in srgb, var(--deep) 90%, black)',
+          gap: '0.55rem',
+          padding: '0.5rem 0.95rem',
+          backgroundColor: 'color-mix(in srgb, var(--void) 92%, black)',
           border: `1px solid ${
-            enabled
-              ? 'color-mix(in srgb, var(--orbit) 60%, transparent)'
-              : 'color-mix(in srgb, var(--steel) 35%, transparent)'
+            enabled ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 45%, transparent)'
           }`,
           borderRadius: 'var(--radius-full)',
           boxShadow: enabled
-            ? '0 0 16px color-mix(in srgb, var(--orbit) 35%, transparent)'
-            : '0 4px 12px rgba(0,0,0,0.4)',
+            ? '0 0 20px color-mix(in srgb, var(--orbit) 50%, transparent), 0 4px 16px rgba(0,0,0,0.6)'
+            : '0 4px 14px rgba(0,0,0,0.5)',
           cursor: 'pointer',
-          color: enabled ? 'var(--moon)' : 'var(--steel)',
-          fontSize: '0.6875rem',
-          letterSpacing: '0.08em',
-          transition: 'all 0.2s ease',
+          color: enabled ? '#FFFFFF' : 'var(--star)',
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          transition: 'all 0.25s ease',
         }}
+        title={enabled ? 'Pause Hans Zimmer score (or click arrow for options)' : 'Play Hans Zimmer Interstellar score'}
       >
-        {/* Animated Wave Indicator */}
+        {/* Animated Pipe Organ Waveform Indicator */}
         <span
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '2px',
-            height: '12px',
+            gap: '2.5px',
+            height: '14px',
           }}
           aria-hidden="true"
         >
           <span
             style={{
               width: '2px',
-              height: enabled ? '10px' : '4px',
+              height: enabled ? '12px' : '4px',
               backgroundColor: enabled ? 'var(--astrophage)' : 'var(--steel)',
               borderRadius: '1px',
               transition: 'height 0.2s ease',
@@ -266,8 +308,8 @@ export default function SoundHud(): React.ReactElement {
           />
           <span
             style={{
-              width: '2px',
-              height: enabled ? '14px' : '6px',
+              width: '2.5px',
+              height: enabled ? '16px' : '6px',
               backgroundColor: enabled ? 'var(--orbit)' : 'var(--steel)',
               borderRadius: '1px',
               transition: 'height 0.2s ease',
@@ -276,7 +318,7 @@ export default function SoundHud(): React.ReactElement {
           <span
             style={{
               width: '2px',
-              height: enabled ? '8px' : '3px',
+              height: enabled ? '10px' : '3px',
               backgroundColor: enabled ? 'var(--star)' : 'var(--steel)',
               borderRadius: '1px',
               transition: 'height 0.2s ease',
@@ -284,7 +326,7 @@ export default function SoundHud(): React.ReactElement {
           />
         </span>
 
-        <span>{enabled ? 'COSMIC AUDIO' : 'AUDIO OFF'}</span>
+        <span>{enabled ? 'INTERSTELLAR SCORE' : 'SCORE OFF'}</span>
 
         <span
           onClick={(e) => {
@@ -292,13 +334,14 @@ export default function SoundHud(): React.ReactElement {
             setExpanded(!expanded);
           }}
           style={{
-            marginLeft: '0.2rem',
-            color: 'var(--star)',
-            opacity: 0.7,
+            marginLeft: '0.35rem',
+            color: 'var(--orbit)',
+            fontWeight: 700,
             cursor: 'pointer',
-            padding: '0 2px',
+            padding: '0 4px',
+            fontSize: '0.85rem',
           }}
-          title="Audio Settings"
+          title="Open Audio Controls"
         >
           {expanded ? '▾' : '▴'}
         </span>
