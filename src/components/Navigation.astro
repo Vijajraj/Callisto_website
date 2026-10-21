@@ -29,34 +29,13 @@ const isLinkActive = (href: string): boolean => {
     <div class="nav-content">
       <!-- Left: Logo Link -->
       <a href="/" class="brand-link" aria-label="Callisto Club — Home">
-        <svg
-          class="nav-logo-svg"
-          viewBox="0 0 40 40"
+        <img
+          src="/logo.jpg"
+          alt="Callisto Club Insignia"
           width="40"
           height="40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <!-- Stylized Celestial Crescent (Pure bright crescent matching the official logo) -->
-          <path
-            d="M20 4C11.163 4 4 11.163 4 20C4 28.837 11.163 36 20 36C22.25 36 24.38 35.53 26.31 34.69C20.35 32.96 16 27.48 16 21C16 14.52 20.35 9.04 26.31 7.31C24.38 6.47 22.25 4 20 4Z"
-            fill="url(#crescent-bright-grad)"
-          />
-          <!-- Callisto 4-Point Guide Star -->
-          <path
-            d="M28 14L29.2 18.2L33.4 19.4L29.2 20.6L28 24.8L26.8 20.6L22.6 19.4L26.8 18.2L28 14Z"
-            fill="#FFFFFF"
-          />
-          <circle cx="28" cy="19.4" r="1.5" fill="#FFFFFF" />
-          <defs>
-            <linearGradient id="crescent-bright-grad" x1="4" y1="4" x2="30" y2="36" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#FFFFFF" />
-              <stop offset="65%" stop-color="#F2EFFF" />
-              <stop offset="100%" stop-color="#9E82DE" />
-            </linearGradient>
-          </defs>
-        </svg>
+          class="nav-logo-img"
+        />
         <span class="brand-title">CALLISTO</span>
       </a>
 
@@ -261,18 +240,20 @@ const isLinkActive = (href: string): boolean => {
     transition: opacity 0.2s ease;
   }
 
-  .nav-logo-svg {
+  .nav-logo-img {
     width: 40px;
     height: 40px;
-    flex-shrink: 0;
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.45));
-    transition: filter 0.3s ease, transform 0.3s ease;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid rgba(158, 130, 222, 0.45);
+    box-shadow: 0 0 14px rgba(158, 130, 222, 0.5);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
 
-  .brand-link:hover .nav-logo-svg,
-  .brand-link:focus-visible .nav-logo-svg {
-    filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.8));
-    transform: scale(1.05);
+  .brand-link:hover .nav-logo-img,
+  .brand-link:focus-visible .nav-logo-img {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px rgba(158, 130, 222, 0.85);
   }
 
   .brand-title {

@@ -111,7 +111,9 @@ const endTimeStr = event.endDate ? formatTime(event.endDate) : null;
             <div class="speakers-list">
               {event.speakers.map((speaker) => (
                 <div class="speaker-card">
-                  <div class="speaker-avatar" aria-hidden="true">🧑‍🚀</div>
+                  <div class="speaker-avatar" aria-hidden="true">
+                    <img src="/icons/dept-people.png" alt="" width="30" height="30" style="object-fit: contain;" />
+                  </div>
                   <div class="speaker-info">
                     <span class="speaker-name">{speaker}</span>
                     <span class="speaker-role">Featured Flight Instructor</span>

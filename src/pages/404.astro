@@ -200,29 +200,15 @@ const solCount = getSolCount();
         <span>SOL {solCount}</span>
       </div>
 
-      <!-- Animated Rotating 4-Point Star SVG -->
+      <!-- Logo / Insignia Emblem -->
       <div class="star-wrapper" aria-hidden="true">
-        <svg class="star-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="starGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="var(--moon)" />
-              <stop offset="45%" stop-color="var(--star)" />
-              <stop offset="85%" stop-color="var(--orbit)" />
-              <stop offset="100%" stop-color="var(--void)" stop-opacity="0" />
-            </radialGradient>
-          </defs>
-          <!-- Star Core -->
-          <circle cx="50" cy="50" r="18" fill="url(#starGrad)" opacity="0.6" />
-          <!-- 4-Point Sharp Star Geometry -->
-          <path
-            d="M 50 4 L 56 38 L 96 50 L 56 62 L 50 96 L 44 62 L 4 50 L 44 38 Z"
-            fill="var(--star)"
-            stroke="var(--orbit)"
-            stroke-width="1.5"
-          />
-          <!-- Inner Star Center -->
-          <circle cx="50" cy="50" r="3" fill="var(--moon)" />
-        </svg>
+        <img
+          src="/logo.jpg"
+          alt="Callisto Insignia"
+          width="88"
+          height="88"
+          style="border-radius: 50%; box-shadow: 0 0 24px rgba(158, 130, 222, 0.55); border: 2px solid rgba(158, 130, 222, 0.4); object-fit: cover;"
+        />
       </div>
 
       <div class="error-status">COMMUNICATION VECTOR UNREACHABLE</div>

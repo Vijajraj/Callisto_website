@@ -8,22 +8,22 @@ const departmentOptions = departments.map((d) => `${d.themedName} (${d.name})`);
 
 const benefits = [
   {
-    icon: '🔭',
+    icon: '/icons/dept-astronomy.png',
     title: 'Telescope Array Access',
     desc: 'Hands-on training and dark-sky field sessions operating motorized computerized Schmidt-Cassegrain optical setups and narrowband filters.',
   },
   {
-    icon: '🛰️',
+    icon: '/icons/dept-tech.png',
     title: 'Research & Data Science',
     desc: 'Collaborate on exoplanet transit detection, orbital mechanics simulators, and machine-learning reduction of photometric datasets.',
   },
   {
-    icon: '🚀',
+    icon: '/icons/dept-event.png',
     title: 'Flagship Expeditions',
     desc: 'Priority passes to dark-sky camping expeditions, national space hackathons, and guest symposiums with leading astrophysicists.',
   },
   {
-    icon: '🪐',
+    icon: '/icons/dept-general.png',
     title: 'Cross-Disciplinary Wings',
     desc: 'Gain real-world leadership across 11 ship modules spanning engineering, visual design, science journalism, and international relations.',
   },
@@ -76,7 +76,13 @@ const faqs = [
       <div class="benefits-grid">
         {benefits.map((b) => (
           <div class="benefit-card">
-            <div class="benefit-icon" aria-hidden="true">{b.icon}</div>
+            <div class="benefit-icon" aria-hidden="true">
+              {b.icon.startsWith('/') ? (
+                <img src={b.icon} alt="" width="38" height="38" style="object-fit: contain;" />
+              ) : (
+                b.icon
+              )}
+            </div>
             <h3 class="benefit-heading">{b.title}</h3>
             <p class="benefit-desc">{b.desc}</p>
           </div>

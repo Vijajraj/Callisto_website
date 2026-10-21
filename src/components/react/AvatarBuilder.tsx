@@ -39,12 +39,12 @@ const HELMET_STYLES = [
 ];
 
 const PATCHES = [
-  { id: 'astronomy', label: 'LUNAR Society', icon: '🔭' },
-  { id: 'tech', label: 'Tesseract Core', icon: '⚡' },
-  { id: 'event', label: 'Event Horizon', icon: '🚀' },
-  { id: 'design', label: 'Nebula Studio', icon: '🎨' },
-  { id: 'research', label: 'Aether Wing', icon: '🧪' },
-  { id: 'content', label: 'Quasar Scribe', icon: '📜' },
+  { id: 'astronomy', label: 'LUNAR Society', icon: '/icons/dept-astronomy.png' },
+  { id: 'tech', label: 'Tesseract Core', icon: '/icons/dept-tech.png' },
+  { id: 'event', label: 'Event Horizon', icon: '/icons/dept-event.png' },
+  { id: 'design', label: 'Nebula Studio', icon: '/icons/dept-design.png' },
+  { id: 'research', label: 'Aether Wing', icon: '/icons/dept-research.png' },
+  { id: 'content', label: 'Quasar Scribe', icon: '/icons/dept-content.png' },
 ];
 
 export default function AvatarBuilder(): React.ReactElement {
@@ -140,7 +140,7 @@ export default function AvatarBuilder(): React.ReactElement {
             transition: 'all 0.2s ease',
           }}
         >
-          <span>{showIdCard ? '✏️ Edit Customization' : '🪪 Generate Flight Pass'}</span>
+          <span>{showIdCard ? 'Edit Customization' : 'Generate Flight Pass'}</span>
         </button>
       </div>
 
@@ -258,7 +258,7 @@ export default function AvatarBuilder(): React.ReactElement {
                 cursor: 'pointer',
               }}
             >
-              📥 Download Holographic ID Pass
+              Download Holographic ID Pass
             </button>
           </div>
         </div>
@@ -510,7 +510,7 @@ export default function AvatarBuilder(): React.ReactElement {
                         transition: 'all 0.2s',
                       }}
                     >
-                      <span>{patch.icon}</span>
+                      <img src={patch.icon} alt="" width="18" height="18" style={{ objectFit: 'contain' }} />
                       <span>{patch.label}</span>
                     </button>
                   );

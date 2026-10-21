@@ -7,17 +7,17 @@ const upcomingFeatures = [
   {
     title: 'Custom Helmet Modules',
     desc: 'Select from pressurized deep-space helmets, orbital EVA visors, retro-futuristic domes, and planetary exploration hoods.',
-    icon: '🪖',
+    icon: '/icons/dept-tech.png',
   },
   {
     title: 'Visor Reflection Tints',
     desc: 'Toggle between polarized gold, iridescent solar flare, deep obsidian, and ultraviolet optical filter coatings.',
-    icon: '🕶️',
+    icon: '/icons/dept-design.png',
   },
   {
     title: 'Mission Patches & Accents',
     desc: 'Adorn your suit with departmental badges, Sol milestone bars, expedition flags, and verified starfield achievement pins.',
-    icon: '🎖️',
+    icon: '/icons/dept-general.png',
   },
 ];
 ---
@@ -54,7 +54,13 @@ const upcomingFeatures = [
       <div class="features-grid">
         {upcomingFeatures.map((feat) => (
           <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">{feat.icon}</div>
+            <div class="feature-icon" aria-hidden="true">
+              {feat.icon.startsWith('/') ? (
+                <img src={feat.icon} alt="" width="38" height="38" style="object-fit: contain;" />
+              ) : (
+                feat.icon
+              )}
+            </div>
             <h3 class="feature-title">{feat.title}</h3>
             <p class="feature-desc">{feat.desc}</p>
           </div>

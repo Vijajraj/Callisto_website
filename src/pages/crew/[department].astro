@@ -35,7 +35,13 @@ const { dept } = Astro.props;
     <header class="dept-hero">
       <div class="dept-meta-row">
         {dept.shipModule ? <span class="module-chip">{dept.shipModule}</span> : <span class="module-chip-empty"></span>}
-        <span class="dept-icon-display" aria-hidden="true">{dept.icon}</span>
+        <span class="dept-icon-display" aria-hidden="true">
+          {dept.icon && (dept.icon.startsWith('/') || dept.icon.includes('.')) ? (
+            <img src={dept.icon} alt="" width="48" height="48" class="dept-hero-icon-img" />
+          ) : (
+            dept.icon
+          )}
+        </span>
       </div>
 
       <h1 class="dept-title">{dept.themedName}</h1>

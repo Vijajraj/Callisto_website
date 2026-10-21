@@ -15,7 +15,13 @@ const { id, name, themedName, lead, shipModule, description, icon } = Astro.prop
 <a href={`/crew/${id}`} class="dept-card" aria-label={`View department: ${themedName} (${name})`}>
   <div class="dept-card-header">
     {shipModule ? <span class="ship-module">{shipModule}</span> : <span class="ship-module-empty"></span>}
-    <span class="dept-icon" aria-hidden="true">{icon}</span>
+    <span class="dept-icon" aria-hidden="true">
+      {icon && (icon.startsWith('/') || icon.includes('.')) ? (
+        <img src={icon} alt="" width="32" height="32" class="dept-icon-img" />
+      ) : (
+        icon
+      )}
+    </span>
   </div>
 
   <div class="dept-card-body">
@@ -139,6 +145,13 @@ const { id, name, themedName, lead, shipModule, description, icon } = Astro.prop
   .dept-card:hover .dept-icon {
     transform: scale(1.1);
     border-color: var(--orbit);
+  }
+
+  .dept-icon-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(158, 130, 222, 0.4));
   }
 
   .dept-card-body {

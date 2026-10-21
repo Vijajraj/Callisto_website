@@ -32,6 +32,15 @@ const previewDepartments = departments.slice(0, 5);
     </div>
 
     <div class="hero-content">
+      <div class="hero-logo-frame">
+        <img
+          src="/logo.jpg"
+          alt="Callisto Club Insignia"
+          width="96"
+          height="96"
+          class="hero-logo-img"
+        />
+      </div>
       <p class="hero-eyebrow">THE CALLISTO</p>
       <h1 class="hero-title">EXPEDITION</h1>
       <p class="hero-tagline">
@@ -72,7 +81,9 @@ const previewDepartments = departments.slice(0, 5);
 
       <div class="brief-grid">
         <article class="brief-card">
-          <div class="brief-icon" aria-hidden="true">🔭</div>
+          <div class="brief-icon" aria-hidden="true">
+            <img src="/icons/icon-explore.png" alt="" width="48" height="48" class="brief-icon-img" />
+          </div>
           <h3 class="brief-title">Explore</h3>
           <p class="brief-desc">
             Deploy motorized optical arrays under pristine dark skies. Track lunar occultations, Messier deep-sky objects, and meteor showers through live telescopic sessions.
@@ -80,7 +91,9 @@ const previewDepartments = departments.slice(0, 5);
         </article>
 
         <article class="brief-card">
-          <div class="brief-icon" aria-hidden="true">🧠</div>
+          <div class="brief-icon" aria-hidden="true">
+            <img src="/icons/icon-learn.png" alt="" width="48" height="48" class="brief-icon-img" />
+          </div>
           <h3 class="brief-title">Learn</h3>
           <p class="brief-desc">
             Master photometric light curve reduction, exoplanet transit modeling, and astrophotography stacking. Learn alongside faculty mentors and visiting astrophysicists.
@@ -88,7 +101,9 @@ const previewDepartments = departments.slice(0, 5);
         </article>
 
         <article class="brief-card">
-          <div class="brief-icon" aria-hidden="true">🤝</div>
+          <div class="brief-icon" aria-hidden="true">
+            <img src="/icons/icon-connect.png" alt="" width="48" height="48" class="brief-icon-img" />
+          </div>
           <h3 class="brief-title">Connect</h3>
           <p class="brief-desc">
             Find your flight crew among 11 interdisciplinary ship wings. Build enduring bonds at stargazing campouts, campus hackathons, and global space symposia.
@@ -292,6 +307,36 @@ const previewDepartments = departments.slice(0, 5);
     flex-direction: column;
     align-items: center;
     z-index: 5;
+  }
+
+  .hero-logo-frame {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-md);
+    position: relative;
+  }
+
+  .hero-logo-img {
+    width: clamp(84px, 10vw, 110px);
+    height: clamp(84px, 10vw, 110px);
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(158, 130, 222, 0.55);
+    box-shadow: 0 0 30px rgba(158, 130, 222, 0.55), 0 0 60px rgba(83, 63, 133, 0.35);
+    animation: heroLogoFloat 4s ease-in-out infinite;
+  }
+
+  @keyframes heroLogoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .brief-icon-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(158, 130, 222, 0.45));
   }
 
   .hero-eyebrow {

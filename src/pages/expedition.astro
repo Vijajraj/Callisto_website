@@ -13,7 +13,7 @@ const acts = [
     mood: 'Interstellar Odyssey',
     accentColor: 'var(--orbit)',
     themeBg: 'color-mix(in srgb, var(--orbit) 10%, var(--deep))',
-    icon: '🚀',
+    icon: '/icons/dept-event.png',
   },
   {
     act: 'ACT II',
@@ -24,7 +24,7 @@ const acts = [
     mood: 'Martian Frontier',
     accentColor: 'var(--sol-dust)',
     themeBg: 'color-mix(in srgb, var(--sol-dust) 10%, var(--deep))',
-    icon: '🔴',
+    icon: '/icons/dept-content.png',
   },
   {
     act: 'ACT III',
@@ -35,7 +35,7 @@ const acts = [
     mood: 'Hail Mary Enigma',
     accentColor: 'var(--astrophage)',
     themeBg: 'color-mix(in srgb, var(--astrophage) 10%, var(--deep))',
-    icon: '⚡',
+    icon: '/icons/dept-tech.png',
   },
   {
     act: 'ACT IV',
@@ -46,7 +46,7 @@ const acts = [
     mood: 'Jovian Frontier',
     accentColor: 'var(--star)',
     themeBg: 'color-mix(in srgb, var(--star) 10%, var(--deep))',
-    icon: '🪐',
+    icon: '/icons/dept-astronomy.png',
   },
 ];
 ---
@@ -84,7 +84,13 @@ const acts = [
             {/* Timeline Center Node */}
             <div class="timeline-node" aria-hidden="true">
               <span class="node-ring"></span>
-              <span class="node-icon">{act.icon}</span>
+              <span class="node-icon">
+                {act.icon.startsWith('/') ? (
+                  <img src={act.icon} alt="" width="20" height="20" style="object-fit: contain;" />
+                ) : (
+                  act.icon
+                )}
+              </span>
             </div>
 
             {/* Act Content Card */}
@@ -115,25 +121,25 @@ const acts = [
 
         <div class="hub-grid">
           <a href="/crew" class="hub-card">
-            <span class="hub-icon">👥</span>
+            <span class="hub-icon"><img src="/icons/dept-people.png" alt="" width="26" height="26" style="object-fit: contain;" /></span>
             <span class="hub-name">The Crew</span>
             <span class="hub-details">Meet all 11 ship departments & station leads</span>
           </a>
 
           <a href="/events" class="hub-card">
-            <span class="hub-icon">🚀</span>
+            <span class="hub-icon"><img src="/icons/dept-event.png" alt="" width="26" height="26" style="object-fit: contain;" /></span>
             <span class="hub-name">Launch Schedule</span>
             <span class="hub-details">Attend upcoming stargazing nights & hackathons</span>
           </a>
 
           <a href="/join" class="hub-card">
-            <span class="hub-icon">📝</span>
+            <span class="hub-icon"><img src="/icons/icon-connect.png" alt="" width="26" height="26" style="object-fit: contain;" /></span>
             <span class="hub-name">Request Boarding</span>
             <span class="hub-details">Submit an application to join the flight roster</span>
           </a>
 
           <a href="/about" class="hub-card">
-            <span class="hub-icon">📜</span>
+            <span class="hub-icon"><img src="/icons/icon-learn.png" alt="" width="26" height="26" style="object-fit: contain;" /></span>
             <span class="hub-name">Mission Briefing</span>
             <span class="hub-details">Read our origin story and institutional charter</span>
           </a>
