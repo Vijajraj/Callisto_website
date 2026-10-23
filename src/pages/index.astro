@@ -784,3 +784,28 @@ const previewDepartments = departments.slice(0, 5);
     margin-top: var(--space-2xl);
   }
 </style>
+
+<script>
+  import { getSolCount } from '../lib/utils';
+
+  function updateDynamicSol() {
+    const liveSol = getSolCount();
+    const solText = document.querySelector('.sol-text');
+    const solBadge = document.querySelector('.sol-badge');
+    if (solText) solText.textContent = `SOL ${liveSol}`;
+    if (solBadge) solBadge.setAttribute('aria-label', `Mission Sol ${liveSol}`);
+  }
+
+  // Update immediately on page load in visitor's local browser time
+  updateDynamicSol();
+
+  // Re-check when window regains focus or tab becomes visible
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      updateDynamicSol();
+    }
+  });
+
+  // Re-calculate periodically in case a Sol rollover occurs while the tab is open
+  setInterval(updateDynamicSol, 60000);
+</script>

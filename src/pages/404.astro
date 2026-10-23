@@ -229,5 +229,12 @@ const solCount = getSolCount();
         GRID-LOC: [RA 00h 00m 00s / DEC -90° 00' 00"] // DRIFT VELOCITY: 0 km/s
       </div>
     </main>
+
+    <script>
+      import { getSolCount } from '../lib/utils';
+      const liveSol = getSolCount();
+      const solEl = document.querySelector('.sol-counter span');
+      if (solEl) solEl.textContent = `SOL ${liveSol}`;
+    </script>
   </body>
 </html>
