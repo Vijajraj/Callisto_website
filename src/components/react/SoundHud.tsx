@@ -28,7 +28,7 @@ export default function SoundHud(): React.ReactElement {
   const handleToggleSound = () => {
     const newState = toggleAmbientSound();
     setEnabled(newState);
-    setLastAction(newState ? 'HANS ZIMMER INTERSTELLAR SCORE ENGAGED' : 'SCORE MUTED');
+    setLastAction(newState ? 'EXPEDITION CATHEDRAL SCORE ENGAGED' : 'SCORE MUTED');
     if (newState) {
       setCurrentChord(getCurrentChordName());
     }
@@ -58,7 +58,7 @@ export default function SoundHud(): React.ReactElement {
         zIndex: 'var(--z-fixed, 800)',
         fontFamily: 'var(--font-mono)',
       }}
-      aria-label="Interstellar Audio Synthesizer Controls"
+      aria-label="Expedition Orchestral Synthesizer Controls"
     >
       {/* Expanded Controls Drawer */}
       {expanded && (
@@ -94,7 +94,7 @@ export default function SoundHud(): React.ReactElement {
                   letterSpacing: '0.08em',
                 }}
               >
-                HANS ZIMMER SCORE
+                EXPEDITION CATHEDRAL SCORE
               </div>
               <div
                 style={{
@@ -103,7 +103,7 @@ export default function SoundHud(): React.ReactElement {
                   letterSpacing: '0.05em',
                 }}
               >
-                INTERSTELLAR PIPE ORGAN
+                CATHEDRAL PIPE ORGAN
               </div>
             </div>
             <button
@@ -186,7 +186,7 @@ export default function SoundHud(): React.ReactElement {
               boxShadow: enabled ? '0 0 12px color-mix(in srgb, var(--orbit) 40%, transparent)' : 'none',
             }}
           >
-            <span>{enabled ? '⏸ PAUSE INTERSTELLAR SCORE' : '▶ ENGAGE INTERSTELLAR SCORE'}</span>
+            <span>{enabled ? '⏸ PAUSE EXPEDITION SCORE' : '▶ ENGAGE EXPEDITION SCORE'}</span>
           </button>
 
           {/* Telemetry SFX Action Buttons */}
@@ -285,7 +285,7 @@ export default function SoundHud(): React.ReactElement {
           letterSpacing: '0.06em',
           transition: 'all 0.25s ease',
         }}
-        title={enabled ? 'Pause Hans Zimmer score (or click arrow for options)' : 'Play Hans Zimmer Interstellar score'}
+        title={enabled ? 'Pause expedition orchestral score (or click arrow for options)' : 'Play expedition orchestral score'}
       >
         {/* Animated Pipe Organ Waveform Indicator */}
         <span
@@ -326,7 +326,7 @@ export default function SoundHud(): React.ReactElement {
           />
         </span>
 
-        <span>{enabled ? 'INTERSTELLAR SCORE' : 'SCORE OFF'}</span>
+        <span>{enabled ? 'EXPEDITION SCORE' : 'SCORE OFF'}</span>
 
         <span
           onClick={(e) => {

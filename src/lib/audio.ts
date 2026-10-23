@@ -1,13 +1,13 @@
 /**
- * Callisto Web Audio API — Procedural Hans Zimmer "Interstellar" Sound Engine
+ * Callisto Web Audio API — Procedural Cinematic Cathedral Organ & Ostinato Engine
  *
  * Fully procedural synthesis using zero external audio files.
- * Architected to reproduce Hans Zimmer's iconic Interstellar score:
- * - Multi-rank Cathedral Pipe Organ (16', 8', 4', 2' ranks + 32' pedal bass)
- * - The iconic 4-chord progression (Am -> F -> C -> Em)
- * - Time-dilation clockwork ostinato / arpeggiator ("Day One" / "Cornfield Chase")
+ * Architected to deliver a vast, awe-inspiring space score:
+ * - Multi-rank Cathedral Pipe Organ (32' sub-bass pedal, 16' bourdon, 8' principal, 4' octave flue ranks)
+ * - The majestic 4-chord progression (Am -> F -> C -> Em)
+ * - Clockwork 16th-note ostinato arpeggiator with dynamic breathing filters
  * - Spatial acoustic cathedral convolution / reverberation
- * - Dynamic crescendo / decrescendo breathing filters
+ * - Acoustic chronometer pulses simulating the slow, relentless slip of deep time
  */
 
 let audioCtx: AudioContext | null = null;
@@ -46,7 +46,7 @@ function getAudioContext(): AudioContext | null {
       masterGain = audioCtx.createGain();
       masterGain.gain.setValueAtTime(0.75, audioCtx.currentTime);
 
-      // Create synthetic cathedral impulse response for Hans Zimmer space reverb
+      // Create synthetic cathedral impulse response for vast acoustic space reverb
       reverbNode = createCathedralReverb(audioCtx);
 
       musicGain = audioCtx.createGain();
@@ -73,8 +73,8 @@ function getAudioContext(): AudioContext | null {
 }
 
 /**
- * Procedural impulse response generator simulating a vast stone cathedral (Temple Church, London)
- * where the Interstellar organ score was recorded.
+ * Procedural impulse response generator simulating a vast stone cathedral
+ * with rich spatial reflections and a 3.5-second natural decay tail.
  */
 function createCathedralReverb(ctx: AudioContext): ConvolverNode {
   const convolver = ctx.createConvolver();
@@ -96,7 +96,7 @@ function createCathedralReverb(ctx: AudioContext): ConvolverNode {
   return convolver;
 }
 
-// Interstellar 4-Chord Progression (Chords with frequencies in Hz)
+// Expedition 4-Chord Progression (Chords with frequencies in Hz)
 interface ChordDef {
   name: string;
   pedalBass: number;   // Deep 32'/16' organ pedal bass
@@ -105,7 +105,7 @@ interface ChordDef {
   ostinatoNotes: number[]; // Rapid clockwork arpeggiator notes
 }
 
-const INTERSTELLAR_CHORDS: ChordDef[] = [
+const EXPEDITION_CHORDS: ChordDef[] = [
   // 1. A Minor — Contemplative quiet awe
   {
     name: 'A Minor',
@@ -151,14 +151,14 @@ function playOrganChord(ctx: AudioContext, chord: ChordDef, duration: number) {
   const filter = ctx.createBiquadFilter();
 
   filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(350, now);
-  // Hans Zimmer dynamic swell: filter opens as organ pipes breathe, then slowly settles
-  filter.frequency.exponentialRampToValueAtTime(1200, now + duration * 0.45);
-  filter.frequency.exponentialRampToValueAtTime(450, now + duration);
+  filter.frequency.setValueAtTime(320, now);
+  // Dynamic majestic swell: filter opens as organ pipes breathe, then slowly settles
+  filter.frequency.exponentialRampToValueAtTime(1300, now + duration * 0.45);
+  filter.frequency.exponentialRampToValueAtTime(420, now + duration);
 
   voiceGain.gain.setValueAtTime(0.001, now);
-  voiceGain.gain.linearRampToValueAtTime(0.24, now + 2.2); // Slow, majestic church organ attack
-  voiceGain.gain.setValueAtTime(0.24, now + duration - 2.0);
+  voiceGain.gain.linearRampToValueAtTime(0.26, now + 2.2); // Slow, majestic church organ attack
+  voiceGain.gain.setValueAtTime(0.26, now + duration - 2.0);
   voiceGain.gain.linearRampToValueAtTime(0.001, now + duration); // Smooth release
 
   const oscList: OscillatorNode[] = [];
@@ -173,7 +173,7 @@ function playOrganChord(ctx: AudioContext, chord: ChordDef, duration: number) {
   pedalTri.frequency.setValueAtTime(chord.bassFundamental, now);
 
   const pedalGain = ctx.createGain();
-  pedalGain.gain.setValueAtTime(0.45, now);
+  pedalGain.gain.setValueAtTime(0.48, now);
   pedalSine.connect(pedalGain);
   pedalTri.connect(pedalGain);
   pedalGain.connect(filter);
@@ -197,20 +197,34 @@ function playOrganChord(ctx: AudioContext, chord: ChordDef, duration: number) {
     osc2.type = 'triangle';
     osc2.frequency.setValueAtTime(freq * 1.002, now);
 
+    // Rank 3: High octave shimmer pipe
+    const osc3 = ctx.createOscillator();
+    osc3.type = 'sine';
+    osc3.frequency.setValueAtTime(freq * 2.001, now);
+
     const pipeGain = ctx.createGain();
     const relativeAmp = 0.12 / Math.sqrt(idx + 1);
     pipeGain.gain.setValueAtTime(relativeAmp, now);
 
+    const shimmerGain = ctx.createGain();
+    shimmerGain.gain.setValueAtTime(relativeAmp * 0.25, now);
+
     osc1.connect(pipeGain);
     osc2.connect(pipeGain);
+    osc3.connect(shimmerGain);
+
     pipeGain.connect(filter);
+    shimmerGain.connect(filter);
 
     osc1.start(now);
     osc2.start(now);
+    osc3.start(now);
+
     osc1.stop(now + duration);
     osc2.stop(now + duration);
+    osc3.stop(now + duration);
 
-    oscList.push(osc1, osc2);
+    oscList.push(osc1, osc2, osc3);
   });
 
   filter.connect(voiceGain);
@@ -224,8 +238,7 @@ function playOrganChord(ctx: AudioContext, chord: ChordDef, duration: number) {
 }
 
 /**
- * Clockwork Ostinato ("Day One" / "Cornfield Chase" rhythmic arpeggio).
- * Simulates delicate glass organ flute pipes weaving through the chords.
+ * Clockwork Ostinato: delicate glass organ flute pipes weaving rhythmic arpeggios through the chords.
  */
 function startOstinato(ctx: AudioContext) {
   if (ostinatoInterval) return;
@@ -235,7 +248,7 @@ function startOstinato(ctx: AudioContext) {
   ostinatoInterval = window.setInterval(() => {
     if (!isPlayingScore || !musicGain) return;
 
-    const chord = INTERSTELLAR_CHORDS[currentChordIndex];
+    const chord = EXPEDITION_CHORDS[currentChordIndex];
     if (!chord) return;
 
     const freq = chord.ostinatoNotes[ostinatoStep % chord.ostinatoNotes.length];
@@ -264,7 +277,7 @@ function startOstinato(ctx: AudioContext) {
     osc.start(now);
     osc.stop(now + 0.2);
 
-    // Subtle Interstellar clock tick every 4 steps
+    // Subtle chronometer clock tick every 4 steps
     if (ostinatoStep % 4 === 0) {
       playClockTick(ctx);
     }
@@ -272,8 +285,7 @@ function startOstinato(ctx: AudioContext) {
 }
 
 /**
- * Ticking clock pulse representing time dilation on Miller's planet
- * (Every tick represents earth time slipping away)
+ * Ticking chronometer pulse representing the irreversible slip of deep time
  */
 function playClockTick(ctx: AudioContext) {
   if (!sfxGain) return;
@@ -304,19 +316,19 @@ function runScoreConductor() {
   if (!ctx) return;
 
   const chordDuration = 10.5; // Each chord breathes for 10.5 seconds
-  const chord = INTERSTELLAR_CHORDS[currentChordIndex];
+  const chord = EXPEDITION_CHORDS[currentChordIndex];
 
   playOrganChord(ctx, chord, chordDuration + 1.5); // 1.5s crossfade overlap
 
   scoreLoopTimeout = window.setTimeout(() => {
     if (!isPlayingScore) return;
-    currentChordIndex = (currentChordIndex + 1) % INTERSTELLAR_CHORDS.length;
+    currentChordIndex = (currentChordIndex + 1) % EXPEDITION_CHORDS.length;
     runScoreConductor();
   }, chordDuration * 1000);
 }
 
 /**
- * Public control: Toggle Hans Zimmer Interstellar Score.
+ * Public control: Toggle the Expedition Cathedral Score.
  */
 export function toggleAmbientSound(enable?: boolean): boolean {
   try {
@@ -366,7 +378,7 @@ export function isAudioEnabled(): boolean {
 
 export function getCurrentChordName(): string {
   if (!isPlayingScore) return 'SILENCE';
-  return INTERSTELLAR_CHORDS[currentChordIndex]?.name ?? 'INTERSTELLAR';
+  return EXPEDITION_CHORDS[currentChordIndex]?.name ?? 'EXPEDITION';
 }
 
 /**
