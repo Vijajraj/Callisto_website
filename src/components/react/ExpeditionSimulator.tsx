@@ -2,381 +2,277 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   playTelemetryBeep,
   playBeaconPing,
+  playThrusterBurst,
   playWarpSurge,
-  playLaserFire,
-  playAsteroidBlast,
 } from '../../lib/audio';
 
-interface Planet {
-  x: number;
-  y: number;
-  radius: number;
+interface BeaconSite {
+  id: number;
+  x: number; // world X coordinate in meters
   name: string;
-  color: string;
-  glowColor: string;
-  slingshotRadius: number;
+  deployed: boolean;
+  scoreValue: number;
 }
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  color: string;
-  size: number;
-}
-
-interface TrailPoint {
-  x: number;
-  y: number;
-  alpha: number;
-  size: number;
-}
-
-interface LaserBolt {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  angle: number;
-  life: number;
-}
-
-interface Collectible {
+interface FuelCanister {
   id: number;
   x: number;
   y: number;
   collected: boolean;
-  name: string;
-  type: 'telemetry' | 'stardust' | 'anomaly';
 }
 
-interface Asteroid {
-  id: number;
+interface TerrainPoint {
   x: number;
   y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  angle: number;
-  vRot: number;
-  hp: number;
-  color: string;
 }
 
-interface Gate {
-  x: number;
-  y: number;
-  radius: number;
-  name: string;
-  active: boolean;
-  pulseTimer: number;
-}
-
-interface MissionDef {
+interface ActMission {
   id: number;
   act: string;
   name: string;
   objective: string;
   storyBrief: string;
-  targetName: string;
-  planets: Planet[];
-  gate: Gate;
-  collectiblesCount: number;
-  asteroidsCount: number;
+  destinationName: string;
+  distanceKm: number;
+  terrainSeed: number;
+  beacons: { name: string; xPct: number }[];
+  fuelCount: number;
+  hazardSpikesCount: number;
   badge: string;
-  colorTheme: string;
 }
 
 export default function ExpeditionSimulator(): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // High-Level UI States
+  // High-Level State
   const [missionIndex, setMissionIndex] = useState<number>(0);
-  const [stage, setStage] = useState<'briefing' | 'flying' | 'victory' | 'respawn'>('briefing');
+  const [stage, setStage] = useState<'briefing' | 'driving' | 'finished' | 'flipped'>('briefing');
   const [score, setScore] = useState<number>(0);
-  const [combo, setCombo] = useState<number>(1);
-  const [scienceCount, setScienceCount] = useState<number>(0);
-  const [warpReady, setWarpReady] = useState<number>(100);
-  const [shields, setShields] = useState<number>(100);
+  const [beaconsDeployed, setBeaconsDeployed] = useState<number>(0);
+  const [fuel, setFuel] = useState<number>(100);
   const [earnedBadge, setEarnedBadge] = useState<string | null>(null);
 
-  // HUD Readout
-  const [hudStatus, setHudStatus] = useState<string>('SYSTEMS CALIBRATED');
-
-  // Mutable Game Engine (for seamless 60fps canvas performance)
-  const engineRef = useRef({
-    mouse: { x: 200, y: 260, isDown: false, hasMoved: false },
-    ship: {
-      x: 140,
-      y: 260,
-      vx: 0,
-      vy: 0,
-      angle: 0,
-      targetAngle: 0,
-      speed: 0,
-      warpCooldown: 0,
-      invulnerable: 0,
-    },
-    trail: [] as TrailPoint[],
-    lasers: [] as LaserBolt[],
-    asteroids: [] as Asteroid[],
-    collectibles: [] as Collectible[],
-    particles: [] as Particle[],
-    planets: [] as Planet[],
-    gate: null as Gate | null,
-    stars: [] as { x: number; y: number; size: number; speed: number; alpha: number }[],
-    lastLaserTime: 0,
-    scoreRef: 0,
-    comboRef: 1,
-    comboTimer: 0,
-    anomalyTimer: 0,
-    width: 1160,
-    height: 520,
+  // Live HUD Readouts
+  const [telemetry, setTelemetry] = useState({
+    speedKmh: 0,
+    distanceM: 0,
+    totalDistanceM: 2400,
+    airtimeSec: 0,
+    status: 'SURFACE ROVER SYSTEMS NOMINAL',
   });
 
-  const MISSIONS: MissionDef[] = [
+  const MISSIONS: ActMission[] = [
     {
       id: 0,
       act: 'ACT I',
-      name: 'Earth Departure & Lunar Gateway',
-      objective: 'Glide using your cursor/finger. Collect 4 Telemetry Crystals and fly through the Lunar Accelerator Gate.',
-      storyBrief: 'Departing Earth parking orbit. Steer through orbital space, gather sensor crystals, and enter the Lunar transit corridor.',
-      targetName: 'Lunar Accelerator Gate',
-      colorTheme: '#38bdf8',
-      planets: [
-        { x: 120, y: 440, radius: 64, name: 'Earth', color: '#38bdf8', glowColor: 'rgba(56, 189, 248, 0.4)', slingshotRadius: 130 },
-        { x: 740, y: 180, radius: 28, name: 'Moon', color: '#e2e8f0', glowColor: 'rgba(226, 232, 240, 0.35)', slingshotRadius: 70 },
+      name: 'Asgard Basin Rim Exploration',
+      objective: 'Drive the Callisto rover across rolling crater dunes, deploy 3 scientific sensor masts, and reach the Outpost Alpha airlock.',
+      storyBrief: 'Touching down on the outer perimeter of Asgard Basin. Drive east through low-gravity basalt dunes, scout ice ridges, and deploy telemetry anchors.',
+      destinationName: 'Outpost Alpha Airlock',
+      distanceKm: 2.2,
+      terrainSeed: 101,
+      beacons: [
+        { name: 'Magnetometer Mast 01', xPct: 0.28 },
+        { name: 'Saline Core Drill Site', xPct: 0.58 },
+        { name: 'Thermal Flux Sensor', xPct: 0.84 },
       ],
-      gate: { x: 1040, y: 260, radius: 46, name: 'Lunar Gate', active: true, pulseTimer: 0 },
-      collectiblesCount: 4,
-      asteroidsCount: 4,
-      badge: 'Departure Vanguard',
+      fuelCount: 7,
+      hazardSpikesCount: 3,
+      badge: 'Asgard Rim Surveyor',
     },
     {
       id: 1,
       act: 'ACT II',
-      name: 'Martian Gravity Corridor',
-      objective: 'Navigate Martian dust corridors, zap red silica asteroids with your Pulse Laser, and dock at Mars Orbital Station.',
-      storyBrief: 'Approaching Mars and Phobos. Mineral dust clouds detected. Fire pulse lasers (click/tap) to clear the path.',
-      targetName: 'Mars Orbital Station',
-      colorTheme: '#c98a66',
-      planets: [
-        { x: 580, y: 380, radius: 62, name: 'Mars', color: '#c98a66', glowColor: 'rgba(201, 138, 102, 0.45)', slingshotRadius: 130 },
-        { x: 280, y: 150, radius: 20, name: 'Phobos', color: '#94a3b8', glowColor: 'rgba(148, 163, 184, 0.35)', slingshotRadius: 55 },
+      name: 'Utgard Fracture Chasm',
+      objective: 'Traverse treacherous tectonic crevasses. Use jump jet thrusters to leap across ice chasms and deploy 3 deep-strata transceivers.',
+      storyBrief: 'The Utgard fault line features steep ice cliffs and deep ravines. Maintain forward momentum and engage ventral thrusters [SPACE] over chasms.',
+      destinationName: 'Utgard Seismic Station',
+      distanceKm: 2.8,
+      terrainSeed: 204,
+      beacons: [
+        { name: 'Faultline Strain Gauge', xPct: 0.32 },
+        { name: 'Cryovolcanic Vent Sensor', xPct: 0.62 },
+        { name: 'Subsurface Echo Relay', xPct: 0.86 },
       ],
-      gate: { x: 1030, y: 260, radius: 46, name: 'Mars Orbital Station', active: true, pulseTimer: 0 },
-      collectiblesCount: 5,
-      asteroidsCount: 9,
-      badge: 'Red Planet Navigator',
+      fuelCount: 8,
+      hazardSpikesCount: 6,
+      badge: 'Chasm Pilot Vanguard',
     },
     {
       id: 2,
       act: 'ACT III',
-      name: 'Asteroid Belt & Project Hail Mary',
-      objective: 'Blast drifting space debris with Pulse Lasers and establish resonance with the Alien Anomaly Beacon.',
-      storyBrief: 'Cruising through the dense asteroid belt. Strange harmonious acoustic frequencies detected — locate the first contact beacon.',
-      targetName: 'Hail Mary Resonance Beacon',
-      colorTheme: '#ffb366',
-      planets: [
-        { x: 480, y: 140, radius: 36, name: 'Ceres', color: '#cbd5e1', glowColor: 'rgba(203, 213, 225, 0.35)', slingshotRadius: 85 },
+      name: 'Valhalla Multiring Ridge',
+      objective: 'Climb the colossal concentric ripple ridges of the Valhalla impact basin. Gather telemetry canisters and deploy 4 array antennas.',
+      storyBrief: 'Approaching the vast Valhalla multi-ring system, the largest impact structure in the Jovian system. Steep terraced scarps ahead.',
+      destinationName: 'Valhalla Outer Gate',
+      distanceKm: 3.2,
+      terrainSeed: 309,
+      beacons: [
+        { name: 'Crater Ridge Beacon A', xPct: 0.22 },
+        { name: 'Impact Glass Core Probe', xPct: 0.48 },
+        { name: 'Aurora Interceptor Mast', xPct: 0.72 },
+        { name: 'Outer Gateway Beacon', xPct: 0.9 },
       ],
-      gate: { x: 1020, y: 280, radius: 50, name: 'Hail Mary Beacon', active: true, pulseTimer: 0 },
-      collectiblesCount: 6,
-      asteroidsCount: 16,
-      badge: 'Asteroid Belt Survivor',
+      fuelCount: 10,
+      hazardSpikesCount: 8,
+      badge: 'Valhalla Ridge Master',
     },
     {
       id: 3,
       act: 'ACT IV',
-      name: 'Callisto Base Final Touchdown',
-      objective: 'Pass Jovian moons, sweep up all expedition science cores, and land safely inside Valhalla Base harbor.',
-      storyBrief: 'Entering the Jovian system. Jupiter radiates vast magnetic bands. Callisto Base illuminated below in the icy crater basin.',
-      targetName: 'Callisto Valhalla Base',
-      colorTheme: '#9C84D6',
-      planets: [
-        { x: 440, y: 440, radius: 88, name: 'Jupiter', color: '#e0b588', glowColor: 'rgba(224, 181, 136, 0.45)', slingshotRadius: 160 },
-        { x: 800, y: 160, radius: 26, name: 'Ganymede', color: '#a5b4fc', glowColor: 'rgba(165, 180, 252, 0.35)', slingshotRadius: 65 },
+      name: 'Callisto Expedition Main Colony Touchdown',
+      objective: 'Final approach to Callisto Primary Habitat Colony! Speed through the frost dunes and drive safely inside Dome Bay 01.',
+      storyBrief: 'Callisto Base is in sight on the horizon beneath Jupiter’s glowing auroral disk. Deploy the final expedition flag and enter the pressurized hangar.',
+      destinationName: 'Callisto Dome Bay 01',
+      distanceKm: 3.6,
+      terrainSeed: 412,
+      beacons: [
+        { name: 'Colony Guidance Relay', xPct: 0.25 },
+        { name: 'Hydroponics Dome Sensor', xPct: 0.52 },
+        { name: 'Main Power Grid Beacon', xPct: 0.76 },
+        { name: 'Expedition Memorial Marker', xPct: 0.92 },
       ],
-      gate: { x: 1040, y: 260, radius: 52, name: 'Callisto Base', active: true, pulseTimer: 0 },
-      collectiblesCount: 6,
-      asteroidsCount: 8,
-      badge: 'Callisto Expedition Pioneer',
+      fuelCount: 12,
+      hazardSpikesCount: 6,
+      badge: 'Callisto Base Pioneer',
     },
   ];
 
   const currentMission = MISSIONS[missionIndex];
 
-  // Fire Pulse Laser
-  const fireLaser = useCallback(() => {
-    const eng = engineRef.current;
-    const now = Date.now();
-    if (now - eng.lastLaserTime < 180) return; // rate limit 5 shots/sec
-    eng.lastLaserTime = now;
+  // Engine Physics Mutable State Ref
+  const engineRef = useRef({
+    // Rover state in world space
+    rover: {
+      x: 100, // world position X
+      y: 0, // world position Y (calculated from terrain)
+      vx: 0,
+      vy: 0,
+      angle: 0,
+      angVel: 0,
+      onGround: true,
+      fuel: 100,
+      nitroCooldown: 0,
+      wheelRot: 0,
+      suspensionCompression: 0,
+      airtimeFrames: 0,
+    },
+    camera: { x: 0, y: 0 },
+    keys: {
+      forward: false,
+      backward: false,
+      jump: false,
+      boost: false,
+    },
+    touchControls: {
+      forward: false,
+      backward: false,
+      jump: false,
+      boost: false,
+    },
+    terrain: [] as TerrainPoint[],
+    beacons: [] as BeaconSite[],
+    fuelItems: [] as FuelCanister[],
+    particles: [] as { x: number; y: number; vx: number; vy: number; life: number; color: string; size: number }[],
+    stars: [] as { x: number; y: number; size: number; alpha: number }[],
+    totalTrackLength: 2600,
+    lastSoundTime: 0,
+  });
 
-    const ship = eng.ship;
-    const cos = Math.cos(ship.angle);
-    const sin = Math.sin(ship.angle);
-    const speed = 14;
+  // Procedural Terrain Height Generator for Callisto Crater Surface
+  const getTerrainHeight = (worldX: number, seed: number): number => {
+    // Multi-octave sinusoidal terrain with craters
+    const baseHeight = 380;
+    const wave1 = Math.sin(worldX * 0.0032 + seed) * 45;
+    const wave2 = Math.sin(worldX * 0.009 + seed * 2) * 22;
+    const wave3 = Math.cos(worldX * 0.0012 + seed * 0.5) * 60;
 
-    // Twin lasers from left and right wingtips
-    const wingOffset = 10;
-    eng.lasers.push(
-      {
-        x: ship.x + cos * 16 - sin * wingOffset,
-        y: ship.y + sin * 16 + cos * wingOffset,
-        vx: cos * speed,
-        vy: sin * speed,
-        angle: ship.angle,
-        life: 50,
-      },
-      {
-        x: ship.x + cos * 16 + sin * wingOffset,
-        y: ship.y + sin * 16 - cos * wingOffset,
-        vx: cos * speed,
-        vy: sin * speed,
-        angle: ship.angle,
-        life: 50,
-      }
-    );
-
-    // Muzzle flash particles
-    for (let i = 0; i < 4; i++) {
-      eng.particles.push({
-        x: ship.x + cos * 18,
-        y: ship.y + sin * 18,
-        vx: cos * 3 + (Math.random() - 0.5) * 2,
-        vy: sin * 3 + (Math.random() - 0.5) * 2,
-        life: 1,
-        maxLife: 10,
-        color: '#9C84D6',
-        size: Math.random() * 2 + 1,
-      });
+    // Crater dips
+    let craterDip = 0;
+    const craterSpacing = 650;
+    const localX = (worldX + seed * 100) % craterSpacing;
+    if (localX > 180 && localX < 380) {
+      const craterCenter = 280;
+      const distFromCenter = Math.abs(localX - craterCenter);
+      craterDip = Math.max(0, (1 - distFromCenter / 100)) * 55;
     }
 
-    playLaserFire();
-  }, []);
+    return baseHeight + wave1 + wave2 + wave3 + craterDip;
+  };
 
-  // Trigger Warp Surge (Hyper Boost)
-  const triggerWarpBoost = useCallback(() => {
-    const eng = engineRef.current;
-    if (eng.ship.warpCooldown > 0) return;
-
-    const ship = eng.ship;
-    const cos = Math.cos(ship.angle);
-    const sin = Math.sin(ship.angle);
-
-    // Warp forward impulse
-    ship.vx += cos * 18;
-    ship.vy += sin * 18;
-    ship.warpCooldown = 150; // 2.5s cooldown
-    ship.invulnerable = 60; // 1s invulnerability
-
-    // Dimensional distortion warp shockwave
-    for (let i = 0; i < 35; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const spd = 2 + Math.random() * 8;
-      eng.particles.push({
-        x: ship.x,
-        y: ship.y,
-        vx: Math.cos(angle) * spd,
-        vy: Math.sin(angle) * spd,
-        life: 1,
-        maxLife: 25,
-        color: Math.random() > 0.4 ? '#CFCBF2' : '#9C84D6',
-        size: Math.random() * 4 + 2,
-      });
-    }
-
-    setHudStatus('WARP DRIVE SURGE ENGAGED');
-    playWarpSurge();
-  }, []);
-
-  // Initialize or Reset a Mission
+  // Initialize Act Mission
   const initMission = useCallback(
     (index: number) => {
       const m = MISSIONS[index];
       const eng = engineRef.current;
+      const trackLength = m.distanceKm * 1000;
+      eng.totalTrackLength = trackLength;
 
-      eng.ship = {
-        x: 120,
-        y: 260,
-        vx: 2.5,
-        vy: 0,
-        angle: 0,
-        targetAngle: 0,
-        speed: 2.5,
-        warpCooldown: 0,
-        invulnerable: 90, // 1.5s staging invulnerability
-      };
+      // Generate sampled terrain points for world track
+      const pts: TerrainPoint[] = [];
+      const step = 20;
+      for (let x = -200; x <= trackLength + 400; x += step) {
+        pts.push({ x, y: getTerrainHeight(x, m.terrainSeed) });
+      }
+      eng.terrain = pts;
 
-      eng.mouse = { x: 300, y: 260, isDown: false, hasMoved: false };
-      eng.trail = [];
-      eng.lasers = [];
-      eng.particles = [];
-      eng.scoreRef = 0;
-      eng.comboRef = 1;
-      eng.comboTimer = 0;
-      eng.anomalyTimer = 0;
+      // Spawn Beacons along the track
+      eng.beacons = m.beacons.map((b, i) => ({
+        id: i,
+        x: trackLength * b.xPct,
+        name: b.name,
+        deployed: false,
+        scoreValue: 350,
+      }));
 
-      eng.planets = m.planets.map((p) => ({ ...p }));
-      eng.gate = { ...m.gate };
-
-      // Spawn Telemetry Crystals along the flight corridor
-      eng.collectibles = [];
-      for (let i = 0; i < m.collectiblesCount; i++) {
-        const spreadX = 220 + (i / m.collectiblesCount) * 650;
-        const spreadY = 120 + Math.sin(i * 1.5) * 160 + (Math.random() - 0.5) * 60;
-        eng.collectibles.push({
+      // Spawn Fuel Canisters
+      eng.fuelItems = [];
+      for (let i = 0; i < m.fuelCount; i++) {
+        const itemX = 250 + (i / m.fuelCount) * (trackLength - 500) + (Math.random() - 0.5) * 80;
+        const groundY = getTerrainHeight(itemX, m.terrainSeed);
+        eng.fuelItems.push({
           id: i,
-          x: spreadX,
-          y: Math.max(80, Math.min(440, spreadY)),
+          x: itemX,
+          y: groundY - 35 - Math.random() * 30, // floating above terrain
           collected: false,
-          name: `Sector-${i + 1} Sensor Crystal`,
-          type: 'telemetry',
         });
       }
 
-      // Spawn Asteroids (away from starting point)
-      eng.asteroids = [];
-      for (let i = 0; i < m.asteroidsCount; i++) {
-        eng.asteroids.push({
-          id: i,
-          x: 320 + Math.random() * 600,
-          y: 70 + Math.random() * 380,
-          vx: (Math.random() - 0.5) * 1.2,
-          vy: (Math.random() - 0.5) * 1.2,
-          radius: 14 + Math.random() * 16,
-          angle: Math.random() * Math.PI * 2,
-          vRot: (Math.random() - 0.5) * 0.04,
-          hp: 1,
-          color: index === 1 ? '#c98a66' : '#64748b',
-        });
-      }
-
-      // Generate Cosmic Starfield once
+      // Stars in sky
       if (eng.stars.length === 0) {
-        for (let i = 0; i < 160; i++) {
+        for (let i = 0; i < 120; i++) {
           eng.stars.push({
-            x: Math.random() * eng.width,
-            y: Math.random() * eng.height,
+            x: Math.random() * 1160,
+            y: Math.random() * 320,
             size: Math.random() * 2 + 0.5,
-            speed: Math.random() * 0.6 + 0.15,
             alpha: Math.random() * 0.7 + 0.3,
           });
         }
       }
 
+      // Reset Rover position
+      const startGroundY = getTerrainHeight(100, m.terrainSeed);
+      eng.rover = {
+        x: 100,
+        y: startGroundY - 22,
+        vx: 0,
+        vy: 0,
+        angle: 0,
+        angVel: 0,
+        onGround: true,
+        fuel: 100,
+        nitroCooldown: 0,
+        wheelRot: 0,
+        suspensionCompression: 0,
+        airtimeFrames: 0,
+      };
+
+      eng.particles = [];
       setScore(0);
-      setCombo(1);
-      setScienceCount(0);
-      setWarpReady(100);
-      setShields(100);
-      setStage('flying');
+      setBeaconsDeployed(0);
+      setFuel(100);
       setEarnedBadge(null);
-      setHudStatus('MISSION LAUNCHED — STEER WITH CURSOR');
+      setStage('driving');
     },
     [MISSIONS]
   );
@@ -386,89 +282,45 @@ export default function ExpeditionSimulator(): React.ReactElement {
     playTelemetryBeep(980, 0.15);
   };
 
-  // Canvas Mouse and Touch Events
+  // Keyboard Event Listeners
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const updatePos = (clientX: number, clientY: number) => {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const x = (clientX - rect.left) * scaleX;
-      const y = (clientY - rect.top) * scaleY;
-      engineRef.current.mouse.x = Math.max(20, Math.min(canvas.width - 20, x));
-      engineRef.current.mouse.y = Math.max(20, Math.min(canvas.height - 20, y));
-      engineRef.current.mouse.hasMoved = true;
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      updatePos(e.clientX, e.clientY);
-    };
-
-    const handleMouseDown = (e: MouseEvent) => {
-      if (e.button === 0) {
-        engineRef.current.mouse.isDown = true;
-        fireLaser();
-      } else if (e.button === 2) {
-        e.preventDefault();
-        triggerWarpBoost();
-      }
-    };
-
-    const handleMouseUp = () => {
-      engineRef.current.mouse.isDown = false;
-    };
-
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-
-    // Touch Support for Mobile
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        updatePos(e.touches[0].clientX, e.touches[0].clientY);
-        e.preventDefault();
-      }
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        updatePos(e.touches[0].clientX, e.touches[0].clientY);
-        fireLaser();
-      }
-    };
-
-    // Keyboard Shortcuts (Space: Laser, W/Shift: Warp)
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        fireLaser();
+      const keys = engineRef.current.keys;
+      if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+        keys.forward = true;
         e.preventDefault();
       }
-      if (e.code === 'KeyW' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-        triggerWarpBoost();
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+        keys.backward = true;
+        e.preventDefault();
+      }
+      if (e.code === 'Space' || e.code === 'KeyW' || e.code === 'ArrowUp') {
+        keys.jump = true;
+        e.preventDefault();
+      }
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+        keys.boost = true;
         e.preventDefault();
       }
     };
 
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    canvas.addEventListener('contextmenu', handleContextMenu);
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const keys = engineRef.current.keys;
+      if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.forward = false;
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.backward = false;
+      if (e.code === 'Space' || e.code === 'KeyW' || e.code === 'ArrowUp') keys.jump = false;
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.boost = false;
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-
+    window.addEventListener('keyup', handleKeyUp);
     return () => {
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-      canvas.removeEventListener('contextmenu', handleContextMenu);
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [fireLaser, triggerWarpBoost]);
+  }, []);
 
-  // Main 60 FPS Game Loop
+  // 60 FPS Physics Simulation & Render Loop
   useEffect(() => {
     let animId: number;
     const canvas = canvasRef.current;
@@ -476,260 +328,166 @@ export default function ExpeditionSimulator(): React.ReactElement {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    let soundThrottle = 0;
+
     const gameLoop = () => {
       animId = requestAnimationFrame(gameLoop);
       const eng = engineRef.current;
-      const ship = eng.ship;
+      const rover = eng.rover;
+      const m = currentMission;
 
-      // 1. CLEAR VIEWPORT WITH NEBULA CANVAS
-      ctx.fillStyle = '#060919';
+      // 1. CLEAR VIEWPORT WITH DEEP SPACE OBSIDIAN VOID
+      ctx.fillStyle = '#0B0507';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. PARALLAX DRIFTING STARFIELD
+      // 2. DRAW STARFIELD WITH PARALLAX DRIFT
       ctx.fillStyle = '#FFFFFF';
       eng.stars.forEach((star) => {
-        star.x -= star.speed * (1 + Math.abs(ship.vx) * 0.15);
-        if (star.x < 0) star.x = canvas.width;
+        const parallaxX = (star.x - rover.x * 0.08) % canvas.width;
+        const drawX = parallaxX < 0 ? parallaxX + canvas.width : parallaxX;
         ctx.globalAlpha = star.alpha;
         ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.arc(drawX, star.y, star.size, 0, Math.PI * 2);
         ctx.fill();
       });
       ctx.globalAlpha = 1;
 
+      // 3. DRAW JUPITER & CALLISTO'S SKY HORIZON
+      drawSkyCelestialBodies(ctx, canvas, rover.x);
+
       // If briefing or victory, render background scene and exit update
       if (stage === 'briefing') {
-        drawPlanets(ctx, eng.planets);
-        drawGate(ctx, eng.gate);
+        drawTerrainSlice(ctx, eng.terrain, 0, canvas);
         return;
       }
 
-      // 3. FLUID SHIP FLIGHT DYNAMICS (Tracks Cursor/Finger Effortlessly)
-      if (stage === 'flying') {
-        if (eng.mouse.hasMoved) {
-          const dx = eng.mouse.x - ship.x;
-          const dy = eng.mouse.y - ship.y;
-          const dist = Math.hypot(dx, dy);
+      // 4. ROVER PHYSICAL SIMULATION
+      if (stage === 'driving') {
+        const isFwd = eng.keys.forward || eng.touchControls.forward;
+        const isBack = eng.keys.backward || eng.touchControls.backward;
+        const isJump = eng.keys.jump || eng.touchControls.jump;
+        const isBoost = eng.keys.boost || eng.touchControls.boost;
 
-          // Smooth easing towards cursor (no awkward inertia spinning)
-          const spring = 0.085;
-          const damp = 0.86;
-          ship.vx += dx * spring;
-          ship.vy += dy * spring;
-          ship.vx *= damp;
-          ship.vy *= damp;
+        // Ground Height at current rover X
+        const groundY = getTerrainHeight(rover.x, m.terrainSeed);
+        const frontGroundY = getTerrainHeight(rover.x + 18, m.terrainSeed);
+        const backGroundY = getTerrainHeight(rover.x - 18, m.terrainSeed);
+        const slopeAngle = Math.atan2(frontGroundY - backGroundY, 36);
 
-          // Limit max glide speed
-          const maxSpd = ship.invulnerable > 0 ? 16 : 8.5;
-          const curSpd = Math.hypot(ship.vx, ship.vy);
-          if (curSpd > maxSpd) {
-            ship.vx = (ship.vx / curSpd) * maxSpd;
-            ship.vy = (ship.vy / curSpd) * maxSpd;
-          }
+        // Callisto Low Gravity: 0.18 (very floaty, authentic moon physics)
+        const gravity = 0.22;
+        rover.vy += gravity;
 
-          // Smoothly rotate toward travel heading
-          if (curSpd > 0.4) {
-            const targetAngle = Math.atan2(ship.vy, ship.vx);
-            // Angle interpolation
-            let diff = targetAngle - ship.angle;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            ship.angle += diff * 0.18;
-          }
+        // Drive Acceleration
+        const accel = rover.onGround ? (isBoost ? 0.32 : 0.16) : 0.06;
+        if (isFwd && rover.fuel > 0) {
+          rover.vx += Math.cos(rover.angle) * accel;
+          rover.wheelRot += 0.25;
+          rover.fuel = Math.max(0, rover.fuel - (isBoost ? 0.08 : 0.02));
+        }
+        if (isBack) {
+          rover.vx -= Math.cos(rover.angle) * (accel * 0.8);
+          rover.wheelRot -= 0.2;
         }
 
-        ship.x += ship.vx;
-        ship.y += ship.vy;
-
-        // Keep inside bounds
-        ship.x = Math.max(25, Math.min(canvas.width - 25, ship.x));
-        ship.y = Math.max(25, Math.min(canvas.height - 25, ship.y));
-
-        // Cooldown tickers
-        if (ship.warpCooldown > 0) ship.warpCooldown--;
-        if (ship.invulnerable > 0) ship.invulnerable--;
-        setWarpReady(Math.round(((150 - ship.warpCooldown) / 150) * 100));
-
-        // Add Bioluminescent Trail Points
-        if (Math.hypot(ship.vx, ship.vy) > 0.8) {
-          eng.trail.push({
-            x: ship.x - Math.cos(ship.angle) * 12,
-            y: ship.y - Math.sin(ship.angle) * 12,
-            alpha: 0.85,
-            size: ship.invulnerable > 0 ? 6 : 3.5,
-          });
+        // Air Tilt Controls (balance the rover mid-jump)
+        if (!rover.onGround) {
+          if (isBack) rover.angVel -= 0.005;
+          if (isFwd) rover.angVel += 0.005;
+          rover.airtimeFrames++;
+        } else {
+          rover.airtimeFrames = 0;
         }
-        if (eng.trail.length > 35) eng.trail.shift();
 
-        // 4. PLANET GRAVITY ASSISTS (Wholesome Slingshot Accelerations)
-        eng.planets.forEach((p) => {
-          const dx = p.x - ship.x;
-          const dy = p.y - ship.y;
-          const dist = Math.hypot(dx, dy);
+        // Jump Jet Thrusters
+        if (isJump && rover.fuel > 0) {
+          rover.vy -= 0.48; // Upward jet burst
+          rover.fuel = Math.max(0, rover.fuel - 0.12);
 
-          // Slingshot corridor (orbiting around planet adds speed bonus)
-          if (dist < p.slingshotRadius && dist > p.radius) {
-            const tangentAngle = Math.atan2(dy, dx) + Math.PI / 2;
-            ship.vx += Math.cos(tangentAngle) * 0.45;
-            ship.vy += Math.sin(tangentAngle) * 0.45;
-
-            // Spawn slingshot starlight particles
-            if (Math.random() > 0.6) {
-              eng.particles.push({
-                x: ship.x,
-                y: ship.y,
-                vx: (Math.random() - 0.5) * 3,
-                vy: (Math.random() - 0.5) * 3,
-                life: 1,
-                maxLife: 18,
-                color: p.color,
-                size: 2.5,
-              });
-            }
-          }
-
-          // Gentle bounce off planetary surface (no instant death!)
-          if (dist < p.radius + 14) {
-            const pushAngle = Math.atan2(ship.y - p.y, ship.x - p.x);
-            ship.x = p.x + Math.cos(pushAngle) * (p.radius + 16);
-            ship.y = p.y + Math.sin(pushAngle) * (p.radius + 16);
-            ship.vx = Math.cos(pushAngle) * 4;
-            ship.vy = Math.sin(pushAngle) * 4;
-            setHudStatus(`GRAVITATIONAL SLINGSHOT // ${p.name.toUpperCase()}`);
-            playTelemetryBeep(1200, 0.1);
-          }
-        });
-
-        // 5. UPDATE LASERS
-        eng.lasers = eng.lasers.filter((l) => {
-          l.x += l.vx;
-          l.y += l.vy;
-          l.life--;
-
-          // Check laser collisions with asteroids
-          let hit = false;
-          eng.asteroids.forEach((ast) => {
-            if (hit) return;
-            const dist = Math.hypot(ast.x - l.x, ast.y - l.y);
-            if (dist < ast.radius + 6) {
-              hit = true;
-              ast.hp--;
-
-              // Explosion particles
-              for (let i = 0; i < 18; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const spd = 1.5 + Math.random() * 4;
-                eng.particles.push({
-                  x: ast.x,
-                  y: ast.y,
-                  vx: Math.cos(angle) * spd,
-                  vy: Math.sin(angle) * spd,
-                  life: 1,
-                  maxLife: 22,
-                  color: ast.color,
-                  size: Math.random() * 3 + 1.5,
-                });
-              }
-
-              // Drop Stardust collectible from shattered asteroid
-              eng.collectibles.push({
-                id: Date.now() + Math.random(),
-                x: ast.x,
-                y: ast.y,
-                collected: false,
-                name: 'Cosmic Stardust',
-                type: 'stardust',
-              });
-
-              // Respawn asteroid on edge
-              ast.x = canvas.width + 40;
-              ast.y = 80 + Math.random() * 360;
-              ast.hp = 1;
-
-              eng.scoreRef += 100 * eng.comboRef;
-              setScore(eng.scoreRef);
-              setHudStatus('ASTEROID PULVERIZED +100');
-              playAsteroidBlast();
-            }
-          });
-
-          return l.life > 0 && !hit && l.x < canvas.width + 20 && l.x > -20;
-        });
-
-        // 6. UPDATE ASTEROIDS
-        eng.asteroids.forEach((ast) => {
-          ast.x += ast.vx;
-          ast.y += ast.vy;
-          ast.angle += ast.vRot;
-          if (ast.x < -30) ast.x = canvas.width + 30;
-          if (ast.x > canvas.width + 30) ast.x = -30;
-          if (ast.y < -30) ast.y = canvas.height + 30;
-          if (ast.y > canvas.height + 30) ast.y = -30;
-
-          // Check collision with ship
-          const dist = Math.hypot(ast.x - ship.x, ast.y - ship.y);
-          if (dist < ast.radius + 12 && ship.invulnerable === 0) {
-            // Deflect ship and reduce shield safely
-            const pushAngle = Math.atan2(ship.y - ast.y, ship.x - ast.x);
-            ship.vx += Math.cos(pushAngle) * 5;
-            ship.vy += Math.sin(pushAngle) * 5;
-            ship.invulnerable = 45; // 0.75s grace
-
-            setShields((prev) => {
-              const next = Math.max(20, prev - 15);
-              return next;
+          // Thruster exhaust particles
+          for (let p = 0; p < 2; p++) {
+            eng.particles.push({
+              x: rover.x - Math.sin(rover.angle) * 8 + (Math.random() - 0.5) * 10,
+              y: rover.y + 14,
+              vx: -Math.sin(rover.angle) * 2 + (Math.random() - 0.5) * 2,
+              vy: 3 + Math.random() * 3,
+              life: 1,
+              color: Math.random() > 0.4 ? '#F43F5E' : '#FF6633',
+              size: Math.random() * 3 + 2,
             });
-
-            // Spark particles
-            for (let i = 0; i < 15; i++) {
-              eng.particles.push({
-                x: ship.x,
-                y: ship.y,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
-                life: 1,
-                maxLife: 20,
-                color: '#ef4444',
-                size: 2.5,
-              });
-            }
-
-            setHudStatus('SHIELD DEFLECTION TRIGGERED');
-            playAsteroidBlast();
           }
-        });
 
-        // 7. COLLECT SCIENCE CRYSTALS
-        eng.collectibles.forEach((item) => {
-          if (!item.collected) {
-            const dist = Math.hypot(item.x - ship.x, item.y - ship.y);
-            if (dist < 32) {
-              item.collected = true;
-              const points = item.type === 'telemetry' ? 250 : 50;
-              eng.scoreRef += points * eng.comboRef;
-              setScore(eng.scoreRef);
+          soundThrottle++;
+          if (soundThrottle % 12 === 0) {
+            playThrusterBurst();
+          }
+        }
 
-              if (item.type === 'telemetry') {
-                setScienceCount((c) => c + 1);
-                eng.comboRef = Math.min(5, eng.comboRef + 1);
-                setCombo(eng.comboRef);
-                playBeaconPing(1320 + eng.comboRef * 110, 0.3);
-                setHudStatus(`SENSOR CRYSTAL LOGGED (+${points * eng.comboRef} PTS)`);
-              } else {
-                playBeaconPing(1760, 0.15);
-              }
+        // Apply velocities
+        rover.x += rover.vx;
+        rover.y += rover.vy;
+        rover.angle += rover.angVel;
+        rover.angVel *= 0.92;
 
-              // Collection sparkle burst
-              for (let i = 0; i < 12; i++) {
+        // Ground Contact & Terrain Collision
+        const chassisRadius = 18;
+        if (rover.y >= groundY - chassisRadius) {
+          rover.y = groundY - chassisRadius;
+          rover.vy = 0;
+          rover.onGround = true;
+
+          // Align rover angle to terrain slope with damping
+          const targetAngle = slopeAngle;
+          rover.angle += (targetAngle - rover.angle) * 0.22;
+
+          // Rolling friction
+          rover.vx *= 0.985;
+
+          // Emit ground dust particles when driving fast
+          if (Math.abs(rover.vx) > 2) {
+            eng.particles.push({
+              x: rover.x - Math.cos(rover.angle) * 16,
+              y: rover.y + 16,
+              vx: -rover.vx * 0.3 + (Math.random() - 0.5) * 1.5,
+              vy: -0.5 - Math.random() * 1.5,
+              life: 1,
+              color: '#8C7F87',
+              size: Math.random() * 3 + 1.5,
+            });
+          }
+        } else {
+          rover.onGround = false;
+        }
+
+        // Nitro Boost surge
+        if (isBoost && rover.nitroCooldown === 0 && rover.fuel > 15) {
+          rover.vx += Math.cos(rover.angle) * 3.5;
+          rover.nitroCooldown = 90;
+          rover.fuel -= 10;
+          playWarpSurge();
+        }
+        if (rover.nitroCooldown > 0) rover.nitroCooldown--;
+
+        // Check Beacons Deployment
+        eng.beacons.forEach((b) => {
+          if (!b.deployed) {
+            const dist = Math.abs(b.x - rover.x);
+            if (dist < 45) {
+              b.deployed = true;
+              setBeaconsDeployed((prev) => prev + 1);
+              setScore((s) => s + b.scoreValue);
+              playBeaconPing(1320, 0.4);
+
+              // Celebration beacon spark particles
+              for (let i = 0; i < 25; i++) {
                 const angle = Math.random() * Math.PI * 2;
                 eng.particles.push({
-                  x: item.x,
-                  y: item.y,
-                  vx: Math.cos(angle) * (2 + Math.random() * 3),
-                  vy: Math.sin(angle) * (2 + Math.random() * 3),
+                  x: b.x,
+                  y: getTerrainHeight(b.x, m.terrainSeed) - 40,
+                  vx: Math.cos(angle) * (2 + Math.random() * 4),
+                  vy: Math.sin(angle) * (2 + Math.random() * 4),
                   life: 1,
-                  maxLife: 24,
-                  color: item.type === 'telemetry' ? '#9C84D6' : '#ffb366',
+                  color: '#4ade80',
                   size: 2.5,
                 });
               }
@@ -737,44 +495,77 @@ export default function ExpeditionSimulator(): React.ReactElement {
           }
         });
 
-        // 8. CHECK GATE TOUCHDOWN / COMPLETION
-        if (eng.gate) {
-          const gDist = Math.hypot(eng.gate.x - ship.x, eng.gate.y - ship.y);
-          if (gDist < eng.gate.radius + 15) {
-            // VICTORY! TOUCHDOWN NOMINAL
-            setStage('victory');
-            setEarnedBadge(currentMission.badge);
-            playBeaconPing(1760, 0.7);
-            playWarpSurge();
+        // Check Fuel Items
+        eng.fuelItems.forEach((f) => {
+          if (!f.collected) {
+            const d = Math.hypot(f.x - rover.x, f.y - rover.y);
+            if (d < 35) {
+              f.collected = true;
+              rover.fuel = Math.min(100, rover.fuel + 25);
+              setScore((s) => s + 100);
+              playBeaconPing(1760, 0.2);
+            }
           }
+        });
+
+        // Check End Destination
+        if (rover.x >= eng.totalTrackLength) {
+          // MISSION COMPLETED!
+          setStage('finished');
+          setEarnedBadge(m.badge);
+          playBeaconPing(1760, 0.6);
+          playWarpSurge();
         }
+
+        // Live Telemetry Readout
+        setFuel(Math.round(rover.fuel));
+        const currentSpeedKmh = Math.round(Math.abs(rover.vx) * 18);
+        setTelemetry({
+          speedKmh: currentSpeedKmh,
+          distanceM: Math.round(rover.x),
+          totalDistanceM: Math.round(eng.totalTrackLength),
+          airtimeSec: Number((rover.airtimeFrames / 60).toFixed(1)),
+          status:
+            rover.fuel < 20
+              ? 'WARNING: LOW POWER CELL'
+              : !rover.onGround
+              ? 'LOW-GRAVITY TRAJECTORY LEAP'
+              : 'ROVER TRACTION NOMINAL',
+        });
       }
 
-      // 9. DRAW GAME WORLD
+      // Smooth Camera tracking rover horizontally
+      const targetCamX = rover.x - canvas.width * 0.35;
+      eng.camera.x += (targetCamX - eng.camera.x) * 0.1;
 
-      // A. Planets & Halos
-      drawPlanets(ctx, eng.planets);
+      // 5. RENDER SCENE WITH CAMERA OFFSET
+      ctx.save();
+      ctx.translate(-eng.camera.x, 0);
 
-      // B. Arrival Harbor Gate
-      drawGate(ctx, eng.gate);
+      // A. Callisto Rugged Crater Surface
+      drawTerrainSlice(ctx, eng.terrain, eng.camera.x, canvas);
 
-      // C. Collectibles (Telemetry Crystals & Stardust)
-      drawCollectibles(ctx, eng.collectibles);
+      // B. Beacons & Science Sites
+      eng.beacons.forEach((b) => {
+        const by = getTerrainHeight(b.x, m.terrainSeed);
+        drawBeaconSite(ctx, b, by);
+      });
 
-      // D. Asteroids
-      drawAsteroids(ctx, eng.asteroids);
+      // C. Fuel Cells
+      eng.fuelItems.forEach((f) => {
+        if (!f.collected) {
+          drawFuelCanister(ctx, f.x, f.y);
+        }
+      });
 
-      // E. Laser Bolts
-      drawLasers(ctx, eng.lasers);
+      // D. Final Destination Hangar (Callisto Base)
+      drawEndDestination(ctx, eng.totalTrackLength, getTerrainHeight(eng.totalTrackLength, m.terrainSeed), m.destinationName);
 
-      // F. Bioluminescent Starlight Trail
-      drawTrail(ctx, eng.trail);
-
-      // G. Particles
+      // E. Particles
       eng.particles = eng.particles.filter((p) => {
         p.x += p.vx;
         p.y += p.vy;
-        p.life -= 1 / p.maxLife;
+        p.life -= 0.04;
         ctx.fillStyle = p.color;
         ctx.globalAlpha = Math.max(0, p.life);
         ctx.beginPath();
@@ -784,265 +575,329 @@ export default function ExpeditionSimulator(): React.ReactElement {
         return p.life > 0;
       });
 
-      // H. Spaceship
-      drawSpaceship(ctx, ship);
+      // F. The Callisto Expedition Surface Rover
+      drawRover(ctx, rover);
 
-      // I. Cursor Target Crosshair
-      drawCursorAura(ctx, eng.mouse.x, eng.mouse.y);
+      ctx.restore();
     };
 
     animId = requestAnimationFrame(gameLoop);
     return () => cancelAnimationFrame(animId);
   }, [stage, missionIndex]);
 
-  // Visual Renderers
-  const drawSpaceship = (ctx: CanvasRenderingContext2D, ship: typeof engineRef.current.ship) => {
+  // Renderer: Sky with Jupiter & Auroral Bands
+  const drawSkyCelestialBodies = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, roverX: number) => {
+    // Vast Jovian gas giant in sky with parallax
+    const jupX = canvas.width * 0.75 - (roverX * 0.02) % (canvas.width * 0.5);
+    const jupY = 95;
+    const jupRadius = 68;
+
+    // Jupiter atmospheric glow
+    const jupGrad = ctx.createRadialGradient(jupX, jupY, jupRadius * 0.7, jupX, jupY, jupRadius * 1.6);
+    jupGrad.addColorStop(0, '#E05A2B');
+    jupGrad.addColorStop(0.5, 'rgba(244, 63, 94, 0.35)');
+    jupGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = jupGrad;
+    ctx.beginPath();
+    ctx.arc(jupX, jupY, jupRadius * 1.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Jupiter planet body
+    ctx.beginPath();
+    ctx.arc(jupX, jupY, jupRadius, 0, Math.PI * 2);
+    ctx.fillStyle = '#E05A2B';
+    ctx.fill();
+
+    // Jupiter storm bands
     ctx.save();
-    ctx.translate(ship.x, ship.y);
-    ctx.rotate(ship.angle);
+    ctx.clip();
+    ctx.fillStyle = '#991B1B';
+    ctx.fillRect(jupX - jupRadius, jupY - 14, jupRadius * 2, 9);
+    ctx.fillRect(jupX - jupRadius, jupY + 8, jupRadius * 2, 14);
+    ctx.fillStyle = '#FF7A00';
+    ctx.fillRect(jupX - jupRadius, jupY + 28, jupRadius * 2, 6);
+    ctx.restore();
 
-    // Warp / Invulnerability Shield Bubble
-    if (ship.invulnerable > 0) {
-      ctx.beginPath();
-      ctx.arc(0, 0, 24, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(156, 132, 214, ${0.5 + Math.sin(Date.now() * 0.015) * 0.4})`;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 24, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(156, 132, 214, 0.15)';
-      ctx.fill();
+    // Distant jagged Callisto mountain silhouettes (titanium steel haze)
+    ctx.fillStyle = 'rgba(43, 18, 28, 0.45)';
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height);
+    for (let x = 0; x <= canvas.width; x += 60) {
+      const my = 290 + Math.sin(x * 0.01 + roverX * 0.0008) * 35;
+      ctx.lineTo(x, my);
     }
-
-    // Engine Glow Halo
-    ctx.beginPath();
-    ctx.arc(-10, 0, 8, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
-    ctx.fill();
-
-    // Twin Solar Wings
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(-6, -16, 10, 4);
-    ctx.fillRect(-6, 12, 10, 4);
-
-    // Sleek Arrowhead Fuselage
-    ctx.beginPath();
-    ctx.moveTo(18, 0); // Nose tip
-    ctx.lineTo(-12, -12); // Left wing
-    ctx.lineTo(-6, 0); // Engine socket
-    ctx.lineTo(-12, 12); // Right wing
+    ctx.lineTo(canvas.width, canvas.height);
     ctx.closePath();
-    ctx.fillStyle = '#F7F5FF';
     ctx.fill();
-    ctx.strokeStyle = '#9C84D6';
-    ctx.lineWidth = 1.5;
+  };
+
+  // Renderer: Rugged Callisto Basalt Surface
+  const drawTerrainSlice = (
+    ctx: CanvasRenderingContext2D,
+    terrain: TerrainPoint[],
+    camX: number,
+    canvas: HTMLCanvasElement
+  ) => {
+    if (terrain.length === 0) return;
+
+    ctx.beginPath();
+    ctx.moveTo(terrain[0].x, canvas.height);
+    terrain.forEach((pt) => {
+      ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.lineTo(terrain[terrain.length - 1].x, canvas.height);
+    ctx.closePath();
+
+    // Subsurface Gradient: Titanium dark basalt to deep void
+    const grad = ctx.createLinearGradient(0, 300, 0, canvas.height);
+    grad.addColorStop(0, '#2B121C'); // Crimson-nebula basalt ridge
+    grad.addColorStop(0.3, '#160B10');
+    grad.addColorStop(1, '#0B0507');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Surface Crust Line (Glowing Ember Edge)
+    ctx.beginPath();
+    terrain.forEach((pt, i) => {
+      if (i === 0) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.strokeStyle = '#F43F5E';
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    // Amber Visor Glass
+    // Highlight frost sheen on crests
+    ctx.strokeStyle = '#FFB399';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([12, 18]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
+  // Renderer: 6-Wheeled Expedition Rover
+  const drawRover = (ctx: CanvasRenderingContext2D, rover: typeof engineRef.current.rover) => {
+    ctx.save();
+    ctx.translate(rover.x, rover.y);
+    ctx.rotate(rover.angle);
+
+    // Rover Headlight Cone
+    const lightGrad = ctx.createRadialGradient(28, 0, 5, 120, 0, 110);
+    lightGrad.addColorStop(0, 'rgba(255, 179, 153, 0.45)');
+    lightGrad.addColorStop(1, 'rgba(255, 179, 153, 0)');
+    ctx.fillStyle = lightGrad;
     ctx.beginPath();
-    ctx.ellipse(3, 0, 5, 2.5, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#FFB86B';
+    ctx.moveTo(24, -2);
+    ctx.lineTo(130, -35);
+    ctx.lineTo(130, 35);
+    ctx.closePath();
     ctx.fill();
+
+    // Main Chassis Body (Titanium Steel with Crimson Embers)
+    ctx.fillStyle = '#160B10';
+    ctx.beginPath();
+    ctx.roundRect(-24, -14, 48, 18, [6, 8, 4, 4]);
+    ctx.fill();
+    ctx.strokeStyle = '#F43F5E';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Pressurized Cockpit Dome (Glowing Solar Amber Glass)
+    ctx.beginPath();
+    ctx.arc(6, -12, 10, Math.PI, 0);
+    ctx.fillStyle = '#FF7A00';
+    ctx.fill();
+    ctx.strokeStyle = '#FFB399';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // High-Gain Telemetry Dish on Back
+    ctx.save();
+    ctx.translate(-14, -16);
+    ctx.rotate(-0.4);
+    ctx.beginPath();
+    ctx.arc(0, 0, 6, Math.PI * 0.8, Math.PI * 1.8);
+    ctx.strokeStyle = '#FFB399';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Ventral Jet Thruster Nozzles
+    ctx.fillStyle = '#7F1D1D';
+    ctx.fillRect(-12, 4, 6, 4);
+    ctx.fillRect(8, 4, 6, 4);
+
+    // 3 Wheels Pair (6-Wheeled Rover)
+    const wheelPositions = [-18, 0, 18];
+    wheelPositions.forEach((wx) => {
+      ctx.save();
+      ctx.translate(wx, 12);
+      ctx.rotate(rover.wheelRot);
+
+      // Outer Tire (Heavy tread basalt grip)
+      ctx.beginPath();
+      ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#2B121C';
+      ctx.fill();
+      ctx.strokeStyle = '#F43F5E';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Wheel Rim
+      ctx.beginPath();
+      ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFB399';
+      ctx.fill();
+
+      // Rim Spoke Spokes
+      ctx.strokeStyle = '#160B10';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-6, 0);
+      ctx.lineTo(6, 0);
+      ctx.moveTo(0, -6);
+      ctx.lineTo(0, 6);
+      ctx.stroke();
+
+      ctx.restore();
+    });
 
     ctx.restore();
   };
 
-  const drawTrail = (ctx: CanvasRenderingContext2D, trail: TrailPoint[]) => {
-    if (trail.length < 2) return;
-    for (let i = 0; i < trail.length; i++) {
-      const pt = trail[i];
-      const prog = i / trail.length;
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, pt.size * prog, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(156, 132, 214, ${prog * 0.45})`;
-      ctx.fill();
-    }
-  };
+  // Renderer: Deployable Science Beacon Mast
+  const drawBeaconSite = (ctx: CanvasRenderingContext2D, b: BeaconSite, groundY: number) => {
+    ctx.save();
+    ctx.translate(b.x, groundY);
 
-  const drawLasers = (ctx: CanvasRenderingContext2D, lasers: LaserBolt[]) => {
-    ctx.strokeStyle = '#9C84D6';
-    ctx.lineWidth = 2.5;
-    lasers.forEach((l) => {
-      ctx.save();
-      ctx.translate(l.x, l.y);
-      ctx.rotate(l.angle);
-
-      // Glowing laser core
+    if (b.deployed) {
+      // Deployed Active Transmitter Mast
+      ctx.strokeStyle = '#4ade80';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(-8, 0);
-      ctx.lineTo(8, 0);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -42);
       ctx.stroke();
 
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(-4, -1, 8, 2);
-
-      ctx.restore();
-    });
-  };
-
-  const drawPlanets = (ctx: CanvasRenderingContext2D, planets: Planet[]) => {
-    planets.forEach((p) => {
-      // Slingshot Orbital Ring
+      // Pulsing Transmission Rings
+      const pulse = (Date.now() * 0.003) % 1;
+      ctx.strokeStyle = `rgba(74, 222, 128, ${1 - pulse})`;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.slingshotRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(156, 132, 214, 0.12)';
-      ctx.setLineDash([4, 6]);
+      ctx.arc(0, -42, 10 + pulse * 25, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Flag / Sensor Head
+      ctx.fillStyle = '#4ade80';
+      ctx.beginPath();
+      ctx.arc(0, -42, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Deployed Tag
+      ctx.fillStyle = '#4ade80';
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('DEPLOYED', 0, -52);
+      ctx.fillText(b.name.toUpperCase(), 0, -62);
+    } else {
+      // Un-deployed Holographic Target Site
+      ctx.strokeStyle = '#F43F5E';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -32);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Atmospheric Glow
-      const grad = ctx.createRadialGradient(p.x, p.y, p.radius * 0.6, p.x, p.y, p.radius * 1.5);
-      grad.addColorStop(0, p.color);
-      grad.addColorStop(0.65, p.glowColor);
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = grad;
+      // Beacon Diamond Hologram
+      const pulseH = Math.sin(Date.now() * 0.005) * 3;
+      ctx.fillStyle = '#FF7A00';
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius * 1.5, 0, Math.PI * 2);
+      ctx.moveTo(0, -38 - pulseH);
+      ctx.lineTo(6, -32 - pulseH);
+      ctx.lineTo(0, -26 - pulseH);
+      ctx.lineTo(-6, -32 - pulseH);
+      ctx.closePath();
       ctx.fill();
 
-      // Planet Sphere
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Planet Title
-      ctx.fillStyle = '#CFCBF2';
-      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#FFB399';
+      ctx.font = '9px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(p.name.toUpperCase(), p.x, p.y + p.radius + 16);
-    });
-  };
-
-  const drawGate = (ctx: CanvasRenderingContext2D, gate: Gate | null) => {
-    if (!gate) return;
-    const now = Date.now() * 0.002;
-    ctx.save();
-    ctx.translate(gate.x, gate.y);
-
-    // Rotating Acceleration Rings
-    ctx.strokeStyle = '#4ade80';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([8, 6]);
-    ctx.beginPath();
-    ctx.arc(0, 0, gate.radius, now, now + Math.PI * 2);
-    ctx.stroke();
-
-    ctx.setLineDash([6, 8]);
-    ctx.strokeStyle = '#9C84D6';
-    ctx.beginPath();
-    ctx.arc(0, 0, gate.radius * 0.7, -now * 1.5, -now * 1.5 + Math.PI * 2);
-    ctx.stroke();
-
-    ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.arc(0, 0, gate.radius * 0.35, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(74, 222, 128, 0.2)';
-    ctx.fill();
-
-    // Gate Marker Label
-    ctx.fillStyle = '#4ade80';
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('ARRIVAL HARBOR', 0, gate.radius + 18);
-    ctx.fillText(gate.name.toUpperCase(), 0, gate.radius + 30);
+      ctx.fillText('SURVEY SITE', 0, -46);
+      ctx.fillText(b.name.toUpperCase(), 0, -56);
+    }
 
     ctx.restore();
   };
 
-  const drawCollectibles = (ctx: CanvasRenderingContext2D, items: Collectible[]) => {
-    const pulse = Math.sin(Date.now() * 0.006) * 3;
-    items.forEach((item) => {
-      if (item.collected) return;
-      ctx.save();
-      ctx.translate(item.x, item.y);
-
-      if (item.type === 'telemetry') {
-        // Glowing Sensor Crystal (Four-point star shape from club logo)
-        ctx.fillStyle = '#CFCBF2';
-        ctx.beginPath();
-        ctx.moveTo(0, -11 - pulse);
-        ctx.lineTo(3, -3);
-        ctx.lineTo(11 + pulse, 0);
-        ctx.lineTo(3, 3);
-        ctx.lineTo(0, 11 + pulse);
-        ctx.lineTo(-3, 3);
-        ctx.lineTo(-11 - pulse, 0);
-        ctx.lineTo(-3, -3);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.strokeStyle = '#9C84D6';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      } else {
-        // Stardust pearl
-        ctx.beginPath();
-        ctx.arc(0, 0, 4 + pulse * 0.3, 0, Math.PI * 2);
-        ctx.fillStyle = '#FFB86B';
-        ctx.fill();
-      }
-
-      ctx.restore();
-    });
-  };
-
-  const drawAsteroids = (ctx: CanvasRenderingContext2D, asteroids: Asteroid[]) => {
-    asteroids.forEach((ast) => {
-      ctx.save();
-      ctx.translate(ast.x, ast.y);
-      ctx.rotate(ast.angle);
-
-      ctx.beginPath();
-      ctx.arc(0, 0, ast.radius, 0, Math.PI * 2);
-      ctx.fillStyle = ast.color;
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Crater details
-      ctx.beginPath();
-      ctx.arc(ast.radius * 0.3, ast.radius * 0.2, ast.radius * 0.25, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-      ctx.fill();
-
-      ctx.restore();
-    });
-  };
-
-  const drawCursorAura = (ctx: CanvasRenderingContext2D, mx: number, my: number) => {
+  // Renderer: Fuel Cell
+  const drawFuelCanister = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+    const bob = Math.sin(Date.now() * 0.006 + x) * 4;
     ctx.save();
-    ctx.strokeStyle = 'rgba(156, 132, 214, 0.4)';
-    ctx.lineWidth = 1;
+    ctx.translate(x, y + bob);
+
+    // Glowing canister body
+    ctx.fillStyle = '#38bdf8';
     ctx.beginPath();
-    ctx.arc(mx, my, 12, 0, Math.PI * 2);
+    ctx.roundRect(-6, -10, 12, 20, 3);
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    ctx.fillStyle = '#9C84D6';
+    // Core lightning bolt
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡', 0, 4);
+
+    ctx.restore();
+  };
+
+  // Renderer: Callisto Base Airlock Destination Hangar
+  const drawEndDestination = (ctx: CanvasRenderingContext2D, x: number, groundY: number, name: string) => {
+    ctx.save();
+    ctx.translate(x, groundY);
+
+    // Pressurized Colony Dome
     ctx.beginPath();
-    ctx.arc(mx, my, 2, 0, Math.PI * 2);
+    ctx.arc(45, 0, 85, Math.PI, 0);
+    ctx.fillStyle = 'rgba(43, 18, 28, 0.85)';
     ctx.fill();
+    ctx.strokeStyle = '#F43F5E';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Illuminated Hangar Gate
+    ctx.fillStyle = '#160B10';
+    ctx.fillRect(-20, -50, 48, 50);
+    ctx.strokeStyle = '#4ade80';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-20, -50, 48, 50);
+
+    // Gate beacon rings
+    ctx.fillStyle = '#4ade80';
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('DESTINATION AIRLOCK', 4, -62);
+    ctx.fillText(name.toUpperCase(), 4, -76);
+
     ctx.restore();
   };
 
   return (
     <div
       style={{
-        backgroundColor: '#070B1F',
-        border: '1px solid rgba(156, 132, 214, 0.35)',
+        backgroundColor: '#0B0507',
+        border: '1px solid rgba(244, 63, 94, 0.35)',
         borderRadius: '16px',
         overflow: 'hidden',
-        boxShadow: '0 16px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(156, 132, 214, 0.2)',
+        boxShadow: '0 16px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(244, 63, 94, 0.2)',
         fontFamily: 'var(--font-mono)',
-        color: '#F7F5FF',
+        color: '#FFF5F5',
       }}
     >
-      {/* Cockpit Header with Act Tabs */}
+      {/* Flight Deck Header with Act Tabs */}
       <div
         style={{
           display: 'flex',
@@ -1050,8 +905,8 @@ export default function ExpeditionSimulator(): React.ReactElement {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0.85rem 1.25rem',
-          backgroundColor: 'rgba(12, 18, 55, 0.95)',
-          borderBottom: '1px solid rgba(156, 132, 214, 0.25)',
+          backgroundColor: 'rgba(22, 11, 16, 0.95)',
+          borderBottom: '1px solid rgba(244, 63, 94, 0.25)',
           gap: '0.75rem',
         }}
       >
@@ -1061,15 +916,15 @@ export default function ExpeditionSimulator(): React.ReactElement {
               width: '10px',
               height: '10px',
               borderRadius: '50%',
-              backgroundColor: stage === 'flying' ? '#4ade80' : '#38bdf8',
-              boxShadow: `0 0 10px ${stage === 'flying' ? '#4ade80' : '#38bdf8'}`,
+              backgroundColor: stage === 'driving' ? '#4ade80' : '#F43F5E',
+              boxShadow: `0 0 10px ${stage === 'driving' ? '#4ade80' : '#F43F5E'}`,
             }}
           />
           <div>
             <div style={{ fontSize: '0.8125rem', fontWeight: 700, letterSpacing: '0.08em' }}>
-              EXPEDITION FLIGHT DECK // {currentMission.act}
+              CALLISTO SURFACE ROVER EXPEDITION // {currentMission.act}
             </div>
-            <div style={{ fontSize: '0.625rem', color: '#9C84D6' }}>
+            <div style={{ fontSize: '0.625rem', color: '#F43F5E' }}>
               {currentMission.name.toUpperCase()}
             </div>
           </div>
@@ -1086,9 +941,9 @@ export default function ExpeditionSimulator(): React.ReactElement {
               }}
               style={{
                 padding: '0.35rem 0.65rem',
-                backgroundColor: missionIndex === idx ? '#9C84D6' : 'rgba(20, 32, 79, 0.6)',
-                color: missionIndex === idx ? '#060919' : '#CFCBF2',
-                border: '1px solid rgba(156, 132, 214, 0.35)',
+                backgroundColor: missionIndex === idx ? '#F43F5E' : 'rgba(43, 18, 28, 0.6)',
+                color: missionIndex === idx ? '#0B0507' : '#FFB399',
+                border: '1px solid rgba(244, 63, 94, 0.35)',
                 borderRadius: '4px',
                 fontSize: '0.6875rem',
                 fontWeight: 700,
@@ -1102,17 +957,17 @@ export default function ExpeditionSimulator(): React.ReactElement {
         </div>
       </div>
 
-      {/* Main Interactive Flight Viewport */}
-      <div style={{ position: 'relative', width: '100%', height: '520px', backgroundColor: '#060919' }}>
+      {/* Main Interactive Canvas Viewport */}
+      <div style={{ position: 'relative', width: '100%', height: '520px', backgroundColor: '#0B0507' }}>
         <canvas
           ref={canvasRef}
           width={1160}
           height={520}
-          style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair' }}
+          style={{ width: '100%', height: '100%', display: 'block' }}
         />
 
-        {/* Flight Telemetry HUD Overlays */}
-        {stage === 'flying' && (
+        {/* Live Cockpit Rover HUD Overlays */}
+        {stage === 'driving' && (
           <div
             style={{
               position: 'absolute',
@@ -1122,40 +977,42 @@ export default function ExpeditionSimulator(): React.ReactElement {
               flexDirection: 'column',
               gap: '0.4rem',
               pointerEvents: 'none',
-              backgroundColor: 'rgba(7, 11, 31, 0.8)',
-              padding: '0.65rem 0.95rem',
+              backgroundColor: 'rgba(22, 11, 16, 0.85)',
+              padding: '0.75rem 1rem',
               borderRadius: '8px',
-              border: '1px solid rgba(156, 132, 214, 0.3)',
+              border: '1px solid rgba(244, 63, 94, 0.3)',
               backdropFilter: 'blur(8px)',
             }}
           >
-            <div style={{ fontSize: '0.625rem', color: '#9C84D6', letterSpacing: '0.1em' }}>
-              ORBITAL TELEMETRY
+            <div style={{ fontSize: '0.625rem', color: '#F43F5E', letterSpacing: '0.1em' }}>
+              ROVER EXPEDITION TELEMETRY
             </div>
             <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>
-              EXPEDITION SCORE: <span style={{ color: '#4ade80' }}>{score} PTS</span>{' '}
-              {combo > 1 && <span style={{ color: '#FFB86B', fontSize: '0.75rem' }}>[{combo}x COMBO]</span>}
+              VELOCITY: <span style={{ color: '#FFB399' }}>{telemetry.speedKmh} km/h</span>
             </div>
             <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>
-              WARP DRIVE: <span style={{ color: warpReady === 100 ? '#4ade80' : '#38bdf8' }}>{warpReady}% READY</span>
+              POWER CELL: <span style={{ color: fuel < 25 ? '#ef4444' : '#4ade80' }}>{fuel}%</span>
             </div>
             <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>
-              SENSOR DATA: <span style={{ color: '#CFCBF2' }}>{scienceCount}/{currentMission.collectiblesCount} CRYSTALS</span>
+              ODOMETER: <span style={{ color: '#FFF5F5' }}>{telemetry.distanceM}m / {telemetry.totalDistanceM}m</span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#4ade80' }}>
+              BEACONS DEPLOYED: {beaconsDeployed}/{currentMission.beacons.length}
             </div>
             <div
               style={{
                 fontSize: '0.6875rem',
-                color: '#38bdf8',
+                color: '#FF7A00',
                 fontWeight: 700,
                 marginTop: '0.2rem',
               }}
             >
-              // {hudStatus}
+              // {telemetry.status}
             </div>
           </div>
         )}
 
-        {/* Briefing Modal Overlay */}
+        {/* Mission Briefing Overlay */}
         {stage === 'briefing' && (
           <div
             style={{
@@ -1165,7 +1022,7 @@ export default function ExpeditionSimulator(): React.ReactElement {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(6, 9, 25, 0.88)',
+              backgroundColor: 'rgba(11, 5, 7, 0.88)',
               padding: '2rem',
               textAlign: 'center',
             }}
@@ -1175,7 +1032,7 @@ export default function ExpeditionSimulator(): React.ReactElement {
               alt=""
               width="80"
               height="80"
-              style={{ borderRadius: '50%', marginBottom: '1rem', border: '2px solid #9C84D6' }}
+              style={{ borderRadius: '50%', marginBottom: '1rem', border: '2px solid #F43F5E' }}
             />
             <div
               style={{
@@ -1186,9 +1043,9 @@ export default function ExpeditionSimulator(): React.ReactElement {
                 fontFamily: 'var(--font-display)',
               }}
             >
-              MISSION: {currentMission.name}
+              SURFACE MISSION: {currentMission.name}
             </div>
-            <p style={{ maxWidth: '560px', fontSize: '0.85rem', color: '#CFCBF2', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+            <p style={{ maxWidth: '560px', fontSize: '0.85rem', color: '#FFB399', lineHeight: 1.6, marginBottom: '1.25rem' }}>
               {currentMission.storyBrief}
             </p>
             <div
@@ -1198,36 +1055,36 @@ export default function ExpeditionSimulator(): React.ReactElement {
                 flexWrap: 'wrap',
                 justifyContent: 'center',
                 fontSize: '0.75rem',
-                color: '#9C84D6',
+                color: '#F43F5E',
                 marginBottom: '1.5rem',
               }}
             >
-              <span>🖱️ MOVE: Cursor / Touch tracks ship smoothly</span>
-              <span>⚡ CLICK / TAP: Pulse Lasers</span>
-              <span>🚀 DOUBLE-CLICK / SPACE: Warp Boost</span>
+              <span>🎮 DRIVE: [D / RIGHT ARROW] or [A / LEFT ARROW]</span>
+              <span>🚀 JET THRUSTERS: [SPACE / W]</span>
+              <span>⚡ NITRO BOOST: [SHIFT]</span>
             </div>
             <button
               onClick={startMission}
               style={{
                 padding: '0.85rem 2.2rem',
-                backgroundColor: '#9C84D6',
-                color: '#060919',
+                backgroundColor: '#F43F5E',
+                color: '#0B0507',
                 fontSize: '0.9rem',
                 fontWeight: 700,
                 borderRadius: '8px',
                 border: 'none',
                 cursor: 'pointer',
-                boxShadow: '0 0 24px rgba(156, 132, 214, 0.65)',
+                boxShadow: '0 0 24px rgba(244, 63, 94, 0.65)',
                 transition: 'transform 0.2s',
               }}
             >
-              ENGAGE FLIGHT CONTROLS
+              DEPLOY SURFACE ROVER
             </button>
           </div>
         )}
 
-        {/* Victory Touchdown Modal Overlay */}
-        {stage === 'victory' && (
+        {/* Finish / Success Overlay */}
+        {stage === 'finished' && (
           <div
             style={{
               position: 'absolute',
@@ -1236,12 +1093,12 @@ export default function ExpeditionSimulator(): React.ReactElement {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(6, 9, 25, 0.92)',
+              backgroundColor: 'rgba(11, 5, 7, 0.92)',
               padding: '2rem',
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.4rem' }}>🌟</div>
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.4rem' }}>🚩</div>
             <div
               style={{
                 fontSize: '1.6rem',
@@ -1251,23 +1108,23 @@ export default function ExpeditionSimulator(): React.ReactElement {
                 fontFamily: 'var(--font-display)',
               }}
             >
-              TOUCHDOWN NOMINAL — SECTOR SECURED!
+              AIRLOCK SECURED — EXPEDITION RECON COMPLETE!
             </div>
-            <p style={{ color: '#CFCBF2', fontSize: '0.875rem', marginBottom: '1rem' }}>
-              You successfully docked at {currentMission.targetName} with all flight parameters nominal!
+            <p style={{ color: '#FFB399', fontSize: '0.875rem', marginBottom: '1rem' }}>
+              You successfully piloted the rover into {currentMission.destinationName} with all survey sites deployed!
             </p>
             <div
               style={{
-                backgroundColor: 'rgba(20, 32, 79, 0.75)',
+                backgroundColor: 'rgba(43, 18, 28, 0.75)',
                 padding: '0.85rem 1.8rem',
                 borderRadius: '8px',
                 border: '1px solid #4ade80',
                 marginBottom: '1.25rem',
               }}
             >
-              <div style={{ fontSize: '0.75rem', color: '#9C84D6' }}>EXPEDITION LOG SCORE & BADGE AWARDED</div>
+              <div style={{ fontSize: '0.75rem', color: '#F43F5E' }}>EXPEDITION SCORE & BADGE AWARDED</div>
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#FFFFFF' }}>{score} PTS</div>
-              <div style={{ fontSize: '0.85rem', color: '#FFB86B', fontWeight: 700, marginTop: '0.2rem' }}>
+              <div style={{ fontSize: '0.85rem', color: '#FF7A00', fontWeight: 700, marginTop: '0.2rem' }}>
                 EXPEDITION BADGE: {earnedBadge}
               </div>
             </div>
@@ -1277,14 +1134,14 @@ export default function ExpeditionSimulator(): React.ReactElement {
                 style={{
                   padding: '0.65rem 1.4rem',
                   backgroundColor: 'transparent',
-                  border: '1px solid #9C84D6',
-                  color: '#F7F5FF',
+                  border: '1px solid #F43F5E',
+                  color: '#FFF5F5',
                   borderRadius: '6px',
                   fontWeight: 700,
                   cursor: 'pointer',
                 }}
               >
-                Replay Act
+                Replay Route
               </button>
               {missionIndex < MISSIONS.length - 1 && (
                 <button
@@ -1295,13 +1152,13 @@ export default function ExpeditionSimulator(): React.ReactElement {
                   }}
                   style={{
                     padding: '0.65rem 1.4rem',
-                    backgroundColor: '#9C84D6',
+                    backgroundColor: '#F43F5E',
                     border: 'none',
-                    color: '#060919',
+                    color: '#0B0507',
                     borderRadius: '6px',
                     fontWeight: 700,
                     cursor: 'pointer',
-                    boxShadow: '0 0 16px rgba(156, 132, 214, 0.5)',
+                    boxShadow: '0 0 16px rgba(244, 63, 94, 0.5)',
                   }}
                 >
                   Proceed to Next Act &rarr;
@@ -1312,85 +1169,106 @@ export default function ExpeditionSimulator(): React.ReactElement {
         )}
       </div>
 
-      {/* Cockpit Interactive Action Deck (Mobile Buttons & Controls) */}
+      {/* Cockpit Physical Control Deck (Mobile & Touch Buttons) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
           padding: '1rem 1.25rem',
-          backgroundColor: 'rgba(12, 18, 55, 0.95)',
-          borderTop: '1px solid rgba(156, 132, 214, 0.25)',
+          backgroundColor: 'rgba(22, 11, 16, 0.95)',
+          borderTop: '1px solid rgba(244, 63, 94, 0.25)',
           gap: '1rem',
           alignItems: 'center',
         }}
       >
         {/* Left: Mission Directive */}
         <div>
-          <div style={{ fontSize: '0.625rem', color: '#9C84D6', letterSpacing: '0.08em' }}>MISSION DIRECTIVE</div>
-          <div style={{ fontSize: '0.8125rem', color: '#F7F5FF', fontWeight: 600, marginTop: '0.2rem' }}>
+          <div style={{ fontSize: '0.625rem', color: '#F43F5E', letterSpacing: '0.08em' }}>MISSION DIRECTIVE</div>
+          <div style={{ fontSize: '0.8125rem', color: '#FFF5F5', fontWeight: 600, marginTop: '0.2rem' }}>
             {currentMission.objective}
           </div>
-          <div style={{ fontSize: '0.6875rem', color: '#4A5A7C', marginTop: '0.35rem' }}>
-            Control: Glide with cursor/finger • Click/Space to shoot • Double-Click/W to Warp
+          <div style={{ fontSize: '0.6875rem', color: '#8C7F87', marginTop: '0.35rem' }}>
+            Keyboard: [D/A] Drive • [SPACE/W] Jet Jump • [SHIFT] Nitro Surge
           </div>
         </div>
 
-        {/* Center: Touch/Click Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem' }}>
+        {/* Center: On-Screen Touch Drive & Jump Controls */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
-            onClick={fireLaser}
-            style={{
-              padding: '0.65rem 1.2rem',
-              backgroundColor: '#9C84D6',
-              color: '#060919',
-              border: 'none',
-              borderRadius: '6px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.75rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 0 14px rgba(156, 132, 214, 0.45)',
-            }}
+            onMouseDown={() => (engineRef.current.touchControls.backward = true)}
+            onMouseUp={() => (engineRef.current.touchControls.backward = false)}
+            onTouchStart={() => (engineRef.current.touchControls.backward = true)}
+            onTouchEnd={() => (engineRef.current.touchControls.backward = false)}
+            style={roverControlBtnStyle}
+            title="Reverse / Brake"
           >
-            🎯 FIRE PULSE LASER
+            ◀ REVERSE
           </button>
           <button
-            onClick={triggerWarpBoost}
-            style={{
-              padding: '0.65rem 1.2rem',
-              backgroundColor: warpReady === 100 ? 'rgba(20, 32, 79, 0.9)' : 'rgba(20, 32, 79, 0.4)',
-              color: warpReady === 100 ? '#38bdf8' : '#4A5A7C',
-              border: `1px solid ${warpReady === 100 ? '#38bdf8' : '#4A5A7C'}`,
-              borderRadius: '6px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: warpReady === 100 ? 'pointer' : 'not-allowed',
-            }}
+            onMouseDown={() => (engineRef.current.touchControls.jump = true)}
+            onMouseUp={() => (engineRef.current.touchControls.jump = false)}
+            onTouchStart={() => (engineRef.current.touchControls.jump = true)}
+            onTouchEnd={() => (engineRef.current.touchControls.jump = false)}
+            style={{ ...roverControlBtnStyle, backgroundColor: '#F43F5E', color: '#0B0507', fontWeight: 800 }}
+            title="Fire Ventral Jet Thrusters"
           >
-            ⚡ WARP SURGE [{warpReady}%]
+            🚀 JET JUMP
+          </button>
+          <button
+            onMouseDown={() => (engineRef.current.touchControls.forward = true)}
+            onMouseUp={() => (engineRef.current.touchControls.forward = false)}
+            onTouchStart={() => (engineRef.current.touchControls.forward = true)}
+            onTouchEnd={() => (engineRef.current.touchControls.forward = false)}
+            style={{ ...roverControlBtnStyle, borderColor: '#FFB399', color: '#FFB399' }}
+            title="Accelerate Forward"
+          >
+            DRIVE FORWARD ▶
+          </button>
+          <button
+            onMouseDown={() => (engineRef.current.touchControls.boost = true)}
+            onMouseUp={() => (engineRef.current.touchControls.boost = false)}
+            onTouchStart={() => (engineRef.current.touchControls.boost = true)}
+            onTouchEnd={() => (engineRef.current.touchControls.boost = false)}
+            style={{ ...roverControlBtnStyle, borderColor: '#FF7A00', color: '#FF7A00' }}
+            title="Nitro Boost"
+          >
+            ⚡ NITRO
           </button>
         </div>
 
-        {/* Right: Quick Reset */}
+        {/* Right: Quick Sector Reset */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
           <button
             onClick={() => initMission(missionIndex)}
             style={{
               padding: '0.45rem 0.85rem',
-              backgroundColor: 'rgba(20, 32, 79, 0.7)',
-              border: '1px solid rgba(156, 132, 214, 0.4)',
+              backgroundColor: 'rgba(43, 18, 28, 0.7)',
+              border: '1px solid rgba(244, 63, 94, 0.4)',
               borderRadius: '4px',
-              color: '#CFCBF2',
+              color: '#FFB399',
               fontSize: '0.6875rem',
               fontWeight: 700,
               cursor: 'pointer',
             }}
           >
-            🔄 RESTART SECTOR
+            🔄 RESTART ROUTE
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+const roverControlBtnStyle: React.CSSProperties = {
+  padding: '0.6rem 0.95rem',
+  backgroundColor: 'rgba(43, 18, 28, 0.9)',
+  border: '1px solid rgba(244, 63, 94, 0.5)',
+  borderRadius: '6px',
+  color: '#FFFFFF',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.6875rem',
+  fontWeight: 700,
+  cursor: 'pointer',
+  userSelect: 'none',
+  transition: 'transform 0.1s',
+};

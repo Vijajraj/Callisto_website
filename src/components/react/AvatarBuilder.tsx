@@ -19,16 +19,16 @@ interface VisorTint {
 
 const SUIT_THEMES: SuitTheme[] = [
   { id: 'void', name: 'Void Obsidian', primaryColor: '#0a0f26', secondaryColor: '#14204f', trimColor: 'var(--orbit)' },
-  { id: 'jovian', name: 'Jovian Arctic', primaryColor: '#f7f5ff', secondaryColor: '#cfcbf2', trimColor: 'var(--astrophage)' },
-  { id: 'mars', name: 'Martian Regolith', primaryColor: '#c98a66', secondaryColor: '#5b4b8a', trimColor: 'var(--astrophage)' },
-  { id: 'stellar', name: 'Stellar Gold', primaryColor: '#ffb86b', secondaryColor: '#14204f', trimColor: 'var(--moon)' },
-  { id: 'tesseract', name: 'Cyber Deep Space', primaryColor: '#14204f', secondaryColor: '#060919', trimColor: '#38bdf8' },
+  { id: 'jovian', name: 'Jovian Arctic', primaryColor: '#fff5f5', secondaryColor: '#ffb399', trimColor: 'var(--astrophage)' },
+  { id: 'mars', name: 'Martian Regolith', primaryColor: '#e05a2b', secondaryColor: '#7f1d1d', trimColor: 'var(--astrophage)' },
+  { id: 'stellar', name: 'Stellar Gold', primaryColor: '#ffb86b', secondaryColor: '#2b121c', trimColor: 'var(--moon)' },
+  { id: 'tesseract', name: 'Cyber Deep Space', primaryColor: '#2b121c', secondaryColor: '#0b0507', trimColor: '#f43f5e' },
 ];
 
 const VISOR_TINTS: VisorTint[] = [
-  { id: 'gold', name: 'Solar Gold', gradStart: '#ffb86b', gradEnd: '#c98a66', glowColor: 'var(--astrophage)' },
-  { id: 'obsidian', name: 'Deep Polarized', gradStart: '#14204f', gradEnd: '#060919', glowColor: 'var(--orbit)' },
-  { id: 'violet', name: 'Ultraviolet', gradStart: '#9c84d6', gradEnd: '#5b4b8a', glowColor: 'var(--orbit)' },
+  { id: 'gold', name: 'Solar Gold', gradStart: '#ffb86b', gradEnd: '#e05a2b', glowColor: 'var(--astrophage)' },
+  { id: 'obsidian', name: 'Deep Polarized', gradStart: '#2b121c', gradEnd: '#0b0507', glowColor: 'var(--orbit)' },
+  { id: 'crimson', name: 'Crimson Ember', gradStart: '#f43f5e', gradEnd: '#991b1b', glowColor: 'var(--orbit)' },
   { id: 'cyan', name: 'Nebula Cyan', gradStart: '#38bdf8', gradEnd: '#0284c7', glowColor: '#38bdf8' },
 ];
 

@@ -74,8 +74,8 @@ const JOVIAN_BODIES: JovianBody[] = [
     orbitalRadiusPx: 155,
     actualRadiusKm: 1070400,
     orbitalPeriodDays: 7.15,
-    bodyColor: '#9C84D6',
-    orbitColor: 'rgba(156, 132, 214, 0.25)',
+    bodyColor: '#94A3B8',
+    orbitColor: 'rgba(148, 163, 184, 0.25)',
     diameterKm: 5268,
     orbitalSpeedRadPerSec: 0.3,
     description: 'The largest moon in the Solar System—larger than Mercury—and the only satellite with its own internally generated magnetic field.',
@@ -257,7 +257,7 @@ export default function JovianOrrery(): React.ReactElement {
         ctx.fill();
 
         // Moon Name Label
-        ctx.fillStyle = isSelected ? 'var(--moon, #F7F5FF)' : 'var(--star, #CFCBF2)';
+        ctx.fillStyle = isSelected ? 'var(--moon, #FFF5F5)' : 'var(--star, #FFB399)';
         ctx.font = isSelected ? 'bold 10px monospace' : '9px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(moon.name.toUpperCase(), mx, my + moonRadius + 14);
