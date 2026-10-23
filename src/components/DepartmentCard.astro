@@ -4,12 +4,13 @@ interface Props {
   name: string;
   themedName: string;
   lead: string;
-  shipModule: string;
-  description: string;
+  role?: string;
+  shipModule?: string;
+  description?: string;
   icon: string;
 }
 
-const { id, name, themedName, lead, shipModule, description, icon } = Astro.props;
+const { id, name, themedName, lead, role = '', shipModule = '', description = '', icon } = Astro.props;
 ---
 
 <a href={`/crew/${id}`} class="dept-card" aria-label={`View department: ${themedName} (${name})`}>
@@ -37,8 +38,10 @@ const { id, name, themedName, lead, shipModule, description, icon } = Astro.prop
 
   <div class="dept-card-footer">
     <div class="dept-lead">
-      <span class="lead-prefix">Commanded by:</span>
       <span class="lead-name">{lead}</span>
+      {role && (
+        <span class="lead-role-tag">{role}</span>
+      )}
     </div>
 
     <div class="dept-arrow" aria-hidden="true">
@@ -222,6 +225,20 @@ const { id, name, themedName, lead, shipModule, description, icon } = Astro.prop
   .lead-name {
     color: var(--astrophage);
     font-weight: 600;
+  }
+
+  .lead-role-tag {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--star);
+    background: rgba(156, 132, 214, 0.15);
+    border: 1px solid rgba(156, 132, 214, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 0.12rem 0.45rem;
+    margin-top: 0.15rem;
   }
 
   .dept-arrow {

@@ -3,6 +3,8 @@ export interface Department {
   name: string;
   themedName: string;
   lead: string;
+  role: string;
+  roleAssigned?: string;
   shipModule: string;
   description: string;
   icon: string;
@@ -15,7 +17,9 @@ export const departments: Department[] = [
     id: 'general',
     name: 'General',
     themedName: 'Starfield',
-    lead: 'All Members',
+    lead: 'Open to All Members',
+    roleAssigned: '',
+    role: '',
     shipModule: '',
     description: '',
     icon: '/icons/dept-general.png',
@@ -26,7 +30,9 @@ export const departments: Department[] = [
     id: 'presidential',
     name: 'Presidential Committee',
     themedName: 'Polaris Circle',
-    lead: 'Lathika Rajesh (VP Nomination)',
+    lead: 'Executive Committee',
+    roleAssigned: '',
+    role: '',
     shipModule: '',
     description: '',
     icon: '/icons/dept-presidential.png',
@@ -36,8 +42,10 @@ export const departments: Department[] = [
   {
     id: 'international',
     name: 'International Relations',
-    themedName: 'Constellation wing',
+    themedName: 'Constellation Wing',
     lead: 'Harshitha',
+    roleAssigned: 'Harshitha',
+    role: 'Secretary',
     shipModule: '',
     description: '',
     icon: '/icons/dept-international.png',
@@ -49,6 +57,8 @@ export const departments: Department[] = [
     name: 'Social Media & Promotions',
     themedName: 'Orbit Wing',
     lead: 'Mirudhula',
+    roleAssigned: 'Mirudhula',
+    role: 'Team Leader',
     shipModule: '',
     description: '',
     icon: '/icons/dept-social.png',
@@ -58,8 +68,10 @@ export const departments: Department[] = [
   {
     id: 'content',
     name: 'Content',
-    themedName: 'Quasar / Star Lore',
-    lead: 'Siddhu Nacciar (Idea Gen)',
+    themedName: 'StarCast',
+    lead: 'Mukilan',
+    roleAssigned: 'Mukilan',
+    role: 'Team Leader',
     shipModule: '',
     description: '',
     icon: '/icons/dept-content.png',
@@ -69,8 +81,10 @@ export const departments: Department[] = [
   {
     id: 'event',
     name: 'Event',
-    themedName: 'Event Horizon / Odyssey',
-    lead: 'Siddh',
+    themedName: 'Event Horizon',
+    lead: 'Mahavishnu | Siddiksha',
+    roleAssigned: 'Mahavishnu | Siddiksha',
+    role: 'Secretary | Honorary Member',
     shipModule: '',
     description: '',
     icon: '/icons/dept-event.png',
@@ -80,8 +94,10 @@ export const departments: Department[] = [
   {
     id: 'design',
     name: 'Design & Visual Media',
-    themedName: 'Nebula wing (Prism / Astrolab)',
-    lead: 'Azmina (TL), Mridhula Nataraj',
+    themedName: 'Nebula Wing',
+    lead: 'Azmina',
+    roleAssigned: 'Azmina',
+    role: 'Secretary',
     shipModule: '',
     description: '',
     icon: '/icons/dept-design.png',
@@ -91,8 +107,10 @@ export const departments: Department[] = [
   {
     id: 'tech',
     name: 'Technology & Development',
-    themedName: 'Tesseract (Quantum wing)',
-    lead: 'Vijay Raj (TL)',
+    themedName: 'Tesseract',
+    lead: 'Vijay Raj | Yash',
+    roleAssigned: 'Vijay Raj | Yash',
+    role: 'Honorary member(s)',
     shipModule: '',
     description: '',
     icon: '/icons/dept-tech.png',
@@ -104,6 +122,8 @@ export const departments: Department[] = [
     name: 'Astronomy & Science Engagement',
     themedName: 'LUNAR Society',
     lead: 'Guru',
+    roleAssigned: 'Guru',
+    role: 'Secretary',
     shipModule: '',
     description: '',
     icon: '/icons/dept-astronomy.png',
@@ -113,8 +133,10 @@ export const departments: Department[] = [
   {
     id: 'people',
     name: 'People Management',
-    themedName: 'Stellar path (Stellar guide)',
-    lead: 'Aishmica Harish',
+    themedName: 'Stellar Path',
+    lead: 'Aishmica Harish | Sheetal BN',
+    roleAssigned: 'Aishmica Harish | Sheetal BN',
+    role: 'Secretary | Team Leader',
     shipModule: '',
     description: '',
     icon: '/icons/dept-people.png',
@@ -124,8 +146,10 @@ export const departments: Department[] = [
   {
     id: 'research',
     name: 'Research & Development',
-    themedName: 'Aether wing',
-    lead: "TL's only",
+    themedName: 'Aether Wing',
+    lead: 'Mridula Natraj',
+    roleAssigned: 'Mridula Natraj',
+    role: 'Team Leader',
     shipModule: '',
     description: '',
     icon: '/icons/dept-research.png',

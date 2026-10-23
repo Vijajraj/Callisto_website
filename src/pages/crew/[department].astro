@@ -48,8 +48,16 @@ const { dept } = Astro.props;
       <p class="dept-subtitle">{dept.name}</p>
 
       <div class="lead-officer-banner">
-        <span class="lead-label">ROLE ASSIGNED / LEAD:</span>
-        <span class="lead-value">{dept.lead}</span>
+        <div class="lead-officer-item">
+          <span class="lead-label">ROLE ASSIGNED:</span>
+          <span class="lead-value">{dept.lead}</span>
+        </div>
+        {dept.role && (
+          <div class="lead-officer-item">
+            <span class="lead-label">ROLE:</span>
+            <span class="lead-role-pill">{dept.role}</span>
+          </div>
+        )}
       </div>
     </header>
 
@@ -121,6 +129,12 @@ const { dept } = Astro.props;
               <span class="telemetry-label">ROLE ASSIGNED:</span>
               <span class="telemetry-value">{dept.lead}</span>
             </div>
+            {dept.role && (
+              <div class="telemetry-row">
+                <span class="telemetry-label">ROLE:</span>
+                <span class="telemetry-value">{dept.role}</span>
+              </div>
+            )}
 
             <!-- Blank area for future department telemetry -->
             <div class="blank-sidebar-slot" aria-label="Additional telemetry to be added in future"></div>
@@ -216,14 +230,21 @@ const { dept } = Astro.props;
 
   .lead-officer-banner {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.6rem;
+    gap: 1.25rem;
     background: color-mix(in srgb, var(--navy) 70%, transparent);
     border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
-    padding: 0.45rem 1rem;
+    padding: 0.55rem 1.25rem;
     border-radius: var(--radius-md);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
+  }
+
+  .lead-officer-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .lead-label {
@@ -234,6 +255,18 @@ const { dept } = Astro.props;
   .lead-value {
     color: var(--astrophage);
     font-weight: 600;
+  }
+
+  .lead-role-pill {
+    display: inline-block;
+    color: var(--star);
+    background: rgba(156, 132, 214, 0.2);
+    border: 1px solid rgba(156, 132, 214, 0.4);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
   }
 
   .dept-content-grid {

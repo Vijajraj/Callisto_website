@@ -44,7 +44,7 @@ const PATCHES = [
   { id: 'event', label: 'Event Horizon', icon: '/icons/dept-event.png' },
   { id: 'design', label: 'Nebula Studio', icon: '/icons/dept-design.png' },
   { id: 'research', label: 'Aether Wing', icon: '/icons/dept-research.png' },
-  { id: 'content', label: 'Quasar Scribe', icon: '/icons/dept-content.png' },
+  { id: 'content', label: 'StarCast Scribe', icon: '/icons/dept-content.png' },
 ];
 
 export default function AvatarBuilder(): React.ReactElement {
