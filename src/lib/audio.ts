@@ -1,13 +1,13 @@
 /**
- * Callisto Web Audio API — Procedural Cinematic Cathedral Organ & Ostinato Engine
+ * Callisto Web Audio API — Procedural Deep-Space Cathedral Organ & Ostinato Symphony
  *
  * Fully procedural synthesis using zero external audio files.
- * Architected to deliver a vast, awe-inspiring space score:
- * - Multi-rank Cathedral Pipe Organ (32' sub-bass pedal, 16' bourdon, 8' principal, 4' octave flue ranks)
- * - The majestic 4-chord progression (Am -> F -> C -> Em)
- * - Clockwork 16th-note ostinato arpeggiator with dynamic breathing filters
- * - Spatial acoustic cathedral convolution / reverberation
- * - Acoustic chronometer pulses simulating the slow, relentless slip of deep time
+ * Architected to deliver a vast, awe-inspiring deep-space score:
+ * - Multi-rank Cathedral Pipe Organ (32' sub-bass contra pedal, 16' bourdon, 8' diapason, 4' octave flue, 2' shimmer)
+ * - The majestic 4-chord progression (Am -> Fmaj7 -> C -> Em9)
+ * - Clockwork 16th-note ostinato arpeggiator with dynamic breathing swell filters
+ * - Spatial acoustic cathedral convolution / reverberation (4.2s natural tail)
+ * - Relativistic chronometer pulses simulating the relentless slip of deep time
  */
 
 let audioCtx: AudioContext | null = null;
@@ -22,7 +22,6 @@ let currentChordIndex: number = 0;
 let ostinatoStep: number = 0;
 let ostinatoInterval: number | null = null;
 
-// Organ voice nodes currently active for smooth voice-stealing / crossfade
 interface OrganVoice {
   oscillators: OscillatorNode[];
   gain: GainNode;
@@ -44,18 +43,18 @@ function getAudioContext(): AudioContext | null {
   if (audioCtx) {
     if (!masterGain) {
       masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(0.75, audioCtx.currentTime);
+      masterGain.gain.setValueAtTime(0.82, audioCtx.currentTime);
 
       // Create synthetic cathedral impulse response for vast acoustic space reverb
       reverbNode = createCathedralReverb(audioCtx);
 
       musicGain = audioCtx.createGain();
-      musicGain.gain.setValueAtTime(0.85, audioCtx.currentTime);
+      musicGain.gain.setValueAtTime(0.88, audioCtx.currentTime);
 
       sfxGain = audioCtx.createGain();
-      sfxGain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+      sfxGain.gain.setValueAtTime(0.72, audioCtx.currentTime);
 
-      // Connect music through reverb + dry path to master
+      // Connect music through reverb + direct dry path to master
       musicGain.connect(reverbNode);
       musicGain.connect(masterGain);
       reverbNode.connect(masterGain);
@@ -74,74 +73,80 @@ function getAudioContext(): AudioContext | null {
 
 /**
  * Procedural impulse response generator simulating a vast stone cathedral
- * with rich spatial reflections and a 3.5-second natural decay tail.
+ * with rich spatial reflections and a 4.2-second natural decay tail.
  */
 function createCathedralReverb(ctx: AudioContext): ConvolverNode {
   const convolver = ctx.createConvolver();
   const rate = ctx.sampleRate;
-  const length = rate * 3.5; // 3.5 seconds decay
+  const length = Math.floor(rate * 4.2); // 4.2 seconds deep space decay
   const impulse = ctx.createBuffer(2, length, rate);
   const left = impulse.getChannelData(0);
   const right = impulse.getChannelData(1);
 
   for (let i = 0; i < length; i++) {
     const t = i / rate;
-    // Exponential decay with slight early reflections
-    const decay = Math.exp(-t * 1.8);
+    // Exponential decay with slight early acoustic diffusion
+    const decay = Math.exp(-t * 1.55);
+    // Left and right channels with subtle phase offset for stereophonic breadth
     left[i] = (Math.random() * 2 - 1) * decay;
-    right[i] = (Math.random() * 2 - 1) * decay;
+    right[i] = (Math.random() * 2 - 1) * decay * (1.0 - 0.08 * Math.sin(t * 12));
   }
 
   convolver.buffer = impulse;
   return convolver;
 }
 
-// Expedition 4-Chord Progression (Chords with frequencies in Hz)
+// Deep Space 4-Chord Progression (Chords with precise acoustic frequencies in Hz)
 interface ChordDef {
   name: string;
-  pedalBass: number;   // Deep 32'/16' organ pedal bass
-  bassFundamental: number; // 8' bass
-  chordNotes: number[]; // Main organ pipe manuals
-  ostinatoNotes: number[]; // Rapid clockwork arpeggiator notes
+  subPedalBass: number;   // 32' Ultra-deep sub-bass contra pedal (chest rumble)
+  pedalBass: number;      // 16' Organ pedal bass
+  bassFundamental: number;// 8' Diapason bass
+  chordNotes: number[];   // Main organ pipe manuals across multiple octaves
+  ostinatoNotes: number[];// Rapid clockwork arpeggiator notes
 }
 
 const EXPEDITION_CHORDS: ChordDef[] = [
-  // 1. A Minor — Contemplative quiet awe
+  // 1. A Minor — Contemplative quiet awe and infinite distance
   {
     name: 'A Minor',
-    pedalBass: 55.0, // A1
-    bassFundamental: 110.0, // A2
-    chordNotes: [220.0, 261.63, 329.63, 440.0, 523.25], // A3, C4, E4, A4, C5
-    ostinatoNotes: [440.0, 523.25, 659.25, 880.0, 659.25, 523.25, 440.0, 659.25], // A4-C5-E5-A5-E5-C5-A4-E5
+    subPedalBass: 27.50, // A0 (ultra sub rumble)
+    pedalBass: 55.00,    // A1
+    bassFundamental: 110.00, // A2
+    chordNotes: [220.00, 261.63, 329.63, 440.00, 523.25, 659.25], // A3, C4, E4, A4, C5, E5
+    ostinatoNotes: [440.00, 523.25, 659.25, 880.00, 659.25, 523.25, 440.00, 659.25],
   },
-  // 2. F Major — Soaring emotional gravity
+  // 2. F Major 7 — Soaring emotional gravity and celestial beauty
   {
-    name: 'F Major',
-    pedalBass: 43.65, // F1
-    bassFundamental: 87.31, // F2
-    chordNotes: [174.61, 220.0, 261.63, 349.23, 440.0], // F3, A3, C4, F4, A4
-    ostinatoNotes: [349.23, 440.0, 523.25, 698.46, 523.25, 440.0, 349.23, 523.25], // F4-A4-C5-F5-C5-A4-F4-C5
+    name: 'F Major 7',
+    subPedalBass: 43.65, // F1
+    pedalBass: 87.31,    // F2
+    bassFundamental: 174.61, // F3
+    chordNotes: [174.61, 220.00, 261.63, 329.63, 440.00, 523.25], // F3, A3, C4, E4, A4, C5
+    ostinatoNotes: [349.23, 440.00, 523.25, 659.25, 523.25, 440.00, 349.23, 523.25],
   },
-  // 3. C Major — Infinite cosmic expanse
+  // 3. C Major — Infinite cosmic expanse and triumphant clarity
   {
     name: 'C Major',
-    pedalBass: 65.41, // C2
+    subPedalBass: 32.70, // C1
+    pedalBass: 65.41,    // C2
     bassFundamental: 130.81, // C3
-    chordNotes: [196.0, 261.63, 329.63, 392.0, 523.25], // G3, C4, E4, G4, C5
-    ostinatoNotes: [523.25, 659.25, 783.99, 1046.5, 783.99, 659.25, 523.25, 783.99], // C5-E5-G5-C6-G5-E5-C5-G5
+    chordNotes: [196.00, 261.63, 329.63, 392.00, 523.25, 659.25, 783.99], // G3, C4, E4, G4, C5, E5, G5
+    ostinatoNotes: [523.25, 659.25, 783.99, 1046.50, 783.99, 659.25, 523.25, 783.99],
   },
-  // 4. E Minor — Solitude across space and time
+  // 4. E Minor 9 — Solitude across light-years and deep time
   {
-    name: 'E Minor',
-    pedalBass: 41.20, // E1
-    bassFundamental: 82.41, // E2
-    chordNotes: [164.81, 246.94, 329.63, 392.0, 493.88], // E3, B3, E4, G4, B4
-    ostinatoNotes: [329.63, 392.0, 493.88, 659.25, 493.88, 392.0, 329.63, 493.88], // E4-G4-B4-E5-B4-G4-E4-B4
+    name: 'E Minor 9',
+    subPedalBass: 41.20, // E1
+    pedalBass: 82.41,    // E2
+    bassFundamental: 164.81, // E3
+    chordNotes: [164.81, 246.94, 293.66, 329.63, 392.00, 493.88], // E3, B3, D4, E4, G4, B4
+    ostinatoNotes: [329.63, 392.00, 493.88, 587.33, 493.88, 392.00, 329.63, 493.88],
   },
 ];
 
 /**
- * Synthesizes a pipe organ chord with multi-rank harmonics.
+ * Synthesizes a grand pipe organ chord with multi-rank acoustic harmonics.
  */
 function playOrganChord(ctx: AudioContext, chord: ChordDef, duration: number) {
   if (!musicGain) return;
@@ -151,63 +156,83 @@ function playOrganChord(ctx: AudioContext, chord: ChordDef, duration: number) {
   const filter = ctx.createBiquadFilter();
 
   filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(320, now);
-  // Dynamic majestic swell: filter opens as organ pipes breathe, then slowly settles
-  filter.frequency.exponentialRampToValueAtTime(1300, now + duration * 0.45);
-  filter.frequency.exponentialRampToValueAtTime(420, now + duration);
+  filter.frequency.setValueAtTime(280, now);
+  // Majestic expression swell: filter gently blooms as the organ ranks draw air
+  filter.frequency.exponentialRampToValueAtTime(1750, now + duration * 0.48);
+  filter.frequency.exponentialRampToValueAtTime(360, now + duration);
 
   voiceGain.gain.setValueAtTime(0.001, now);
-  voiceGain.gain.linearRampToValueAtTime(0.26, now + 2.2); // Slow, majestic church organ attack
-  voiceGain.gain.setValueAtTime(0.26, now + duration - 2.0);
-  voiceGain.gain.linearRampToValueAtTime(0.001, now + duration); // Smooth release
+  voiceGain.gain.linearRampToValueAtTime(0.32, now + 2.4); // Slow, majestic cathedral attack
+  voiceGain.gain.setValueAtTime(0.32, now + duration - 2.2);
+  voiceGain.gain.linearRampToValueAtTime(0.001, now + duration); // Smooth release crossfade
 
   const oscList: OscillatorNode[] = [];
 
-  // Deep 32' / 16' pedal organ pipe (Sub-bass sine + warm triangle)
-  const pedalSine = ctx.createOscillator();
-  pedalSine.type = 'sine';
-  pedalSine.frequency.setValueAtTime(chord.pedalBass, now);
+  // 1. Ultra-deep 32' Contra Pedal (Sub-bass sine wave - physical vibration)
+  const subSine = ctx.createOscillator();
+  subSine.type = 'sine';
+  subSine.frequency.setValueAtTime(chord.subPedalBass, now);
 
+  const subGain = ctx.createGain();
+  subGain.gain.setValueAtTime(0.38, now);
+  subSine.connect(subGain);
+  subGain.connect(filter);
+  subSine.start(now);
+  subSine.stop(now + duration);
+  oscList.push(subSine);
+
+  // 2. 16' Bourdon Pedal (Warm triangle wave)
   const pedalTri = ctx.createOscillator();
   pedalTri.type = 'triangle';
-  pedalTri.frequency.setValueAtTime(chord.bassFundamental, now);
+  pedalTri.frequency.setValueAtTime(chord.pedalBass, now);
 
   const pedalGain = ctx.createGain();
-  pedalGain.gain.setValueAtTime(0.48, now);
-  pedalSine.connect(pedalGain);
+  pedalGain.gain.setValueAtTime(0.42, now);
   pedalTri.connect(pedalGain);
   pedalGain.connect(filter);
-
-  pedalSine.start(now);
   pedalTri.start(now);
-  pedalSine.stop(now + duration);
   pedalTri.stop(now + duration);
+  oscList.push(pedalTri);
 
-  oscList.push(pedalSine, pedalTri);
+  // 3. 8' Diapason Fundamental
+  const bassOsc = ctx.createOscillator();
+  bassOsc.type = 'sawtooth';
+  bassOsc.frequency.setValueAtTime(chord.bassFundamental, now);
+  const bassFilter = ctx.createBiquadFilter();
+  bassFilter.type = 'lowpass';
+  bassFilter.frequency.setValueAtTime(450, now);
+  const bassGain = ctx.createGain();
+  bassGain.gain.setValueAtTime(0.18, now);
+  bassOsc.connect(bassFilter);
+  bassFilter.connect(bassGain);
+  bassGain.connect(filter);
+  bassOsc.start(now);
+  bassOsc.stop(now + duration);
+  oscList.push(bassOsc);
 
-  // Manual pipes: fundamental + octave detuned ranks
+  // 4. Manual Pipe Ranks: Flue + Principal + Octave detuned ranks
   chord.chordNotes.forEach((freq, idx) => {
-    // Rank 1: Soft flue pipe (Sine)
+    // Rank A: Flue pipe (pure sine)
     const osc1 = ctx.createOscillator();
     osc1.type = 'sine';
     osc1.frequency.setValueAtTime(freq, now);
 
-    // Rank 2: Principal pipe (Triangle with slight detune for natural chorus)
+    // Rank B: Principal pipe (warm triangle with 1.002x natural pipe detune)
     const osc2 = ctx.createOscillator();
     osc2.type = 'triangle';
     osc2.frequency.setValueAtTime(freq * 1.002, now);
 
-    // Rank 3: High octave shimmer pipe
+    // Rank C: High octave shimmer pipe (2.0015x detuned harmonic)
     const osc3 = ctx.createOscillator();
     osc3.type = 'sine';
-    osc3.frequency.setValueAtTime(freq * 2.001, now);
+    osc3.frequency.setValueAtTime(freq * 2.0015, now);
 
     const pipeGain = ctx.createGain();
-    const relativeAmp = 0.12 / Math.sqrt(idx + 1);
+    const relativeAmp = 0.13 / Math.sqrt(idx + 1);
     pipeGain.gain.setValueAtTime(relativeAmp, now);
 
     const shimmerGain = ctx.createGain();
-    shimmerGain.gain.setValueAtTime(relativeAmp * 0.25, now);
+    shimmerGain.gain.setValueAtTime(relativeAmp * 0.32, now);
 
     osc1.connect(pipeGain);
     osc2.connect(pipeGain);
@@ -238,12 +263,12 @@ function playOrganChord(ctx: AudioContext, chord: ChordDef, duration: number) {
 }
 
 /**
- * Clockwork Ostinato: delicate glass organ flute pipes weaving rhythmic arpeggios through the chords.
+ * Clockwork Ostinato: delicate glass organ flute pipes weaving hypnotic arpeggios.
  */
 function startOstinato(ctx: AudioContext) {
   if (ostinatoInterval) return;
 
-  const stepDuration = 220; // 220ms per 16th-note pulse
+  const stepDuration = 210; // 210ms per 16th-note pulse
 
   ostinatoInterval = window.setInterval(() => {
     if (!isPlayingScore || !musicGain) return;
@@ -263,12 +288,12 @@ function startOstinato(ctx: AudioContext) {
     osc.frequency.setValueAtTime(freq, now);
 
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(freq * 1.5, now);
-    filter.Q.value = 3.5;
+    filter.frequency.setValueAtTime(freq * 1.45, now);
+    filter.Q.value = 3.8;
 
     // Delicate staccato organ flute envelope
-    gain.gain.setValueAtTime(0.045, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    gain.gain.setValueAtTime(0.048, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
 
     osc.connect(filter);
     filter.connect(gain);
@@ -277,7 +302,7 @@ function startOstinato(ctx: AudioContext) {
     osc.start(now);
     osc.stop(now + 0.2);
 
-    // Subtle chronometer clock tick every 4 steps
+    // Relativistic Chronometer clock tick every 4 steps (quarter-note pulse)
     if (ostinatoStep % 4 === 0) {
       playClockTick(ctx);
     }
@@ -285,26 +310,28 @@ function startOstinato(ctx: AudioContext) {
 }
 
 /**
- * Ticking chronometer pulse representing the irreversible slip of deep time
+ * Ticking chronometer pulse representing the irreversible slip of deep time.
  */
 function playClockTick(ctx: AudioContext) {
   if (!sfxGain) return;
   const now = ctx.currentTime;
+
+  // Dual resonant metallic/wood clock pulse
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
 
   osc.type = 'sine';
-  osc.frequency.setValueAtTime(1400, now);
-  osc.frequency.exponentialRampToValueAtTime(250, now + 0.04);
+  osc.frequency.setValueAtTime(1450, now);
+  osc.frequency.exponentialRampToValueAtTime(220, now + 0.045);
 
-  gain.gain.setValueAtTime(0.018, now);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+  gain.gain.setValueAtTime(0.022, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
 
   osc.connect(gain);
   gain.connect(sfxGain);
 
   osc.start(now);
-  osc.stop(now + 0.045);
+  osc.stop(now + 0.05);
 }
 
 /**
@@ -315,16 +342,30 @@ function runScoreConductor() {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  const chordDuration = 10.5; // Each chord breathes for 10.5 seconds
+  const chordDuration = 11.0; // Each chord breathes for 11 seconds
   const chord = EXPEDITION_CHORDS[currentChordIndex];
 
-  playOrganChord(ctx, chord, chordDuration + 1.5); // 1.5s crossfade overlap
+  playOrganChord(ctx, chord, chordDuration + 1.8); // 1.8s crossfade overlap
 
   scoreLoopTimeout = window.setTimeout(() => {
     if (!isPlayingScore) return;
     currentChordIndex = (currentChordIndex + 1) % EXPEDITION_CHORDS.length;
     runScoreConductor();
+    notifyStateChange();
   }, chordDuration * 1000);
+}
+
+function notifyStateChange() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent('callisto-audio-state', {
+        detail: {
+          enabled: isPlayingScore,
+          chord: getCurrentChordName(),
+        },
+      })
+    );
+  }
 }
 
 /**
@@ -344,12 +385,13 @@ export function toggleAmbientSound(enable?: boolean): boolean {
     if (isPlayingScore) {
       if (musicGain) {
         musicGain.gain.setValueAtTime(0.001, ctx.currentTime);
-        musicGain.gain.linearRampToValueAtTime(0.85, ctx.currentTime + 2.0);
+        musicGain.gain.linearRampToValueAtTime(0.88, ctx.currentTime + 2.2);
       }
       currentChordIndex = 0;
       ostinatoStep = 0;
       runScoreConductor();
       startOstinato(ctx);
+      notifyStateChange();
       return true;
     } else {
       // Graceful fadeout
@@ -365,6 +407,7 @@ export function toggleAmbientSound(enable?: boolean): boolean {
         musicGain.gain.setValueAtTime(musicGain.gain.value, ctx.currentTime);
         musicGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 1.2);
       }
+      notifyStateChange();
       return false;
     }
   } catch (e) {
@@ -379,6 +422,57 @@ export function isAudioEnabled(): boolean {
 export function getCurrentChordName(): string {
   if (!isPlayingScore) return 'SILENCE';
   return EXPEDITION_CHORDS[currentChordIndex]?.name ?? 'EXPEDITION';
+}
+
+/**
+ * Automatically initializes and begins audio playback on website opening.
+ * If browser autoplay policy suspends AudioContext initially,
+ * it attaches seamless first-interaction capture listeners to wake up
+ * and start the score the instant the visitor touches, clicks, or scrolls.
+ */
+let hasBoundAutoListeners = false;
+
+export function initAutoAudio(): void {
+  if (typeof window === 'undefined') return;
+
+  // Attempt direct start immediately
+  const started = toggleAmbientSound(true);
+
+  if (hasBoundAutoListeners) return;
+  hasBoundAutoListeners = true;
+
+  const triggerOnGesture = () => {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().then(() => {
+        if (!isPlayingScore) {
+          toggleAmbientSound(true);
+        }
+      }).catch(() => {});
+    } else if (!isPlayingScore) {
+      toggleAmbientSound(true);
+    }
+
+    // Clean up one-time listeners once engaged
+    ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'scroll', 'click'].forEach((event) => {
+      window.removeEventListener(event, triggerOnGesture);
+      document.removeEventListener(event, triggerOnGesture);
+    });
+  };
+
+  ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'scroll', 'click'].forEach((event) => {
+    window.addEventListener(event, triggerOnGesture, { once: true, passive: true });
+    document.addEventListener(event, triggerOnGesture, { once: true, passive: true });
+  });
+}
+
+// Auto-run if running in browser
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initAutoAudio();
+  } else {
+    window.addEventListener('DOMContentLoaded', initAutoAudio, { once: true });
+  }
 }
 
 /**

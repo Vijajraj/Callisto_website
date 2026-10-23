@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { toggleAmbientSound } from '../../lib/audio';
 
 /**
  * CrescentLoader: Act 0 Pre-launch loading sequence.
@@ -22,6 +23,12 @@ export default function CrescentLoader(): React.ReactElement | null {
 
   const finishSequence = () => {
     clearAllTimers();
+    // Engage deep-space cathedral score on user arrival
+    try {
+      toggleAmbientSound(true);
+    } catch (e) {
+      /* Safe fallback */
+    }
     setIsFadingOut(true);
     const endTimer = window.setTimeout(() => {
       setIsDismissed(true);
@@ -129,6 +136,7 @@ export default function CrescentLoader(): React.ReactElement | null {
       role="status"
       aria-live="polite"
       aria-label="Expedition launch sequence loading"
+      onClick={finishSequence}
       style={{
         position: 'fixed',
         inset: 0,
@@ -140,6 +148,7 @@ export default function CrescentLoader(): React.ReactElement | null {
         justifyContent: 'center',
         userSelect: 'none',
         overflow: 'hidden',
+        cursor: 'pointer',
         opacity: isFadingOut ? 0 : 1,
         transform: isFadingOut ? 'translateY(-100%)' : 'translateY(0)',
         transition: 'opacity 500ms cubic-bezier(0.4, 0, 0.2, 1), transform 500ms cubic-bezier(0.4, 0, 0.2, 1)',
@@ -361,37 +370,59 @@ export default function CrescentLoader(): React.ReactElement | null {
         </div>
       </div>
 
-      {/* Subtle Skip Prompt */}
-      <button
-        type="button"
-        onClick={finishSequence}
+      {/* Launch Action Controls */}
+      <div
         style={{
           position: 'absolute',
           bottom: 'var(--space-xl)',
-          background: 'transparent',
-          border: '1px solid color-mix(in srgb, var(--steel) 40%, transparent)',
-          color: 'var(--steel)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.6875rem',
-          letterSpacing: '0.1em',
-          padding: 'var(--space-xs) var(--space-md)',
-          borderRadius: 'var(--radius-full)',
-          cursor: 'pointer',
-          transition: 'all 200ms ease',
-          outline: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.75rem',
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = 'var(--moon)';
-          e.currentTarget.style.borderColor = 'var(--orbit)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = 'var(--steel)';
-          e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--steel) 40%, transparent)';
-        }}
-        aria-label="Skip introduction animation"
       >
-        PRESS ESC / SKIP &rarr;
-      </button>
+        <button
+          type="button"
+          onClick={finishSequence}
+          style={{
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--orbit) 25%, transparent), color-mix(in srgb, var(--astrophage) 20%, transparent))',
+            border: '1px solid var(--orbit)',
+            color: 'var(--moon)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.12em',
+            padding: '0.55rem 1.25rem',
+            borderRadius: 'var(--radius-full)',
+            cursor: 'pointer',
+            boxShadow: '0 0 15px color-mix(in srgb, var(--orbit) 30%, transparent)',
+            transition: 'all 200ms ease',
+            outline: 'none',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.04)';
+            e.currentTarget.style.boxShadow = '0 0 25px color-mix(in srgb, var(--orbit) 50%, transparent)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 0 15px color-mix(in srgb, var(--orbit) 30%, transparent)';
+          }}
+          aria-label="Enter Expedition with Audio"
+        >
+          ✦ ENTER EXPEDITION // ENGAGE AUDIO
+        </button>
+
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.625rem',
+            letterSpacing: '0.08em',
+            color: 'var(--steel)',
+          }}
+        >
+          CLICK ANYWHERE OR PRESS ESC TO PROCEED
+        </span>
+      </div>
     </aside>
   );
 }

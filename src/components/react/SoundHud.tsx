@@ -17,12 +17,30 @@ export default function SoundHud(): React.ReactElement {
 
   useEffect(() => {
     setEnabled(isAudioEnabled());
+    const handleAudioEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ enabled: boolean; chord?: string }>;
+      if (customEvent.detail) {
+        setEnabled(customEvent.detail.enabled);
+        if (customEvent.detail.chord) {
+          setCurrentChord(customEvent.detail.chord);
+        }
+      }
+    };
+
+    window.addEventListener('callisto-audio-state', handleAudioEvent);
+
     const interval = setInterval(() => {
-      if (isAudioEnabled()) {
+      const active = isAudioEnabled();
+      setEnabled(active);
+      if (active) {
         setCurrentChord(getCurrentChordName());
       }
-    }, 500);
-    return () => clearInterval(interval);
+    }, 400);
+
+    return () => {
+      window.removeEventListener('callisto-audio-state', handleAudioEvent);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleToggleSound = () => {

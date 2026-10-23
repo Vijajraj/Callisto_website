@@ -7,7 +7,7 @@
 
 ## Overview
 
-The **Callisto Expedition** website is an immersive, space-grade web experience designed with Astro 5 and interactive React 19 islands. Built as an interstellar vessel manifest, each club division represents an active module on the ship, leading stargazing expeditions, telescope clinics, exoplanet transit research, and space hackathons.
+The **Callisto Expedition** website is an immersive, space-grade web experience designed with Astro 5 and interactive React 19 islands. Built as a deep-space vessel manifest, each club division represents an active module on the ship, leading stargazing expeditions, telescope clinics, exoplanet transit research, and space hackathons.
 
 ### Key Features
 - **Act 0 Pre-Launch Loader**: Custom SVG arc drawing, starburst morphing, and typewriter telemetry initialization.
