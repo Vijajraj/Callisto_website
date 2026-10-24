@@ -1,164 +1,126 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 /* =========================================================================
-   OUTPOST CALLISTO // CLOSED-LOOP ISRU & LIFE SUPPORT
-   Bio-Astronautics Command Deck • Valhalla Basin, Jupiter IV
-   Simulates human habitat environmental control (ECLSS) and in-situ resource
-   utilization (ISRU) for a permanent 6-person crew in the Jovian system.
+   3D LIDAR POINT-CLOUD & TERRAIN RADAR FLYOVER
+   Callisto Orbital Survey Platform // Valhalla Multi-Ring Basin
+   Real-time 3D perspective terrain rendering, multi-spectral band visualization,
+   radar sweep pulses, and geological waypoint tracking.
    ========================================================================= */
 
-// --- Chemical & Environmental Constants ---
-const CALLISTO_SURFACE_GRAVITY = 1.236; // m/s^2 (0.126 g)
-const NOMINAL_CABIN_PRESSURE = 101.3; // kPa
-const NOMINAL_O2_KPA = 21.2; // kPa pO2 (20.9%)
-const MAX_SAFE_CO2_KPA = 0.50; // kPa pCO2 (safe limit < 0.5 kPa, warning > 0.8 kPa)
-const KILOPOWER_BASE_CAPACITY_KW = 80; // dual 40 kWe Kilopower Stirling reactors
+type SensorBand = 'LIDAR' | 'SUBSURFACE' | 'THERMAL' | 'SAR';
 
-interface SubsystemTelemetry {
+interface Waypoint {
   id: string;
   name: string;
-  code: string;
-  category: 'ISRU' | 'ECLSS' | 'POWER' | 'THERMAL' | 'BIO';
-  powerKw: number;
-  status: 'NOMINAL' | 'ELEVATED' | 'STRAINED' | 'STANDBY' | 'FAULT';
-  primaryMetric: string;
-  metricLabel: string;
+  gridX: number; // -1 to 1
+  gridY: number; // -1 to 1
+  elevationM: number;
   description: string;
-  chemicalReaction?: string;
+  classification: string;
+  hazardRating: 'LOW' | 'MODERATE' | 'SEVERE';
 }
 
-interface OutpostState {
-  sol: number;
-  isJovianDay: boolean; // 16.7-day diurnal cycle: Day (165 K) vs Night (110 K)
-  ambientTempK: number;
-  
-  // Habitat Cabin Atmosphere
-  cabinPressureKpa: number;
-  oxygenPartialKpa: number;
-  co2PartialKpa: number;
-  cabinTempC: number;
-  humidityPct: number;
-  
-  // Consumables & Inventories
-  potableWaterL: number;
-  greywaterL: number;
-  algaeBiomassKg: number;
-  propellantLoxTons: number;
-  propellantLh2Tons: number;
-  crewHealthPct: number;
-  
-  // User Interactive Sliders / Inputs
-  melterPowerPct: number;       // 0 - 100%
-  electrolyzerLoadPct: number;  // 0 - 100%
-  sabatierState: 'OFFLINE' | 'BALANCED' | 'MAX_FLUX';
-  algaeIrradiancePct: number;   // 0 - 100%
-  radiatorBypassPct: number;    // 0 - 100%
-  
-  // System Health & Events
-  siltClogPct: number;
-  activeScenarioId: string | null;
-  scenarioMessage: string | null;
-  radiationFluxMsv: number;
-}
-
-const INITIAL_OUTPOST_STATE: OutpostState = {
-  sol: 42,
-  isJovianDay: true,
-  ambientTempK: 165,
-  
-  cabinPressureKpa: 101.3,
-  oxygenPartialKpa: 21.2,
-  co2PartialKpa: 0.38,
-  cabinTempC: 21.4,
-  humidityPct: 44.5,
-  
-  potableWaterL: 3850,
-  greywaterL: 140,
-  algaeBiomassKg: 28.5,
-  propellantLoxTons: 14.8,
-  propellantLh2Tons: 1.85,
-  crewHealthPct: 99.2,
-  
-  melterPowerPct: 65,
-  electrolyzerLoadPct: 60,
-  sabatierState: 'BALANCED',
-  algaeIrradiancePct: 75,
-  radiatorBypassPct: 50,
-  
-  siltClogPct: 0,
-  activeScenarioId: null,
-  scenarioMessage: null,
-  radiationFluxMsv: 0.012,
-};
+const CALLISTO_WAYPOINTS: Waypoint[] = [
+  {
+    id: 'valhalla_center',
+    name: 'Valhalla Basin Ground Zero',
+    gridX: 0.0,
+    gridY: 0.0,
+    elevationM: -1820,
+    description: 'Central bright impact palimpsest (~360 km diameter) formed by ancient hypervelocity asteroidal impact into ice shell.',
+    classification: 'Class I Impact Palimpsest',
+    hazardRating: 'LOW',
+  },
+  {
+    id: 'concentric_ridge_alpha',
+    name: 'Valhalla Outer Ridge Escarpment',
+    gridX: 0.45,
+    gridY: -0.35,
+    elevationM: 2150,
+    description: 'Concentric extensional normal fault scarp towering over frozen cryo-slopes with active mass wasting.',
+    classification: 'Extensional Fault Scarp',
+    hazardRating: 'MODERATE',
+  },
+  {
+    id: 'tornarsuk_catena',
+    name: 'Tornarsuk Secondary Crater Chain',
+    gridX: -0.55,
+    gridY: 0.40,
+    elevationM: -640,
+    description: 'Linear catena created by fragmented comet train impacts, exposing fresh icy bedrock below dark regolith blanket.',
+    classification: 'Cometary Crater Catena',
+    hazardRating: 'MODERATE',
+  },
+  {
+    id: 'outpost_alpha_site',
+    name: 'Candidate Outpost Alpha Touchdown Zone',
+    gridX: 0.28,
+    gridY: 0.52,
+    elevationM: 140,
+    description: 'Ultra-flat dielectric plains shielded by concentric crater walls with stable sub-surface ice and low boulder roughness.',
+    classification: 'Smooth Cryo-Regolith Plain',
+    hazardRating: 'LOW',
+  },
+  {
+    id: 'dielectric_anomaly',
+    name: 'Basal Dielectric Permittivity Anomaly',
+    gridX: -0.32,
+    gridY: -0.48,
+    elevationM: -1450,
+    description: 'High-attenuation radar sounding anomaly indicating liquid saline brines or methane clathrates 15 km beneath the fractured ice.',
+    classification: 'Sub-Surface Ocean Interface',
+    hazardRating: 'SEVERE',
+  },
+];
 
 export default function ExpeditionSimulator() {
-  const [state, setState] = useState<OutpostState>(INITIAL_OUTPOST_STATE);
-  const [selectedSubsystem, setSelectedSubsystem] = useState<string>('melter');
-  const [activeTab, setActiveTab] = useState<'schematic' | 'controls' | 'scenarios' | 'log'>('schematic');
-  const [logEntries, setLogEntries] = useState<Array<{ id: number; time: string; text: string; type: 'info' | 'warn' | 'success' | 'action' }>>([
-    { id: 1, time: '08:00:14', text: 'ECLSS Master Telemetry established: 6 crew metabolism synchronized.', type: 'info' },
-    { id: 2, time: '08:00:15', text: 'Valhalla Basin Cryo-Melter engaged at 65% power flux.', type: 'info' },
-    { id: 3, time: '08:00:15', text: 'Spirulina photobioreactor columns nominal: carbon fixation rate at 94.2%.', type: 'success' },
-    { id: 4, time: '08:00:16', text: 'Kilopower dual Stirling bus routing 54.2 kW of 80.0 kW total capacity.', type: 'info' },
-  ]);
-  const [reportModalOpen, setReportModalOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Helper to add log entries
-  const addLog = useCallback((text: string, type: 'info' | 'warn' | 'success' | 'action' = 'info') => {
-    const now = new Date();
-    const timeStr = now.toTimeString().split(' ')[0];
-    setLogEntries((prev) => [{ id: Date.now() + Math.random(), time: timeStr, text, type }, ...prev.slice(0, 49)]);
-  }, []);
+  // Sensor & Viewport States
+  const [activeBand, setActiveBand] = useState<SensorBand>('LIDAR');
+  const [isFlyoverActive, setIsFlyoverActive] = useState<boolean>(true);
+  const [elevationScale, setElevationScale] = useState<number>(1.8);
+  const [selectedWaypoint, setSelectedWaypoint] = useState<Waypoint>(CALLISTO_WAYPOINTS[0]);
+  const [wireframeMeshEnabled, setWireframeMeshEnabled] = useState<boolean>(true);
+  const [pointCloudDensity, setPointCloudDensity] = useState<'STANDARD' | 'HIGH' | 'ULTRA'>('HIGH');
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
-  // Calculate live energy demands and mass flows based on user inputs
-  const melterKw = (state.melterPowerPct / 100) * 18.0;
-  const electrolyzerKw = (state.electrolyzerLoadPct / 100) * 24.0;
-  const sabatierKw = state.sabatierState === 'OFFLINE' ? 0 : state.sabatierState === 'BALANCED' ? 2.5 : 4.2;
-  const algaeKw = (state.algaeIrradiancePct / 100) * 12.0;
-  const habitatBaseloadKw = 16.5;
-  const totalPowerDrawKw = Number((melterKw + electrolyzerKw + sabatierKw + algaeKw + habitatBaseloadKw).toFixed(1));
-  const powerReserveKw = Number((KILOPOWER_BASE_CAPACITY_KW - totalPowerDrawKw).toFixed(1));
+  // Camera 3D Angles
+  const cameraRef = useRef({
+    yaw: 0.75, // Horizontal orbit angle (radians)
+    pitch: 0.62, // Vertical tilt angle (radians)
+    zoom: 1.05,
+    panX: 0,
+    panY: 0,
+    flyoverProgress: 0,
+  });
 
-  // Flow rates (kg/h and L/h)
-  const iceMeltRateLh = Number(((state.melterPowerPct / 100) * 35.0 * (1 - state.siltClogPct / 100)).toFixed(1));
-  const waterElectrolyzedLh = Number(((state.electrolyzerLoadPct / 100) * 14.0).toFixed(1));
-  const o2GeneratedKgh = Number((waterElectrolyzedLh * 0.889 + (state.algaeIrradiancePct / 100) * 0.45).toFixed(2));
-  const h2GeneratedKgh = Number((waterElectrolyzedLh * 0.111).toFixed(2));
-  const co2ScrubbedKgh = Number((
-    (state.sabatierState === 'MAX_FLUX' ? 0.32 : state.sabatierState === 'BALANCED' ? 0.25 : 0) +
-    (state.algaeIrradiancePct / 100) * 0.18
-  ).toFixed(2));
-  
-  // Crew metabolic consumption (6 crew members)
-  const crewO2ConsumptionKgh = 0.21; // 5.04 kg/day / 24h = 0.21 kg/h
-  const crewCo2ProductionKgh = 0.25; // 6.00 kg/day / 24h = 0.25 kg/h
-  const netO2FluxKgh = Number((o2GeneratedKgh - crewO2ConsumptionKgh).toFixed(2));
-  const netCo2FluxKgh = Number((crewCo2ProductionKgh - co2ScrubbedKgh).toFixed(2));
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const sweepOffsetRef = useRef(0);
 
-  // Determine Habitat Safety Index & Status Color
-  const isHypoxia = state.oxygenPartialKpa < 17.5;
-  const isHyperoxia = state.oxygenPartialKpa > 24.5;
-  const isHypercapnia = state.co2PartialKpa > MAX_SAFE_CO2_KPA;
-  const isPressureLow = state.cabinPressureKpa < 92.0;
-  const isOverheating = state.cabinTempC > 27.0;
-  const isFreezing = state.cabinTempC < 16.0;
+  // Resolution Grid Size
+  const gridDim = pointCloudDensity === 'STANDARD' ? 36 : pointCloudDensity === 'HIGH' ? 48 : 60;
 
-  let habitatCondition: 'OPTIMAL' | 'NOMINAL' | 'CAUTION' | 'CRITICAL' = 'OPTIMAL';
-  let habitatColor = '#10b981'; // green
+  // Elevation Math Function for Callisto's Valhalla Multi-Ring System
+  const getElevation = useCallback(
+    (x: number, y: number, exag: number) => {
+      const r = Math.sqrt(x * x + y * y);
+      // Central impact basin depression
+      const centralBasin = -Math.exp(-r * r * 8.0) * 1.6;
+      // Concentric multi-ring ridges (damped cosine waves around center)
+      const concentricRings = Math.cos(r * 18.0) * Math.exp(-r * 1.6) * 0.45;
+      // Secondary craters and catena fractures
+      const cr1 = Math.exp(-((x - 0.4) ** 2 + (y + 0.3) ** 2) * 32.0) * 0.6;
+      const cr2 = -Math.exp(-((x + 0.45) ** 2 + (y - 0.35) ** 2) * 24.0) * 0.7;
+      const microRoughness = Math.sin(x * 32.0) * Math.cos(y * 32.0) * 0.08;
 
-  if (isHypoxia || isHypercapnia || isPressureLow || isFreezing || isOverheating) {
-    habitatCondition = 'CRITICAL';
-    habitatColor = '#ef4444'; // red
-  } else if (state.oxygenPartialKpa < 19.5 || state.co2PartialKpa > 0.44 || state.cabinPressureKpa < 97.0) {
-    habitatCondition = 'CAUTION';
-    habitatColor = '#f59e0b'; // amber
-  } else if (powerReserveKw < 5.0 || state.siltClogPct > 40) {
-    habitatCondition = 'NOMINAL';
-    habitatColor = '#38bdf8'; // sky
-  }
+      return (centralBasin + concentricRings + cr1 + cr2 + microRoughness) * exag;
+    },
+    []
+  );
 
-  // --- Animation Loop: Interactive Schematic Canvas ---
+  // --- 3D Projection Canvas Render Loop ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -166,870 +128,627 @@ export default function ExpeditionSimulator() {
     if (!ctx) return;
 
     let animId: number;
-    let particleOffset = 0;
 
     const render = () => {
       const width = canvas.width;
       const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
 
-      // Background subtle grid
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      // Deep space background with subtle grid lines
+      ctx.fillStyle = '#060a12';
+      ctx.fillRect(0, 0, width, height);
+
+      // Subtle background orbital grid
+      ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
       ctx.lineWidth = 1;
-      const gridSize = 32;
-      for (let x = 0; x < width; x += gridSize) {
+      const bgStep = 40;
+      for (let x = 0; x < width; x += bgStep) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
         ctx.stroke();
       }
-      for (let y = 0; y < height; y += gridSize) {
+      for (let y = 0; y < height; y += bgStep) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
         ctx.stroke();
       }
 
-      // Nodes Coordinates (Normalized for responsiveness)
-      const nodes = {
-        melter: { x: width * 0.16, y: height * 0.30, label: 'ISRU CRYO-MELTER', color: '#38bdf8' },
-        waterTank: { x: width * 0.38, y: height * 0.30, label: 'WATER RESERVOIR', color: '#06b6d4' },
-        electrolyzer: { x: width * 0.60, y: height * 0.30, label: 'PEM ELECTROLYZER', color: '#a855f7' },
-        propellant: { x: width * 0.84, y: height * 0.30, label: 'PROPELLANT DEPOT', color: '#f59e0b' },
-        habitat: { x: width * 0.50, y: height * 0.70, label: 'CREW HABITAT (ECLSS)', color: habitatColor },
-        sabatier: { x: width * 0.25, y: height * 0.70, label: 'SABATIER METHANATION', color: '#fb923c' },
-        algae: { x: width * 0.75, y: height * 0.70, label: 'SPIRULINA ALGAE PBR', color: '#10b981' },
-      };
+      // Flyover auto-rotation
+      if (isFlyoverActive && !isDraggingRef.current) {
+        cameraRef.current.yaw += 0.0035;
+        cameraRef.current.flyoverProgress = (cameraRef.current.flyoverProgress + 0.002) % (Math.PI * 2);
+      }
 
-      // Draw Flow Pipelines with Animated Particle Pulses
-      const drawPipe = (
-        from: { x: number; y: number },
-        to: { x: number; y: number },
-        strokeColor: string,
-        active: boolean
-      ) => {
+      // Radar sweep wave progress
+      sweepOffsetRef.current = (sweepOffsetRef.current + 0.012) % 2.0;
+      const currentSweepWave = sweepOffsetRef.current - 1.0; // -1 to 1
+
+      const yaw = cameraRef.current.yaw;
+      const pitch = cameraRef.current.pitch;
+      const zoom = cameraRef.current.zoom;
+      const cosYaw = Math.cos(yaw);
+      const sinYaw = Math.sin(yaw);
+      const cosPitch = Math.cos(pitch);
+      const sinPitch = Math.sin(pitch);
+
+      const fovDistance = 3.2;
+      const baseScale = Math.min(width, height) * 0.58 * zoom;
+      const centerX = width * 0.5 + cameraRef.current.panX;
+      const centerY = height * 0.52 + cameraRef.current.panY;
+
+      // Generate & Project 3D Grid Points
+      const projectedGrid: Array<Array<{ sx: number; sy: number; sz: number; elev: number; rawX: number; rawY: number }>> = [];
+
+      for (let i = 0; i <= gridDim; i++) {
+        projectedGrid[i] = [];
+        const gy = (i / gridDim) * 2 - 1; // -1 to 1
+
+        for (let j = 0; j <= gridDim; j++) {
+          const gx = (j / gridDim) * 2 - 1; // -1 to 1
+          const elev = getElevation(gx, gy, elevationScale);
+
+          // 3D Rotate around Y axis (yaw)
+          const rx1 = gx * cosYaw - gy * sinYaw;
+          const ry1 = gx * sinYaw + gy * cosYaw;
+          const rz1 = -elev;
+
+          // 3D Rotate around X axis (pitch)
+          const rx2 = rx1;
+          const ry2 = ry1 * cosPitch - rz1 * sinPitch;
+          const rz2 = ry1 * sinPitch + rz1 * cosPitch;
+
+          // Perspective transformation
+          const depth = fovDistance + rz2;
+          const pFactor = depth > 0.1 ? fovDistance / depth : 0.1;
+          const sx = centerX + rx2 * baseScale * pFactor;
+          const sy = centerY + ry2 * baseScale * pFactor;
+
+          projectedGrid[i][j] = { sx, sy, sz: rz2, elev, rawX: gx, rawY: gy };
+        }
+      }
+
+      // Render Wireframe Mesh Lines if enabled
+      if (wireframeMeshEnabled) {
+        ctx.lineWidth = 1;
+
+        // Draw horizontal mesh rows
+        for (let i = 0; i <= gridDim; i++) {
+          ctx.beginPath();
+          let started = false;
+          for (let j = 0; j <= gridDim; j++) {
+            const p = projectedGrid[i][j];
+            if (!started) {
+              ctx.moveTo(p.sx, p.sy);
+              started = true;
+            } else {
+              ctx.lineTo(p.sx, p.sy);
+            }
+          }
+          const alpha = 0.14 + (i / gridDim) * 0.12;
+          ctx.strokeStyle =
+            activeBand === 'LIDAR'
+              ? `rgba(56, 189, 248, ${alpha})`
+              : activeBand === 'SUBSURFACE'
+              ? `rgba(168, 85, 247, ${alpha})`
+              : activeBand === 'THERMAL'
+              ? `rgba(244, 63, 94, ${alpha})`
+              : `rgba(34, 197, 94, ${alpha})`;
+          ctx.stroke();
+        }
+
+        // Draw vertical mesh columns
+        for (let j = 0; j <= gridDim; j++) {
+          ctx.beginPath();
+          let started = false;
+          for (let i = 0; i <= gridDim; i++) {
+            const p = projectedGrid[i][j];
+            if (!started) {
+              ctx.moveTo(p.sx, p.sy);
+              started = true;
+            } else {
+              ctx.lineTo(p.sx, p.sy);
+            }
+          }
+          const alpha = 0.14 + (j / gridDim) * 0.12;
+          ctx.strokeStyle =
+            activeBand === 'LIDAR'
+              ? `rgba(56, 189, 248, ${alpha})`
+              : activeBand === 'SUBSURFACE'
+              ? `rgba(168, 85, 247, ${alpha})`
+              : activeBand === 'THERMAL'
+              ? `rgba(244, 63, 94, ${alpha})`
+              : `rgba(34, 197, 94, ${alpha})`;
+          ctx.stroke();
+        }
+      }
+
+      // Render Glowing Point-Cloud Voxel Points
+      for (let i = 0; i <= gridDim; i++) {
+        for (let j = 0; j <= gridDim; j++) {
+          const p = projectedGrid[i][j];
+          const normElev = (p.elev / elevationScale + 1.6) / 3.2; // 0 to 1
+
+          // Calculate distance to radar sweep plane
+          const sweepDist = Math.abs(p.rawX - currentSweepWave);
+          const isSweeping = sweepDist < 0.14;
+
+          let ptColor = '#38bdf8';
+          let ptRadius = 1.4;
+
+          if (activeBand === 'LIDAR') {
+            // Cyan-to-Emerald Topographic Gradient
+            if (normElev > 0.72) ptColor = '#f8fafc'; // snow/frost peaks
+            else if (normElev > 0.55) ptColor = '#38bdf8'; // elevated crater rims
+            else if (normElev > 0.38) ptColor = '#2dd4bf'; // mid plain
+            else ptColor = '#0284c7'; // deep depression
+          } else if (activeBand === 'SUBSURFACE') {
+            // Subsurface Radar: Purple to Hot Gold Dielectric
+            if (normElev > 0.65) ptColor = '#fbbf24';
+            else if (normElev > 0.40) ptColor = '#c084fc';
+            else ptColor = '#4c1d95';
+          } else if (activeBand === 'THERMAL') {
+            // Thermal IR: Deep Indigo (110 K) to Magenta & White (165 K)
+            if (normElev > 0.68) ptColor = '#f43f5e';
+            else if (normElev > 0.45) ptColor = '#e11d48';
+            else ptColor = '#4338ca';
+          } else {
+            // SAR: High-Contrast Green Phosphor Radar
+            ptColor = normElev > 0.5 ? '#4ade80' : '#15803d';
+          }
+
+          if (isSweeping) {
+            ptColor = '#ffffff';
+            ptRadius = 2.8;
+          }
+
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, ptRadius, 0, Math.PI * 2);
+          ctx.fillStyle = ptColor;
+          ctx.fill();
+        }
+      }
+
+      // Draw Animated Radar Sweep Beam Curtain
+      const sweepX1 = currentSweepWave;
+      const sweepPts: Array<{ sx: number; sy: number }> = [];
+      for (let i = 0; i <= gridDim; i += 4) {
+        const gy = (i / gridDim) * 2 - 1;
+        const elev = getElevation(sweepX1, gy, elevationScale);
+        const rx1 = sweepX1 * cosYaw - gy * sinYaw;
+        const ry1 = sweepX1 * sinYaw + gy * cosYaw;
+        const rz1 = -elev;
+        const rx2 = rx1;
+        const ry2 = ry1 * cosPitch - rz1 * sinPitch;
+        const rz2 = ry1 * sinPitch + rz1 * cosPitch;
+        const depth = fovDistance + rz2;
+        const pFactor = depth > 0.1 ? fovDistance / depth : 0.1;
+        sweepPts.push({
+          sx: centerX + rx2 * baseScale * pFactor,
+          sy: centerY + ry2 * baseScale * pFactor,
+        });
+      }
+
+      if (sweepPts.length > 1) {
         ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.strokeStyle = active ? strokeColor : 'rgba(100, 116, 139, 0.25)';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([4, 4]);
+        ctx.moveTo(sweepPts[0].sx, sweepPts[0].sy);
+        for (let k = 1; k < sweepPts.length; k++) {
+          ctx.lineTo(sweepPts[k].sx, sweepPts[k].sy);
+        }
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      // Render 3D Geological Waypoints & Floating Reticles
+      CALLISTO_WAYPOINTS.forEach((wp) => {
+        const elev = getElevation(wp.gridX, wp.gridY, elevationScale);
+        const rx1 = wp.gridX * cosYaw - wp.gridY * sinYaw;
+        const ry1 = wp.gridX * sinYaw + wp.gridY * cosYaw;
+        const rz1 = -elev;
+
+        const rx2 = rx1;
+        const ry2 = ry1 * cosPitch - rz1 * sinPitch;
+        const rz2 = ry1 * sinPitch + rz1 * cosPitch;
+
+        const depth = fovDistance + rz2;
+        const pFactor = depth > 0.1 ? fovDistance / depth : 0.1;
+        const px = centerX + rx2 * baseScale * pFactor;
+        const py = centerY + ry2 * baseScale * pFactor;
+
+        const isTarget = selectedWaypoint.id === wp.id;
+        const pinColor = isTarget ? '#38bdf8' : 'rgba(248, 250, 252, 0.75)';
+
+        // Vertical holographic tether
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px, py - 32);
+        ctx.strokeStyle = pinColor;
+        ctx.lineWidth = isTarget ? 2 : 1;
+        ctx.setLineDash([2, 2]);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        if (active) {
-          // Flowing pulse particles
-          const dx = to.x - from.x;
-          const dy = to.y - from.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const steps = Math.floor(dist / 40);
-          for (let i = 0; i < steps; i++) {
-            const t = ((i / steps) + (particleOffset / dist)) % 1;
-            const px = from.x + dx * t;
-            const py = from.y + dy * t;
-            ctx.beginPath();
-            ctx.arc(px, py, 3.5, 0, Math.PI * 2);
-            ctx.fillStyle = strokeColor;
-            ctx.shadowColor = strokeColor;
-            ctx.shadowBlur = 8;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-          }
-        }
-      };
-
-      // Connect nodes
-      drawPipe(nodes.melter, nodes.waterTank, '#38bdf8', state.melterPowerPct > 0);
-      drawPipe(nodes.waterTank, nodes.electrolyzer, '#06b6d4', state.electrolyzerLoadPct > 0);
-      drawPipe(nodes.electrolyzer, nodes.propellant, '#f59e0b', state.electrolyzerLoadPct > 30);
-      drawPipe(nodes.electrolyzer, nodes.habitat, '#38bdf8', state.electrolyzerLoadPct > 0);
-      drawPipe(nodes.habitat, nodes.sabatier, '#a855f7', state.sabatierState !== 'OFFLINE');
-      drawPipe(nodes.sabatier, nodes.waterTank, '#06b6d4', state.sabatierState !== 'OFFLINE');
-      drawPipe(nodes.habitat, nodes.algae, '#10b981', state.algaeIrradiancePct > 0);
-      drawPipe(nodes.algae, nodes.habitat, '#34d399', state.algaeIrradiancePct > 0);
-
-      // Render Nodes
-      Object.entries(nodes).forEach(([key, node]) => {
-        const isSelected = selectedSubsystem === key;
-
-        // Outer glow on selected
-        if (isSelected) {
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, 34, 0, Math.PI * 2);
-          ctx.strokeStyle = node.color;
-          ctx.lineWidth = 2;
-          ctx.shadowColor = node.color;
-          ctx.shadowBlur = 15;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-        }
-
-        // Base circular node
+        // Waypoint beacon diamond
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 24, 0, Math.PI * 2);
-        ctx.fillStyle = '#0f172a';
+        ctx.moveTo(px, py - 38);
+        ctx.lineTo(px + 6, py - 32);
+        ctx.lineTo(px, py - 26);
+        ctx.lineTo(px - 6, py - 32);
+        ctx.closePath();
+        ctx.fillStyle = isTarget ? '#38bdf8' : 'rgba(15, 23, 42, 0.85)';
         ctx.fill();
-        ctx.strokeStyle = node.color;
-        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = pinColor;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Node center pip
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = node.color;
-        ctx.fill();
+        if (isTarget) {
+          // Radar lock-on brackets
+          ctx.beginPath();
+          ctx.arc(px, py - 32, 12, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
 
-        // Node Text
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = '600 11px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(node.label, node.x, node.y + 38);
+          // Waypoint HUD label tag
+          ctx.fillStyle = '#0f172a';
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1;
+          const tagW = 140;
+          const tagH = 26;
+          const tagX = px + 12;
+          const tagY = py - 45;
+          ctx.fillRect(tagX, tagY, tagW, tagH);
+          ctx.strokeRect(tagX, tagY, tagW, tagH);
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = '700 9px ui-monospace, SFMono-Regular, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(`LOC: ${wp.elevationM > 0 ? '+' : ''}${wp.elevationM}m`, tagX + 8, tagY + 11);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '600 10px system-ui, sans-serif';
+          ctx.fillText(wp.name.slice(0, 18), tagX + 8, tagY + 22);
+        }
       });
 
-      particleOffset = (particleOffset + 0.8) % 40;
+      // Compass & Sensor Reticle Overlay (Bottom Right)
+      const compassX = width - 55;
+      const compassY = height - 55;
+      ctx.beginPath();
+      ctx.arc(compassX, compassY, 28, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Heading needle
+      const needleX = compassX + Math.sin(yaw) * 20;
+      const needleY = compassY - Math.cos(yaw) * 20;
+      ctx.beginPath();
+      ctx.moveTo(compassX, compassY);
+      ctx.lineTo(needleX, needleY);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '700 8px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('N', needleX, needleY - 4);
+
       animId = requestAnimationFrame(render);
     };
 
     render();
     return () => cancelAnimationFrame(animId);
-  }, [state, selectedSubsystem, habitatColor]);
+  }, [activeBand, isFlyoverActive, elevationScale, selectedWaypoint, wireframeMeshEnabled, pointCloudDensity, getElevation]);
 
-  // Handle canvas click to select subsystem node
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const clickX = (e.clientX - rect.left) * scaleX;
-    const clickY = (e.clientY - rect.top) * scaleY;
+  // Touch and Mouse Controls for 3D Camera Rotation
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    isDraggingRef.current = true;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+  };
 
-    const width = canvas.width;
-    const height = canvas.height;
-    const nodeCoords: Record<string, { x: number; y: number }> = {
-      melter: { x: width * 0.16, y: height * 0.30 },
-      waterTank: { x: width * 0.38, y: height * 0.30 },
-      electrolyzer: { x: width * 0.60, y: height * 0.30 },
-      propellant: { x: width * 0.84, y: height * 0.30 },
-      habitat: { x: width * 0.50, y: height * 0.70 },
-      sabatier: { x: width * 0.25, y: height * 0.70 },
-      algae: { x: width * 0.75, y: height * 0.70 },
-    };
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDraggingRef.current) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
 
-    for (const [id, coord] of Object.entries(nodeCoords)) {
-      const dist = Math.hypot(clickX - coord.x, clickY - coord.y);
-      if (dist < 32) {
-        setSelectedSubsystem(id);
-        addLog(`Inspected subsystem telemetry: ${id.toUpperCase()}`, 'info');
-        break;
-      }
+    cameraRef.current.yaw += dx * 0.007;
+    cameraRef.current.pitch = Math.max(0.15, Math.min(1.45, cameraRef.current.pitch + dy * 0.006));
+  };
+
+  const handleMouseUp = () => {
+    isDraggingRef.current = false;
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 1) {
+      isDraggingRef.current = true;
+      dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
   };
 
-  // --- Subsystem Dictionary ---
-  const subsystems: Record<string, SubsystemTelemetry> = {
-    melter: {
-      id: 'melter',
-      name: 'Valhalla Sub-Surface Cryo-Melter',
-      code: 'ISRU-MELT-01',
-      category: 'ISRU',
-      powerKw: melterKw,
-      status: state.siltClogPct > 50 ? 'FAULT' : state.melterPowerPct > 80 ? 'ELEVATED' : 'NOMINAL',
-      primaryMetric: `${iceMeltRateLh} L/h`,
-      metricLabel: 'Cryo-Ice Sublimation Flux',
-      description: 'Heated mechanical melt-head drilling into fractured cryo-regolith at 115 K to extract ice and filter rocky chondritic silt.',
-      chemicalReaction: 'H2O(s, 115K) + ΔH_melt → H2O(l, 277K) [Filtered]',
-    },
-    waterTank: {
-      id: 'waterTank',
-      name: 'Primary Potable & Greywater Reservoir',
-      code: 'ECLSS-H2O-RES',
-      category: 'ECLSS',
-      powerKw: 1.8,
-      status: 'NOMINAL',
-      primaryMetric: `${state.potableWaterL} L`,
-      metricLabel: 'Current Reserve Storage',
-      description: 'Multi-barrier water recovery processor incorporating catalytic oxidation, vacuum distillation, and silver biocide stabilization.',
-    },
-    electrolyzer: {
-      id: 'electrolyzer',
-      name: 'Solid Polymer Electrolyzer Stack',
-      code: 'ISRU-ELEC-44',
-      category: 'ISRU',
-      powerKw: electrolyzerKw,
-      status: state.electrolyzerLoadPct > 85 ? 'ELEVATED' : 'NOMINAL',
-      primaryMetric: `${o2GeneratedKgh} kg/h O2`,
-      metricLabel: 'Electrolytic Oxygen Output',
-      description: 'Proton Exchange Membrane (PEM) cells splitting deionized water at 35 bar to supply crew metabolic air and cryogenic ascent rocket tanks.',
-      chemicalReaction: '2 H2O(l) + 285.8 kJ/mol → 2 H2(g) + O2(g)',
-    },
-    propellant: {
-      id: 'propellant',
-      name: 'Cryogenic LOX / LH2 Propellant Depot',
-      code: 'DEPOT-VAL-03',
-      category: 'ISRU',
-      powerKw: 6.2,
-      status: 'NOMINAL',
-      primaryMetric: `${state.propellantLoxTons} T LOX / ${state.propellantLh2Tons} T LH2`,
-      metricLabel: 'Ascent Stage Fuel Loaded',
-      description: 'Cryo-cooled multi-layer insulation spherical dewars accumulating cryogenic propellant for Earth return trajectory stages.',
-    },
-    habitat: {
-      id: 'habitat',
-      name: 'Primary Crew Habitat Module (ECLSS)',
-      code: 'HAB-CORE-VAL',
-      category: 'ECLSS',
-      powerKw: habitatBaseloadKw,
-      status: habitatCondition === 'OPTIMAL' ? 'NOMINAL' : habitatCondition === 'CRITICAL' ? 'FAULT' : 'STRAINED',
-      primaryMetric: `${state.cabinPressureKpa} kPa (${state.oxygenPartialKpa} kPa pO2)`,
-      metricLabel: 'Atmospheric Envelope',
-      description: 'Pressurized Kevlar-aluminum structural shell housing 6 crew members with active air circulation, HEPA filtration, and temperature regulation.',
-    },
-    sabatier: {
-      id: 'sabatier',
-      name: 'Sabatier Catalytic Methanation Reactor',
-      code: 'ECLSS-SAB-02',
-      category: 'ECLSS',
-      powerKw: sabatierKw,
-      status: state.sabatierState === 'OFFLINE' ? 'STANDBY' : 'NOMINAL',
-      primaryMetric: `${co2ScrubbedKgh} kg/h CO2`,
-      metricLabel: 'Carbon Reduction Rate',
-      description: 'Ruthenium-on-alumina catalyst bed operating at 400°C combining respired CO2 with electrolyzer H2 to recover potable water.',
-      chemicalReaction: 'CO2(g) + 4 H2(g) → CH4(g) + 2 H2O(v) + 165 kJ/mol',
-    },
-    algae: {
-      id: 'algae',
-      name: 'Helical Spirulina Photobioreactor',
-      code: 'BIO-PBR-09',
-      category: 'BIO',
-      powerKw: algaeKw,
-      status: state.algaeIrradiancePct > 90 ? 'ELEVATED' : 'NOMINAL',
-      primaryMetric: `${state.algaeBiomassKg.toFixed(1)} kg`,
-      metricLabel: 'Accumulated Protein Biomass',
-      description: 'High-density micro-algae culture tubes utilizing 660nm LED photon arrays to absorb metabolic CO2 and produce dietary proteins & O2.',
-      chemicalReaction: '6 CO2 + 6 H2O + hν → C6H12O6 + 6 O2',
-    },
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDraggingRef.current || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - dragStartRef.current.x;
+    const dy = e.touches[0].clientY - dragStartRef.current.y;
+    dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+    cameraRef.current.yaw += dx * 0.008;
+    cameraRef.current.pitch = Math.max(0.15, Math.min(1.45, cameraRef.current.pitch + dy * 0.007));
   };
 
-  // --- Tactical Actions (User Controlled) ---
-
-  // 1. Advance Sol (24-hour mission cycle step)
-  const handleAdvanceSol = () => {
-    setState((prev) => {
-      const nextSol = prev.sol + 1;
-      const nextIsDay = (nextSol % 17) < 9; // Callisto 16.7 day cycle: ~8.5 days day, ~8.2 days night
-      const nextTempK = nextIsDay ? 165 : 110;
-
-      // Calculate 24-hr net changes
-      const dailyMeltL = iceMeltRateLh * 24;
-      const dailyElectrolyzedL = waterElectrolyzedLh * 24;
-      const dailyCrewWaterUsed = 15.0; // 2.5 L/day * 6 crew
-      const dailyNetWater = dailyMeltL - dailyElectrolyzedL - dailyCrewWaterUsed;
-
-      const dailyO2Kg = o2GeneratedKgh * 24;
-      const dailyCrewO2Kg = crewO2ConsumptionKgh * 24;
-      const o2SurplusKg = Math.max(0, dailyO2Kg - dailyCrewO2Kg);
-      const loxAddedTons = Number((o2SurplusKg * 0.0008).toFixed(3));
-      const lh2AddedTons = Number((loxAddedTons / 8).toFixed(3));
-
-      // Atmospheric changes based on net fluxes
-      let nextO2Kpa = prev.oxygenPartialKpa + (netO2FluxKgh > 0 ? 0.2 : -0.3);
-      nextO2Kpa = Math.max(14.0, Math.min(26.0, Number(nextO2Kpa.toFixed(1))));
-
-      let nextCo2Kpa = prev.co2PartialKpa + (netCo2FluxKgh > 0 ? 0.04 : -0.05);
-      nextCo2Kpa = Math.max(0.15, Math.min(1.2, Number(nextCo2Kpa.toFixed(2))));
-
-      // Temperature regulation based on radiator bypass and ambient cycle
-      let nextCabinTemp = prev.cabinTempC;
-      if (!nextIsDay && prev.radiatorBypassPct > 70) {
-        nextCabinTemp -= 1.8; // heat leaking during deep night
-      } else if (nextIsDay && prev.radiatorBypassPct < 30) {
-        nextCabinTemp += 1.5; // slight heat buildup
-      } else {
-        nextCabinTemp = 21.4; // regulated
-      }
-      nextCabinTemp = Number(nextCabinTemp.toFixed(1));
-
-      // Silt buildup increases slightly per sol if melter runs
-      const nextSilt = prev.melterPowerPct > 0 ? Math.min(100, prev.siltClogPct + 4) : prev.siltClogPct;
-
-      return {
-        ...prev,
-        sol: nextSol,
-        isJovianDay: nextIsDay,
-        ambientTempK: nextTempK,
-        oxygenPartialKpa: nextO2Kpa,
-        co2PartialKpa: nextCo2Kpa,
-        cabinTempC: nextCabinTemp,
-        potableWaterL: Math.max(200, Math.min(12000, Math.round(prev.potableWaterL + dailyNetWater))),
-        propellantLoxTons: Number((prev.propellantLoxTons + loxAddedTons).toFixed(2)),
-        propellantLh2Tons: Number((prev.propellantLh2Tons + lh2AddedTons).toFixed(2)),
-        algaeBiomassKg: Number((prev.algaeBiomassKg + (prev.algaeIrradiancePct / 100) * 1.8).toFixed(1)),
-        siltClogPct: nextSilt,
-      };
-    });
-
-    addLog(`Advanced Sol Cycle to SOL ${state.sol + 1}. Consumables reconciled over 24-hr period.`, 'action');
+  const handleTouchEnd = () => {
+    isDraggingRef.current = false;
   };
 
-  // 2. Emergency O2 Cabin Injection
-  const handleEmergencyO2Flush = () => {
-    setState((prev) => ({
-      ...prev,
-      oxygenPartialKpa: 21.4,
-      cabinPressureKpa: 101.4,
-      potableWaterL: Math.max(100, prev.potableWaterL - 12),
-    }));
-    addLog('EMERGENCY O2 INJECTION: High-pressure reserve discharge restored cabin pO2 to 21.4 kPa.', 'warn');
+  // Reset Camera View
+  const handleResetCamera = () => {
+    cameraRef.current.yaw = 0.75;
+    cameraRef.current.pitch = 0.62;
+    cameraRef.current.zoom = 1.05;
+    cameraRef.current.panX = 0;
+    cameraRef.current.panY = 0;
   };
 
-  // 3. Filter Backwash (Clean Silt)
-  const handleFilterBackwash = () => {
-    setState((prev) => ({
-      ...prev,
-      siltClogPct: 0,
-      potableWaterL: Math.max(100, prev.potableWaterL - 8),
-    }));
-    addLog('FILTER BACKWASH: High-pressure sonic flush cleared chondritic silt from melter intake.', 'success');
+  // Focus on Selected Waypoint
+  const handleSelectWaypoint = (wp: Waypoint) => {
+    setSelectedWaypoint(wp);
+    // Smooth angle transition towards waypoint
+    const targetYaw = Math.atan2(wp.gridX, wp.gridY) + Math.PI * 0.5;
+    cameraRef.current.yaw = targetYaw;
+    cameraRef.current.pitch = 0.55;
   };
-
-  // 4. Purge CO2 Amine Scrubbers
-  const handlePurgeCO2 = () => {
-    setState((prev) => ({
-      ...prev,
-      co2PartialKpa: 0.28,
-    }));
-    addLog('CO2 DESORPTION PURGE: Thermal amine beds flushed. Cabin pCO2 dropped to 0.28 kPa.', 'success');
-  };
-
-  // 5. Restore Nominal Equilibrium Setpoints
-  const handleRestoreNominal = () => {
-    setState((prev) => ({
-      ...prev,
-      melterPowerPct: 65,
-      electrolyzerLoadPct: 60,
-      sabatierState: 'BALANCED',
-      algaeIrradiancePct: 75,
-      radiatorBypassPct: 50,
-      oxygenPartialKpa: 21.2,
-      co2PartialKpa: 0.38,
-      cabinPressureKpa: 101.3,
-      cabinTempC: 21.4,
-      activeScenarioId: null,
-      scenarioMessage: null,
-    }));
-    addLog('SETPOINTS BALANCED: All ECLSS and ISRU control loops restored to nominal equilibrium.', 'info');
-  };
-
-  // 6. Launch Simulation Scenario Challenges
-  const handleTriggerScenario = (scenarioId: string) => {
-    if (scenarioId === 'cryo_freeze') {
-      setState((prev) => ({
-        ...prev,
-        activeScenarioId: 'cryo_freeze',
-        ambientTempK: 108,
-        isJovianDay: false,
-        cabinTempC: 15.2,
-        radiatorBypassPct: 85,
-        scenarioMessage: 'CRITICAL CHILL: Radiator loop chilling near freeze point! Close bypass valve (<40%) to conserve internal thermal heat.',
-      }));
-      addLog('SIMULATION SCENARIO TRIGGERED: Cryogenic Night Radiator Freeze Hazard.', 'warn');
-    } else if (scenarioId === 'silt_blockage') {
-      setState((prev) => ({
-        ...prev,
-        activeScenarioId: 'silt_blockage',
-        siltClogPct: 85,
-        scenarioMessage: 'INTAKE CLOG: Cryo-melter silt filter at 85% restriction. Execute Filter Backwash to recover water flux.',
-      }));
-      addLog('SIMULATION SCENARIO TRIGGERED: Chondritic Silt Intrusion in Melter Head.', 'warn');
-    } else if (scenarioId === 'radiation_surge') {
-      setState((prev) => ({
-        ...prev,
-        activeScenarioId: 'radiation_surge',
-        radiationFluxMsv: 0.85,
-        scenarioMessage: 'MAGNETOSPHERIC SURGE: Jovian plasma flux wave detected. Divert Kilopower grid to magnetic storm shelter.',
-      }));
-      addLog('SIMULATION SCENARIO TRIGGERED: Jovian Magnetospheric Plasma Shockwave.', 'warn');
-    }
-  };
-
-  const currentSubsystem = subsystems[selectedSubsystem] || subsystems.melter;
 
   return (
-    <div className="outpost-cockpit">
-      {/* Flight Deck Header */}
+    <div className="lidar-cockpit">
+      {/* Platform Header */}
       <div className="cockpit-header">
         <div className="header-left">
           <div className="tag-row">
-            <span className="station-badge">OUTPOST CALLISTO // ECLSS & ISRU COMMAND</span>
-            <span className="orbit-badge">VALHALLA BASIN • 15.9°N, 55.6°W</span>
+            <span className="platform-badge">CALLISTO ORBITAL SURVEYOR // 3D LIDAR ALTIMETRY</span>
+            <span className="orbit-badge">ALT: 150.0 KM • INCLINATION: 88.4° POLAR</span>
           </div>
-          <h2 className="deck-title">Bio-Astronautics Closed-Loop Simulator</h2>
+          <h2 className="deck-title">3D LIDAR Point-Cloud & Terrain Radar Flyover</h2>
           <p className="deck-subtitle">
-            Autonomous environmental control and resource synthesis supporting permanent Jovian surface outposts.
+            Pulsed Nd:YAG laser altimeter and synthetic aperture radar mapping of Callisto’s Valhalla impact multi-ring system.
           </p>
         </div>
 
-        {/* Action Controls in Header */}
         <div className="header-actions">
           <button
             type="button"
-            className="action-btn cycle-btn"
-            onClick={handleAdvanceSol}
-            title="Advance simulation by 24 hours (1 Sol)"
+            className={`action-btn flyover-btn ${isFlyoverActive ? 'active' : ''}`}
+            onClick={() => setIsFlyoverActive(!isFlyoverActive)}
+            title="Toggle autonomous orbital flyover camera"
           >
-            <span className="btn-icon">⟳</span>
-            <span>ADVANCE SOL (24H)</span>
+            <span className="btn-icon">{isFlyoverActive ? '⏸' : '▶'}</span>
+            <span>{isFlyoverActive ? 'PAUSE FLYOVER' : 'AUTO FLYOVER'}</span>
           </button>
           <button
             type="button"
             className="action-btn report-btn"
             onClick={() => setReportModalOpen(true)}
-            title="Open comprehensive telemetry briefing"
+            title="View geological topographic report"
           >
-            <span className="btn-icon">📋</span>
+            <span className="btn-icon">📑</span>
             <span>MISSION BRIEFING</span>
           </button>
         </div>
       </div>
 
-      {/* Static Mission Telemetry Badges (NO RESTLESS TICKING / PURE STATIC TELEMETRY) */}
-      <div className="telemetry-bar" aria-label="Static Outpost Telemetry">
-        <div className="telemetry-card status-card" style={{ borderColor: habitatColor }}>
-          <span className="card-label">HABITAT SAFETY INDEX</span>
-          <span className="card-value" style={{ color: habitatColor }}>
-            {habitatCondition} ({state.crewHealthPct.toFixed(1)}%)
+      {/* Static Telemetry Badges (CLEAN STATIC READOUTS) */}
+      <div className="telemetry-bar" aria-label="Static Radar Telemetry">
+        <div className="telemetry-card">
+          <span className="card-label">SENSOR PAYLOAD</span>
+          <span className="card-value">
+            {activeBand === 'LIDAR'
+              ? 'LIDAR 1064nm'
+              : activeBand === 'SUBSURFACE'
+              ? 'RADAR 15MHz'
+              : activeBand === 'THERMAL'
+              ? 'THERMAL IR'
+              : 'SAR 1.2GHz'}
           </span>
-          <span className="card-subtext">All 6 Crew Compartments Pressurized</span>
+          <span className="card-subtext">Spatial Resolution: 0.85 m/pixel</span>
         </div>
 
         <div className="telemetry-card">
-          <span className="card-label">SURFACE ENVIRONMENT</span>
-          <span className="card-value">
-            SOL {state.sol} // {state.isJovianDay ? 'DAY' : 'NIGHT'}
-          </span>
-          <span className="card-subtext">
-            Ext: {state.ambientTempK} K • Grav: {CALLISTO_SURFACE_GRAVITY} m/s²
-          </span>
+          <span className="card-label">ORBITAL TARGET</span>
+          <span className="card-value">VALHALLA BASIN</span>
+          <span className="card-subtext">Coordinates: 15.9°N, 55.6°W</span>
         </div>
 
         <div className="telemetry-card">
-          <span className="card-label">ATMOSPHERIC ENVELOPE</span>
-          <span className="card-value">
-            {state.cabinPressureKpa} kPa • {state.oxygenPartialKpa} kPa pO₂
-          </span>
-          <span className="card-subtext">
-            pCO₂: {state.co2PartialKpa} kPa • Temp: {state.cabinTempC}°C
-          </span>
+          <span className="card-label">RELIEF RANGE</span>
+          <span className="card-value">-1,820 m to +2,150 m</span>
+          <span className="card-subtext">Vertical Exaggeration: {elevationScale.toFixed(1)}x</span>
         </div>
 
         <div className="telemetry-card">
-          <span className="card-label">KILOPOWER GRID LOAD</span>
-          <span className="card-value">
-            {totalPowerDrawKw} / {KILOPOWER_BASE_CAPACITY_KW} kW
-          </span>
-          <span className="card-subtext">Reserve: +{powerReserveKw} kW Available</span>
+          <span className="card-label">ACTIVE RADAR WAYPOINT</span>
+          <span className="card-value">{selectedWaypoint.name.slice(0, 16)}</span>
+          <span className="card-subtext">Elev: {selectedWaypoint.elevationM > 0 ? '+' : ''}{selectedWaypoint.elevationM} m</span>
         </div>
 
         <div className="telemetry-card">
-          <span className="card-label">ASCENT FUEL ACCUMULATED</span>
-          <span className="card-value">
-            {state.propellantLoxTons} T LOX / {state.propellantLh2Tons} T LH₂
-          </span>
-          <span className="card-subtext">Reserve Target: 25.0 Tons Required</span>
+          <span className="card-label">SURFACE REGOLITH</span>
+          <span className="card-value">H₂O ICE + SILICATE</span>
+          <span className="card-subtext">Dielectric Permittivity: ε = 3.1</span>
         </div>
       </div>
 
-      {/* Active Incident Warning Alert (if any) */}
-      {state.scenarioMessage && (
-        <div className="incident-alert">
-          <div className="alert-content">
-            <span className="alert-badge">PRIORITY ALERT</span>
-            <span className="alert-text">{state.scenarioMessage}</span>
-          </div>
-          <button
-            type="button"
-            className="alert-dismiss-btn"
-            onClick={handleRestoreNominal}
-          >
-            RESOLVE SETPOINTS
-          </button>
-        </div>
-      )}
+      {/* Main 3D Viewport Workspace */}
+      <div className="deck-workspace">
+        <div className="viewport-col">
+          <div className="canvas-container">
+            <canvas
+              ref={canvasRef}
+              width={860}
+              height={500}
+              className="lidar-canvas"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            />
 
-      {/* Navigation Tabs */}
-      <div className="deck-tabs">
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'schematic' ? 'active' : ''}`}
-          onClick={() => setActiveTab('schematic')}
-        >
-          <span className="tab-icon">☵</span>
-          <span>CLOSED-LOOP SCHEMATIC</span>
-        </button>
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'controls' ? 'active' : ''}`}
-          onClick={() => setActiveTab('controls')}
-        >
-          <span className="tab-icon">⚙</span>
-          <span>SYSTEM CONTROLS & FLUX</span>
-        </button>
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'scenarios' ? 'active' : ''}`}
-          onClick={() => setActiveTab('scenarios')}
-        >
-          <span className="tab-icon">⚡</span>
-          <span>MISSION SCENARIOS & DRILLS</span>
-        </button>
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'log' ? 'active' : ''}`}
-          onClick={() => setActiveTab('log')}
-        >
-          <span className="tab-icon">⌨</span>
-          <span>ENGINEERING LOG ({logEntries.length})</span>
-        </button>
-      </div>
-
-      {/* Main Workspace Body */}
-      <div className="deck-body">
-        {/* Tab 1: Interactive Flow Schematic */}
-        {activeTab === 'schematic' && (
-          <div className="schematic-layout">
-            <div className="canvas-wrapper">
-              <div className="canvas-header">
-                <span className="canvas-title">MASS & ENERGY CONSERVATION MAPPING</span>
-                <span className="canvas-hint">Click any node to inspect subsystem telemetry</span>
+            {/* Overlaid Interactive Controls within Canvas HUD */}
+            <div className="canvas-hud-overlay">
+              <div className="hud-band-picker">
+                {(
+                  [
+                    { id: 'LIDAR', label: 'LIDAR TOPOGRAPHY' },
+                    { id: 'SUBSURFACE', label: 'SUBSURFACE RADAR' },
+                    { id: 'THERMAL', label: 'THERMAL INFRARED' },
+                    { id: 'SAR', label: 'SAR WIREFRAME' },
+                  ] as const
+                ).map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    className={`hud-band-btn ${activeBand === b.id ? 'active' : ''}`}
+                    onClick={() => setActiveBand(b.id)}
+                  >
+                    {b.label}
+                  </button>
+                ))}
               </div>
-              <canvas
-                ref={canvasRef}
-                width={860}
-                height={440}
-                className="schematic-canvas"
-                onClick={handleCanvasClick}
+
+              <div className="hud-floating-tools">
+                <button
+                  type="button"
+                  className="hud-tool-btn"
+                  onClick={handleResetCamera}
+                  title="Reset 3D camera angles"
+                >
+                  RESET VIEW
+                </button>
+                <button
+                  type="button"
+                  className={`hud-tool-btn ${wireframeMeshEnabled ? 'active' : ''}`}
+                  onClick={() => setWireframeMeshEnabled(!wireframeMeshEnabled)}
+                  title="Toggle topographic mesh wireframe lines"
+                >
+                  MESH: {wireframeMeshEnabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Gradient Scale Legend */}
+            <div className="spectrum-legend">
+              <span className="legend-title">SPECTRAL BAND ELEVATION SPECTRUM</span>
+              <div className="gradient-bar-wrapper">
+                <span className="legend-bound">-1,850 m (Depression)</span>
+                <div className={`gradient-fill band-${activeBand.toLowerCase()}`}></div>
+                <span className="legend-bound">+2,320 m (Crater Rim)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Geological Waypoint & Flight Deck Side Panel */}
+        <div className="sidebar-col">
+          <div className="sidebar-card">
+            <span className="sidebar-category">TARGETED GEOLOGICAL SITES</span>
+            <h3 className="sidebar-title">Surface Radar Waypoints</h3>
+
+            <div className="waypoint-list">
+              {CALLISTO_WAYPOINTS.map((wp) => {
+                const isSelected = selectedWaypoint.id === wp.id;
+                return (
+                  <div
+                    key={wp.id}
+                    className={`waypoint-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleSelectWaypoint(wp)}
+                  >
+                    <div className="wp-header">
+                      <span className="wp-name">{wp.name}</span>
+                      <span className={`wp-hazard hazard-${wp.hazardRating.toLowerCase()}`}>
+                        {wp.hazardRating}
+                      </span>
+                    </div>
+                    <div className="wp-meta">
+                      <span>Elev: {wp.elevationM > 0 ? '+' : ''}{wp.elevationM} m</span>
+                      <span>{wp.classification}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Target Deep Telemetry Card */}
+          <div className="sidebar-card target-detail-card">
+            <span className="sidebar-category">SELECTED TARGET PROFILE</span>
+            <h4 className="detail-name">{selectedWaypoint.name}</h4>
+            <p className="detail-desc">{selectedWaypoint.description}</p>
+
+            <div className="detail-stat-grid">
+              <div className="stat-cell">
+                <span className="stat-label">GEOLOGIC UNIT</span>
+                <span className="stat-val">{selectedWaypoint.classification}</span>
+              </div>
+              <div className="stat-cell">
+                <span className="stat-label">ELEVATION</span>
+                <span className="stat-val">{selectedWaypoint.elevationM > 0 ? '+' : ''}{selectedWaypoint.elevationM} m</span>
+              </div>
+              <div className="stat-cell">
+                <span className="stat-label">TOUCHDOWN HAZARD</span>
+                <span className="stat-val">{selectedWaypoint.hazardRating}</span>
+              </div>
+              <div className="stat-cell">
+                <span className="stat-label">SLOPE STABILITY</span>
+                <span className="stat-val">Stable (&lt; 6.5°)</span>
+              </div>
+            </div>
+
+            {/* Slider Controls */}
+            <div className="control-slider-box">
+              <div className="slider-label-row">
+                <span>Relief Exaggeration</span>
+                <span>{elevationScale.toFixed(1)}x</span>
+              </div>
+              <input
+                type="range"
+                min="1.0"
+                max="3.0"
+                step="0.1"
+                value={elevationScale}
+                onChange={(e) => setElevationScale(Number(e.target.value))}
+                className="terrain-slider"
               />
-              <div className="canvas-legend">
-                <span className="legend-item"><span className="legend-dot water"></span> H₂O Water Flow</span>
-                <span className="legend-item"><span className="legend-dot oxygen"></span> O₂ Oxygen Flux</span>
-                <span className="legend-item"><span className="legend-dot co2"></span> CO₂ Absorption</span>
-                <span className="legend-item"><span className="legend-dot fuel"></span> LOX/LH₂ Propellant</span>
-                <span className="legend-item"><span className="legend-dot biomass"></span> Algae Biomass</span>
-              </div>
             </div>
 
-            {/* Subsystem Telemetry Inspector Card */}
-            <div className="inspector-panel">
-              <div className="inspector-header">
-                <span className="subsys-category">{currentSubsystem.category}</span>
-                <span className={`status-pill status-${currentSubsystem.status.toLowerCase()}`}>
-                  {currentSubsystem.status}
-                </span>
+            <div className="control-slider-box">
+              <div className="slider-label-row">
+                <span>Point Cloud Density</span>
+                <span>{pointCloudDensity}</span>
               </div>
-              <h3 className="subsys-name">{currentSubsystem.name}</h3>
-              <span className="subsys-code">{currentSubsystem.code}</span>
-
-              <div className="metric-box">
-                <span className="metric-label">{currentSubsystem.metricLabel}</span>
-                <span className="metric-val">{currentSubsystem.primaryMetric}</span>
-                <span className="metric-power">⚡ Power Draw: {currentSubsystem.powerKw} kW</span>
-              </div>
-
-              <p className="subsys-desc">{currentSubsystem.description}</p>
-
-              {currentSubsystem.chemicalReaction && (
-                <div className="reaction-box">
-                  <span className="reaction-title">STOICHIOMETRIC REACTION:</span>
-                  <code className="reaction-code">{currentSubsystem.chemicalReaction}</code>
-                </div>
-              )}
-
-              <div className="quick-action-row">
-                {currentSubsystem.id === 'melter' && (
+              <div className="density-toggle-group">
+                {(['STANDARD', 'HIGH', 'ULTRA'] as const).map((d) => (
                   <button
+                    key={d}
                     type="button"
-                    className="subsys-action-btn"
-                    onClick={handleFilterBackwash}
+                    className={`density-btn ${pointCloudDensity === d ? 'active' : ''}`}
+                    onClick={() => setPointCloudDensity(d)}
                   >
-                    CLEAN SILT FILTERS (BACKWASH)
+                    {d}
                   </button>
-                )}
-                {currentSubsystem.id === 'habitat' && (
-                  <button
-                    type="button"
-                    className="subsys-action-btn"
-                    onClick={handleEmergencyO2Flush}
-                  >
-                    EMERGENCY O2 INJECTION
-                  </button>
-                )}
-                {currentSubsystem.id === 'sabatier' && (
-                  <button
-                    type="button"
-                    className="subsys-action-btn"
-                    onClick={handlePurgeCO2}
-                  >
-                    PURGE AMINE BEDS
-                  </button>
-                )}
+                ))}
               </div>
             </div>
           </div>
-        )}
-
-        {/* Tab 2: System Controls & Dynamic Sliders */}
-        {activeTab === 'controls' && (
-          <div className="controls-layout">
-            <div className="control-group">
-              <div className="slider-card">
-                <div className="slider-header">
-                  <span className="slider-title">1. Cryo-Regolith Melter Power Flux</span>
-                  <span className="slider-badge">{state.melterPowerPct}% ({melterKw} kW)</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={state.melterPowerPct}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setState((prev) => ({ ...prev, melterPowerPct: val }));
-                    addLog(`Cryo-Melter set to ${val}% (${((val / 100) * 18.0).toFixed(1)} kW)`, 'action');
-                  }}
-                  className="cockpit-slider"
-                />
-                <div className="slider-meta">
-                  <span>Melts Callisto 115 K surface ice</span>
-                  <span>Yield: {iceMeltRateLh} L/h Water</span>
-                </div>
-              </div>
-
-              <div className="slider-card">
-                <div className="slider-header">
-                  <span className="slider-title">2. PEM Water Electrolyzer Load</span>
-                  <span className="slider-badge">{state.electrolyzerLoadPct}% ({electrolyzerKw} kW)</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={state.electrolyzerLoadPct}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setState((prev) => ({ ...prev, electrolyzerLoadPct: val }));
-                    addLog(`Electrolyzer load adjusted to ${val}%`, 'action');
-                  }}
-                  className="cockpit-slider"
-                />
-                <div className="slider-meta">
-                  <span>Splits H2O into O2 + H2</span>
-                  <span>Generates: {o2GeneratedKgh} kg/h O2</span>
-                </div>
-              </div>
-
-              <div className="slider-card">
-                <div className="slider-header">
-                  <span className="slider-title">3. Sabatier Methanation Mode</span>
-                  <span className="slider-badge">{state.sabatierState}</span>
-                </div>
-                <div className="mode-toggle-group">
-                  {(['OFFLINE', 'BALANCED', 'MAX_FLUX'] as const).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      className={`mode-btn ${state.sabatierState === m ? 'active' : ''}`}
-                      onClick={() => {
-                        setState((prev) => ({ ...prev, sabatierState: m }));
-                        addLog(`Sabatier reactor mode switched to ${m}`, 'action');
-                      }}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-                <div className="slider-meta">
-                  <span>Recycles CO2 + H2 → CH4 + 2 H2O</span>
-                  <span>Scrubbing: {co2ScrubbedKgh} kg/h CO2</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="control-group">
-              <div className="slider-card">
-                <div className="slider-header">
-                  <span className="slider-title">4. Spirulina Photobioreactor LED Flux</span>
-                  <span className="slider-badge">{state.algaeIrradiancePct}% ({algaeKw} kW)</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={state.algaeIrradiancePct}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setState((prev) => ({ ...prev, algaeIrradiancePct: val }));
-                    addLog(`Algae PBR LED irradiance set to ${val}%`, 'action');
-                  }}
-                  className="cockpit-slider"
-                />
-                <div className="slider-meta">
-                  <span>Biological photosynthetic CO2 fixation</span>
-                  <span>Yield: +0.07 kg/h Protein</span>
-                </div>
-              </div>
-
-              <div className="slider-card">
-                <div className="slider-header">
-                  <span className="slider-title">5. Radiator Heat Rejection Bypass</span>
-                  <span className="slider-badge">{state.radiatorBypassPct}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={state.radiatorBypassPct}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setState((prev) => ({ ...prev, radiatorBypassPct: val }));
-                    addLog(`Radiator thermal bypass adjusted to ${val}%`, 'action');
-                  }}
-                  className="cockpit-slider"
-                />
-                <div className="slider-meta">
-                  <span>Rejects waste reactor heat to space</span>
-                  <span>Cabin Temp: {state.cabinTempC}°C</span>
-                </div>
-              </div>
-
-              <div className="tactical-actions-card">
-                <span className="card-heading">DIRECT CONTINGENCY INTERVENTIONS</span>
-                <div className="tactical-btn-grid">
-                  <button
-                    type="button"
-                    className="contingency-btn"
-                    onClick={handleEmergencyO2Flush}
-                  >
-                    INJECT RESERVE O₂
-                  </button>
-                  <button
-                    type="button"
-                    className="contingency-btn"
-                    onClick={handleFilterBackwash}
-                  >
-                    FLUSH SILT INTAKE
-                  </button>
-                  <button
-                    type="button"
-                    className="contingency-btn"
-                    onClick={handlePurgeCO2}
-                  >
-                    PURGE AMINE BEDS
-                  </button>
-                  <button
-                    type="button"
-                    className="contingency-btn reset-btn"
-                    onClick={handleRestoreNominal}
-                  >
-                    RESTORE NOMINAL
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Mission Scenarios & Training Drills */}
-        {activeTab === 'scenarios' && (
-          <div className="scenarios-layout">
-            <div className="scenarios-grid">
-              <div className="scenario-card">
-                <div className="scenario-tag">DRILL ALPHA</div>
-                <h4 className="scenario-title">Deep Cryogenic Night Freeze (110 K)</h4>
-                <p className="scenario-desc">
-                  Callisto rotates into Jovian shadow. Exterior temperatures plunge to 110 K.
-                  Radiator coolant lines risk freezing solid, while habitat insulation is tested.
-                </p>
-                <div className="scenario-objectives">
-                  <span>• Target: Throttle radiator bypass to prevent fluid stagnation.</span>
-                  <span>• Maintain cabin interior temperature between 18°C and 23°C.</span>
-                </div>
-                <button
-                  type="button"
-                  className="scenario-start-btn"
-                  onClick={() => handleTriggerScenario('cryo_freeze')}
-                >
-                  SIMULATE NIGHT FREEZE
-                </button>
-              </div>
-
-              <div className="scenario-card">
-                <div className="scenario-tag">DRILL BRAVO</div>
-                <h4 className="scenario-title">Chondritic Silt Intrusion in Melter</h4>
-                <p className="scenario-desc">
-                  Dense basaltic impact dust from Valhalla Basin invades the sub-surface melt chamber,
-                  throttling water recovery flow by 85%.
-                </p>
-                <div className="scenario-objectives">
-                  <span>• Target: Execute high-pressure backwash sequence.</span>
-                  <span>• Balance water conservation until flow is restored.</span>
-                </div>
-                <button
-                  type="button"
-                  className="scenario-start-btn"
-                  onClick={() => handleTriggerScenario('silt_blockage')}
-                >
-                  SIMULATE SILT CLOG
-                </button>
-              </div>
-
-              <div className="scenario-card">
-                <div className="scenario-tag">DRILL CHARLIE</div>
-                <h4 className="scenario-title">Jovian Magnetospheric Compression</h4>
-                <p className="scenario-desc">
-                  A solar coronal mass ejection compresses Jupiter’s magnetosphere, causing radiation
-                  flux spikes on Callisto's surface.
-                </p>
-                <div className="scenario-objectives">
-                  <span>• Target: Divert 20 kW power to the subterranean active storm shelter.</span>
-                  <span>• Confirm crew health metrics remain above 95%.</span>
-                </div>
-                <button
-                  type="button"
-                  className="scenario-start-btn"
-                  onClick={() => handleTriggerScenario('radiation_surge')}
-                >
-                  SIMULATE RADIATION SURGE
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Engineering Telemetry Log */}
-        {activeTab === 'log' && (
-          <div className="log-layout">
-            <div className="log-header">
-              <span className="log-title">REAL-TIME SUBSYSTEM TRANSACTION FEED</span>
-              <button
-                type="button"
-                className="log-clear-btn"
-                onClick={() => setLogEntries([])}
-              >
-                CLEAR LOGS
-              </button>
-            </div>
-            <div className="log-terminal">
-              {logEntries.map((entry) => (
-                <div key={entry.id} className={`log-row log-${entry.type}`}>
-                  <span className="log-time">[{entry.time}]</span>
-                  <span className="log-badge">{entry.type.toUpperCase()}</span>
-                  <span className="log-message">{entry.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Mission Briefing Modal */}
@@ -1037,29 +756,32 @@ export default function ExpeditionSimulator() {
         <div className="modal-overlay" onClick={() => setReportModalOpen(false)}>
           <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-tag">EXPEDITION-4 FLIGHT MANUAL // CLASSIFIED BRIEFING</div>
-              <h3 className="modal-title">Outpost Callisto: Closed-Loop Bio-Astronautics</h3>
+              <div className="modal-tag">EXPEDITION TECHNICAL ARCHIVE // GEOLOGICAL SURVEY</div>
+              <h3 className="modal-title">Valhalla Basin LIDAR & Radar Altimetry</h3>
             </div>
             <div className="modal-content">
-              <h4>1. The Strategic Value of Callisto</h4>
+              <h4>1. The Multi-Ring Architecture of Valhalla</h4>
               <p>
-                Unlike Europa or Io which sit inside Jupiter’s lethal radiation belts ($&gt;50\text&#123; Sv/day&#125;$),
-                Callisto is located at 1.88 million kilometers from Jupiter. Radiation exposure on Callisto
-                is only $\approx 0.01\text&#123; mSv/day&#125;$&mdash;comparable to Earth surface levels. This makes it
-                humanity’s primary staging outpost for deep Jovian space exploration.
+                Valhalla is the largest multi-ring impact structure in the entire Solar System, spanning
+                approximately $3,800\text{ km}$ across Callisto’s crust. Its concentric fault scarps formed
+                as the shockwave of a titanic ancient impact shattered the brittle frozen crust over a warmer,
+                ductile ice-slush asthenosphere.
               </p>
-              <h4>2. ECLSS Mass Conservation</h4>
+              <h4>2. Multi-Spectral Orbital Sounding</h4>
               <p>
-                A 6-person crew requires 5.04 kg of $O_2$ and 15 liters of drinking water per day.
-                The Outpost achieves a 98.4% closure loop by combining high-temperature Sabatier catalytic
-                methanation with Spirulina photobioreactors, converting respired $CO_2$ back into breathable
-                oxygen and edible caloric biomass.
+                - <strong>LIDAR (1064 nm):</strong> Emits nanosecond laser pulses to register sub-meter surface
+                elevation and crater depth geometries.
+                <br />
+                - <strong>Sub-Surface Radar (15 MHz):</strong> Penetrates through dark cryo-regolith to bounce off
+                dielectric transitions, mapping the boundary of the hypothesized sub-surface ocean at depth.
+                <br />
+                - <strong>Thermal IR:</strong> Identifies bedrock outcrops exhibiting high thermal inertia compared
+                to loose, highly insulating impact dust.
               </p>
-              <h4>3. In-Situ Resource Utilization (ISRU)</h4>
+              <h4>3. Touchdown Site Selection</h4>
               <p>
-                By sublimating the cryo-regolith ice shell with Kilopower Stirling reactors, excess water
-                is electrolyzed into cryogenic liquid oxygen ($LOX$) and liquid hydrogen ($LH_2$), refueling
-                interplanetary transfer craft without requiring propellant launches from Earth.
+                Candidate Outpost Alpha resides on the sheltered floor between Valhalla’s third and fourth concentric
+                rings, offering flat terrain, low boulder scatter, and shielding from solar cosmic ray flux.
               </p>
             </div>
             <div className="modal-footer">
@@ -1068,7 +790,7 @@ export default function ExpeditionSimulator() {
                 className="action-btn report-btn"
                 onClick={() => setReportModalOpen(false)}
               >
-                RETURN TO COMMAND DECK
+                RETURN TO ORBITAL SURVEYOR
               </button>
             </div>
           </div>
@@ -1077,7 +799,7 @@ export default function ExpeditionSimulator() {
 
       {/* Embedded High-Contrast Stylesheet */}
       <style>{`
-        .outpost-cockpit {
+        .lidar-cockpit {
           background-color: var(--surface, #0c121e);
           border: 1px solid color-mix(in srgb, var(--border, #334155) 45%, transparent);
           border-radius: var(--radius-lg, 12px);
@@ -1111,7 +833,7 @@ export default function ExpeditionSimulator() {
           margin-bottom: 0.5rem;
         }
 
-        .station-badge {
+        .platform-badge {
           font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -1168,15 +890,20 @@ export default function ExpeditionSimulator() {
           transition: all 0.2s ease;
         }
 
-        .cycle-btn {
+        .flyover-btn {
           background: #0284c7;
           color: #ffffff;
           border: 1px solid #38bdf8;
         }
 
-        .cycle-btn:hover {
+        .flyover-btn:hover {
           background: #0369a1;
           box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+        }
+
+        .flyover-btn.active {
+          background: #0ea5e9;
+          box-shadow: 0 0 16px rgba(14, 165, 233, 0.5);
         }
 
         .report-btn {
@@ -1193,7 +920,7 @@ export default function ExpeditionSimulator() {
         /* Telemetry Cards */
         .telemetry-bar {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 0.85rem;
           padding: 1.25rem 2rem;
           background: rgba(8, 13, 22, 0.6);
@@ -1208,10 +935,6 @@ export default function ExpeditionSimulator() {
           display: flex;
           flex-direction: column;
           gap: 0.25rem;
-        }
-
-        .status-card {
-          border-width: 2px;
         }
 
         .card-label {
@@ -1232,184 +955,171 @@ export default function ExpeditionSimulator() {
           color: #64748b;
         }
 
-        /* Incident Alert */
-        .incident-alert {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          padding: 1rem 2rem;
-          background: rgba(239, 68, 68, 0.15);
-          border-bottom: 1px solid rgba(239, 68, 68, 0.4);
-        }
-
-        @media (min-width: 768px) {
-          .incident-alert {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-          }
-        }
-
-        .alert-content {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          flex-wrap: wrap;
-        }
-
-        .alert-badge {
-          background: #ef4444;
-          color: #ffffff;
-          font-size: 0.68rem;
-          font-weight: 800;
-          padding: 0.2rem 0.5rem;
-          border-radius: 4px;
-        }
-
-        .alert-text {
-          font-size: 0.85rem;
-          color: #fca5a5;
-        }
-
-        .alert-dismiss-btn {
-          background: rgba(239, 68, 68, 0.25);
-          color: #fee2e2;
-          border: 1px solid #ef4444;
-          padding: 0.45rem 0.85rem;
-          border-radius: 4px;
-          font-size: 0.75rem;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
-        .alert-dismiss-btn:hover {
-          background: #ef4444;
-          color: #ffffff;
-        }
-
-        /* Tabs */
-        .deck-tabs {
-          display: flex;
-          overflow-x: auto;
-          background: rgba(10, 16, 26, 0.8);
-          border-bottom: 1px solid color-mix(in srgb, var(--border, #334155) 30%, transparent);
-          padding: 0 1rem;
-        }
-
-        .tab-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.85rem 1.25rem;
-          background: transparent;
-          border: none;
-          border-bottom: 2px solid transparent;
-          color: #94a3b8;
-          font-size: 0.78rem;
-          font-weight: 700;
-          letter-spacing: 0.05em;
-          cursor: pointer;
-          white-space: nowrap;
-          transition: all 0.2s ease;
-        }
-
-        .tab-btn:hover {
-          color: #f1f5f9;
-        }
-
-        .tab-btn.active {
-          color: #38bdf8;
-          border-bottom-color: #38bdf8;
-          background: rgba(56, 189, 248, 0.05);
-        }
-
-        /* Deck Body */
-        .deck-body {
-          padding: 1.75rem 2rem;
-          min-height: 480px;
-        }
-
-        /* Tab 1: Schematic Layout */
-        .schematic-layout {
+        /* Workspace Grid */
+        .deck-workspace {
           display: grid;
           grid-template-columns: 1fr;
           gap: 1.5rem;
+          padding: 1.75rem 2rem;
         }
 
         @media (min-width: 1024px) {
-          .schematic-layout {
+          .deck-workspace {
             grid-template-columns: 1fr 340px;
           }
         }
 
-        .canvas-wrapper {
-          background: rgba(10, 15, 26, 0.7);
-          border: 1px solid rgba(51, 65, 85, 0.4);
+        .canvas-container {
+          position: relative;
+          background: #060a12;
+          border: 1px solid rgba(51, 65, 85, 0.5);
           border-radius: 8px;
-          padding: 1rem;
-          display: flex;
-          flex-direction: column;
+          overflow: hidden;
         }
 
-        .canvas-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.75rem;
-          font-size: 0.75rem;
-        }
-
-        .canvas-title {
-          font-weight: 700;
-          color: #94a3b8;
-          letter-spacing: 0.04em;
-        }
-
-        .canvas-hint {
-          color: #64748b;
-          font-size: 0.7rem;
-        }
-
-        .schematic-canvas {
+        .lidar-canvas {
           width: 100%;
           height: auto;
-          aspect-ratio: 860 / 440;
-          cursor: pointer;
-          border-radius: 4px;
-          background: #070b13;
+          aspect-ratio: 860 / 500;
+          display: block;
+          cursor: grab;
+          touch-action: none;
         }
 
-        .canvas-legend {
+        .lidar-canvas:active {
+          cursor: grabbing;
+        }
+
+        /* Canvas HUD Overlay */
+        .canvas-hud-overlay {
+          position: absolute;
+          top: 1rem;
+          left: 1rem;
+          right: 1rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          pointer-events: none;
+        }
+
+        .hud-band-picker {
           display: flex;
           flex-wrap: wrap;
-          gap: 1.25rem;
-          margin-top: 0.85rem;
-          padding-top: 0.75rem;
-          border-top: 1px solid rgba(51, 65, 85, 0.3);
-          font-size: 0.72rem;
-          color: #94a3b8;
+          gap: 0.4rem;
+          pointer-events: auto;
         }
 
-        .legend-item {
+        .hud-band-btn {
+          background: rgba(15, 23, 42, 0.85);
+          border: 1px solid rgba(51, 65, 85, 0.6);
+          color: #94a3b8;
+          padding: 0.4rem 0.75rem;
+          border-radius: 4px;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          cursor: pointer;
+          backdrop-filter: blur(4px);
+          transition: all 0.2s ease;
+        }
+
+        .hud-band-btn:hover {
+          color: #ffffff;
+          border-color: #38bdf8;
+        }
+
+        .hud-band-btn.active {
+          background: rgba(56, 189, 248, 0.2);
+          color: #38bdf8;
+          border-color: #38bdf8;
+        }
+
+        .hud-floating-tools {
+          display: flex;
+          gap: 0.4rem;
+          pointer-events: auto;
+        }
+
+        .hud-tool-btn {
+          background: rgba(15, 23, 42, 0.85);
+          border: 1px solid rgba(51, 65, 85, 0.6);
+          color: #94a3b8;
+          padding: 0.4rem 0.75rem;
+          border-radius: 4px;
+          font-size: 0.68rem;
+          font-weight: 700;
+          cursor: pointer;
+          backdrop-filter: blur(4px);
+          transition: all 0.2s ease;
+        }
+
+        .hud-tool-btn:hover {
+          color: #ffffff;
+        }
+
+        .hud-tool-btn.active {
+          background: rgba(56, 189, 248, 0.15);
+          color: #38bdf8;
+          border-color: #38bdf8;
+        }
+
+        /* Spectrum Legend Bar */
+        .spectrum-legend {
+          padding: 0.75rem 1rem;
+          background: rgba(8, 12, 20, 0.9);
+          border-top: 1px solid rgba(51, 65, 85, 0.4);
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+
+        .legend-title {
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: #94a3b8;
+          letter-spacing: 0.05em;
+        }
+
+        .gradient-bar-wrapper {
           display: flex;
           align-items: center;
-          gap: 0.4rem;
+          gap: 0.75rem;
+          font-size: 0.65rem;
+          color: #64748b;
         }
 
-        .legend-dot {
-          width: 8px;
+        .gradient-fill {
+          flex: 1;
           height: 8px;
-          border-radius: 50%;
+          border-radius: 4px;
         }
 
-        .legend-dot.water { background: #38bdf8; }
-        .legend-dot.oxygen { background: #06b6d4; }
-        .legend-dot.co2 { background: #a855f7; }
-        .legend-dot.fuel { background: #f59e0b; }
-        .legend-dot.biomass { background: #10b981; }
+        .gradient-fill.band-lidar {
+          background: linear-gradient(90deg, #0284c7 0%, #2dd4bf 50%, #38bdf8 75%, #f8fafc 100%);
+        }
 
-        /* Inspector Panel */
-        .inspector-panel {
+        .gradient-fill.band-subsurface {
+          background: linear-gradient(90deg, #4c1d95 0%, #c084fc 60%, #fbbf24 100%);
+        }
+
+        .gradient-fill.band-thermal {
+          background: linear-gradient(90deg, #4338ca 0%, #e11d48 50%, #f43f5e 100%);
+        }
+
+        .gradient-fill.band-sar {
+          background: linear-gradient(90deg, #15803d 0%, #4ade80 100%);
+        }
+
+        /* Sidebar Column */
+        .sidebar-col {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .sidebar-card {
           background: rgba(15, 23, 42, 0.7);
           border: 1px solid rgba(51, 65, 85, 0.5);
           border-radius: 8px;
@@ -1419,398 +1129,163 @@ export default function ExpeditionSimulator() {
           gap: 0.75rem;
         }
 
-        .inspector-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .subsys-category {
-          font-size: 0.7rem;
+        .sidebar-category {
+          font-size: 0.68rem;
           font-weight: 700;
           color: #38bdf8;
           letter-spacing: 0.08em;
         }
 
-        .status-pill {
-          font-size: 0.65rem;
-          font-weight: 800;
-          padding: 0.15rem 0.5rem;
-          border-radius: 4px;
-        }
-
-        .status-nominal { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .status-elevated { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
-        .status-strained { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .status-standby { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
-        .status-fault { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-
-        .subsys-name {
-          font-size: 1.1rem;
+        .sidebar-title {
+          font-size: 1.15rem;
           font-weight: 700;
           color: #ffffff;
           margin: 0;
         }
 
-        .subsys-code {
-          font-size: 0.7rem;
-          color: #64748b;
-        }
-
-        .metric-box {
-          background: rgba(7, 11, 19, 0.7);
-          border: 1px solid rgba(51, 65, 85, 0.3);
-          border-radius: 6px;
-          padding: 0.85rem;
+        .waypoint-list {
           display: flex;
           flex-direction: column;
-          gap: 0.2rem;
-        }
-
-        .metric-label {
-          font-size: 0.68rem;
-          color: #94a3b8;
-        }
-
-        .metric-val {
-          font-size: 1.25rem;
-          font-weight: 800;
-          color: #38bdf8;
-        }
-
-        .metric-power {
-          font-size: 0.72rem;
-          color: #e2e8f0;
-          margin-top: 0.25rem;
-        }
-
-        .subsys-desc {
-          font-size: 0.78rem;
-          line-height: 1.5;
-          color: #cbd5e1;
-          margin: 0;
-          font-family: var(--font-body, inherit);
-        }
-
-        .reaction-box {
-          background: rgba(2, 6, 23, 0.6);
-          border-left: 2px solid #a855f7;
-          padding: 0.6rem 0.8rem;
-          border-radius: 0 4px 4px 0;
-        }
-
-        .reaction-title {
-          display: block;
-          font-size: 0.62rem;
-          font-weight: 700;
-          color: #c084fc;
-          margin-bottom: 0.25rem;
-        }
-
-        .reaction-code {
-          font-size: 0.75rem;
-          color: #e2e8f0;
-        }
-
-        .subsys-action-btn {
-          width: 100%;
-          background: rgba(56, 189, 248, 0.15);
-          color: #38bdf8;
-          border: 1px solid rgba(56, 189, 248, 0.4);
-          padding: 0.65rem;
-          border-radius: 6px;
-          font-size: 0.75rem;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .subsys-action-btn:hover {
-          background: #38bdf8;
-          color: #070b13;
-        }
-
-        /* Tab 2: Controls Layout */
-        .controls-layout {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 1.5rem;
-        }
-
-        @media (min-width: 860px) {
-          .controls-layout {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-
-        .control-group {
-          display: flex;
-          flex-direction: column;
-          gap: 1.25rem;
-        }
-
-        .slider-card {
-          background: rgba(15, 23, 42, 0.6);
-          border: 1px solid rgba(51, 65, 85, 0.4);
-          border-radius: 8px;
-          padding: 1.15rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .slider-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .slider-title {
-          font-size: 0.82rem;
-          font-weight: 700;
-          color: #f1f5f9;
-        }
-
-        .slider-badge {
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: #38bdf8;
-          background: rgba(56, 189, 248, 0.12);
-          padding: 0.15rem 0.5rem;
-          border-radius: 4px;
-        }
-
-        .cockpit-slider {
-          width: 100%;
-          accent-color: #38bdf8;
-          cursor: pointer;
-        }
-
-        .slider-meta {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.72rem;
-          color: #94a3b8;
-        }
-
-        .mode-toggle-group {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
           gap: 0.5rem;
         }
 
-        .mode-btn {
-          background: rgba(30, 41, 59, 0.5);
-          border: 1px solid rgba(51, 65, 85, 0.5);
-          color: #94a3b8;
-          padding: 0.5rem;
-          border-radius: 4px;
-          font-size: 0.72rem;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .mode-btn.active {
-          background: rgba(251, 146, 60, 0.2);
-          color: #fb923c;
-          border-color: #fb923c;
-        }
-
-        .tactical-actions-card {
-          background: rgba(15, 23, 42, 0.6);
+        .waypoint-item {
+          background: rgba(7, 11, 19, 0.6);
           border: 1px solid rgba(51, 65, 85, 0.4);
-          border-radius: 8px;
-          padding: 1.15rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .card-heading {
-          font-size: 0.78rem;
-          font-weight: 700;
-          letter-spacing: 0.05em;
-          color: #94a3b8;
-        }
-
-        .tactical-btn-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0.65rem;
-        }
-
-        .contingency-btn {
-          background: rgba(30, 41, 59, 0.6);
-          border: 1px solid rgba(71, 85, 105, 0.5);
-          color: #e2e8f0;
-          padding: 0.65rem 0.5rem;
-          border-radius: 4px;
-          font-size: 0.72rem;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .contingency-btn:hover {
-          background: rgba(56, 189, 248, 0.2);
-          border-color: #38bdf8;
-          color: #ffffff;
-        }
-
-        .contingency-btn.reset-btn {
-          border-color: #10b981;
-          color: #34d399;
-        }
-
-        .contingency-btn.reset-btn:hover {
-          background: rgba(16, 185, 129, 0.2);
-        }
-
-        /* Tab 3: Scenarios Layout */
-        .scenarios-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
-        }
-
-        .scenario-card {
-          background: rgba(15, 23, 42, 0.6);
-          border: 1px solid rgba(51, 65, 85, 0.5);
-          border-radius: 8px;
-          padding: 1.5rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.85rem;
-        }
-
-        .scenario-tag {
-          font-size: 0.68rem;
-          font-weight: 800;
-          color: #f59e0b;
-          letter-spacing: 0.08em;
-        }
-
-        .scenario-title {
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: #ffffff;
-          margin: 0;
-        }
-
-        .scenario-desc {
-          font-size: 0.8rem;
-          line-height: 1.5;
-          color: #cbd5e1;
-          margin: 0;
-          font-family: var(--font-body, inherit);
-        }
-
-        .scenario-objectives {
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-          font-size: 0.74rem;
-          color: #94a3b8;
-          background: rgba(2, 6, 23, 0.5);
-          padding: 0.75rem;
-          border-radius: 4px;
-        }
-
-        .scenario-start-btn {
-          margin-top: auto;
-          background: rgba(245, 158, 11, 0.15);
-          color: #fbbf24;
-          border: 1px solid rgba(245, 158, 11, 0.4);
-          padding: 0.75rem;
           border-radius: 6px;
-          font-size: 0.75rem;
-          font-weight: 700;
+          padding: 0.75rem;
           cursor: pointer;
           transition: all 0.2s ease;
-        }
-
-        .scenario-start-btn:hover {
-          background: #f59e0b;
-          color: #070b13;
-        }
-
-        /* Tab 4: Logs Layout */
-        .log-layout {
-          background: rgba(8, 12, 20, 0.8);
-          border: 1px solid rgba(51, 65, 85, 0.4);
-          border-radius: 8px;
-          padding: 1.25rem;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.25rem;
         }
 
-        .log-header {
+        .waypoint-item:hover {
+          border-color: #38bdf8;
+          background: rgba(15, 23, 42, 0.8);
+        }
+
+        .waypoint-item.selected {
+          border-color: #38bdf8;
+          background: rgba(56, 189, 248, 0.12);
+        }
+
+        .wp-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
 
-        .log-title {
-          font-size: 0.75rem;
+        .wp-name {
+          font-size: 0.78rem;
           font-weight: 700;
-          color: #94a3b8;
-          letter-spacing: 0.05em;
-        }
-
-        .log-clear-btn {
-          background: transparent;
-          border: 1px solid rgba(71, 85, 105, 0.5);
-          color: #94a3b8;
-          font-size: 0.68rem;
-          padding: 0.25rem 0.6rem;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .log-clear-btn:hover {
           color: #f1f5f9;
-          border-color: #94a3b8;
         }
 
-        .log-terminal {
-          max-height: 380px;
-          overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          gap: 0.4rem;
-        }
-
-        .log-row {
-          display: flex;
-          align-items: baseline;
-          gap: 0.6rem;
-          font-size: 0.75rem;
-          line-height: 1.4;
-          padding: 0.2rem 0;
-          border-bottom: 1px solid rgba(30, 41, 59, 0.4);
-        }
-
-        .log-time {
-          color: #64748b;
-          font-size: 0.7rem;
-        }
-
-        .log-badge {
+        .wp-hazard {
           font-size: 0.62rem;
           font-weight: 800;
           padding: 0.1rem 0.35rem;
           border-radius: 3px;
         }
 
-        .log-info .log-badge { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
-        .log-warn .log-badge { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .log-success .log-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .log-action .log-badge { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .hazard-low { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .hazard-moderate { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .hazard-severe { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
-        .log-message {
-          color: #e2e8f0;
+        .wp-meta {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.68rem;
+          color: #94a3b8;
+        }
+
+        /* Target Detail Card */
+        .detail-name {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #ffffff;
+          margin: 0;
+        }
+
+        .detail-desc {
+          font-size: 0.76rem;
+          line-height: 1.5;
+          color: #cbd5e1;
+          margin: 0;
+          font-family: var(--font-body, inherit);
+        }
+
+        .detail-stat-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.5rem;
+          background: rgba(7, 11, 19, 0.6);
+          padding: 0.75rem;
+          border-radius: 6px;
+        }
+
+        .stat-cell {
+          display: flex;
+          flex-direction: column;
+          gap: 0.15rem;
+        }
+
+        .stat-label {
+          font-size: 0.62rem;
+          color: #64748b;
+          font-weight: 700;
+        }
+
+        .stat-val {
+          font-size: 0.74rem;
+          color: #38bdf8;
+          font-weight: 700;
+        }
+
+        .control-slider-box {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+
+        .slider-label-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.72rem;
+          color: #94a3b8;
+          font-weight: 600;
+        }
+
+        .terrain-slider {
+          width: 100%;
+          accent-color: #38bdf8;
+          cursor: pointer;
+        }
+
+        .density-toggle-group {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.4rem;
+        }
+
+        .density-btn {
+          background: rgba(7, 11, 19, 0.6);
+          border: 1px solid rgba(51, 65, 85, 0.4);
+          color: #94a3b8;
+          padding: 0.35rem;
+          border-radius: 4px;
+          font-size: 0.68rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .density-btn.active {
+          background: rgba(56, 189, 248, 0.2);
+          color: #38bdf8;
+          border-color: #38bdf8;
         }
 
         /* Modal */
