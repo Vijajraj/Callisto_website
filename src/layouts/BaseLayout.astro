@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 import SoundHud from '../components/react/SoundHud';
@@ -53,6 +54,9 @@ const ogImageUrl = ogImage
     <meta name="theme-color" content="#0B0507" />
     <meta name="generator" content={Astro.generator} />
 
+    <!-- Astro 5 Client Router for seamless persistent page transitions -->
+    <ClientRouter />
+
     <!-- Prevent flash of unstyled theme / Space Theme preference script -->
     <script is:inline>
       (function () {
@@ -88,7 +92,7 @@ const ogImageUrl = ogImage
 
     <Footer />
 
-    <SoundHud client:load />
+    <SoundHud client:load transition:persist />
   </body>
 </html>
 

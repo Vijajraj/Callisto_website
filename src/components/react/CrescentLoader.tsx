@@ -23,12 +23,6 @@ export default function CrescentLoader(): React.ReactElement | null {
 
   const finishSequence = () => {
     clearAllTimers();
-    // Engage deep-space cathedral score on user arrival
-    try {
-      toggleAmbientSound(true);
-    } catch (e) {
-      /* Safe fallback */
-    }
     setIsFadingOut(true);
     const endTimer = window.setTimeout(() => {
       setIsDismissed(true);
@@ -409,7 +403,7 @@ export default function CrescentLoader(): React.ReactElement | null {
           }}
           aria-label="Enter Expedition with Audio"
         >
-          ✦ ENTER EXPEDITION // ENGAGE AUDIO
+          ✦ ENTER EXPEDITION
         </button>
 
         <span

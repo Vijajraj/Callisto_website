@@ -1,70 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import {
-  toggleAmbientSound,
-  playTelemetryBeep,
-  playThrusterBurst,
-  playBeaconPing,
-  playWarpSurge,
-  isAudioEnabled,
-  getCurrentChordName,
-} from '../../lib/audio';
+  isMusicEnabled,
+  setMusicEnabled,
+  toggleMusic,
+  getMusicVolume,
+  setMusicVolume,
+  isSfxEnabled,
+  setSfxEnabled,
+  toggleSfx,
+  getCurrentMovementInfo,
+  playCelestialChime,
+  playConsoleChirp,
+  playGlassPing,
+  playConfirmationTone,
+  playRadioSignal,
+  playSyntheticClick,
+} from '../../lib/audioManager';
 
 export default function SoundHud(): React.ReactElement {
-  const [enabled, setEnabled] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [currentChord, setCurrentChord] = useState<string>('A MINOR');
-  const [lastAction, setLastAction] = useState<string>('STANDBY');
+  const [musicOn, setMusicOn] = useState<boolean>(false);
+  const [volume, setVolume] = useState<number>(0.8);
+  const [sfxOn, setSfxOn] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<boolean>(false);
+  const [movement, setMovement] = useState<{ name: string; theme: string }>({
+    name: 'SILENT',
+    theme: 'STANDBY',
+  });
+  const [previewFeedback, setPreviewFeedback] = useState<string | null>(null);
 
+  // Sync state from audioManager and listen to custom state changes
   useEffect(() => {
-    setEnabled(isAudioEnabled());
-    const handleAudioEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<{ enabled: boolean; chord?: string }>;
+    setMusicOn(isMusicEnabled());
+    setVolume(getMusicVolume());
+    setSfxOn(isSfxEnabled());
+    setMovement(getCurrentMovementInfo());
+
+    const handleStateUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        musicEnabled: boolean;
+        musicVolume: number;
+        sfxEnabled: boolean;
+        movementName: string;
+        movementTheme: string;
+      }>;
       if (customEvent.detail) {
-        setEnabled(customEvent.detail.enabled);
-        if (customEvent.detail.chord) {
-          setCurrentChord(customEvent.detail.chord);
-        }
+        setMusicOn(customEvent.detail.musicEnabled);
+        setVolume(customEvent.detail.musicVolume);
+        setSfxOn(customEvent.detail.sfxEnabled);
+        setMovement({
+          name: customEvent.detail.movementName,
+          theme: customEvent.detail.movementTheme,
+        });
       }
     };
 
-    window.addEventListener('callisto-audio-state', handleAudioEvent);
+    window.addEventListener('callisto-audio-manager-state', handleStateUpdate);
 
-    const interval = setInterval(() => {
-      const active = isAudioEnabled();
-      setEnabled(active);
-      if (active) {
-        setCurrentChord(getCurrentChordName());
+    // Periodically poll movement info if music is active
+    const pollInterval = window.setInterval(() => {
+      if (isMusicEnabled()) {
+        setMovement(getCurrentMovementInfo());
       }
-    }, 400);
+    }, 1000);
 
     return () => {
-      window.removeEventListener('callisto-audio-state', handleAudioEvent);
-      clearInterval(interval);
+      window.removeEventListener('callisto-audio-manager-state', handleStateUpdate);
+      clearInterval(pollInterval);
     };
   }, []);
 
-  const handleToggleSound = () => {
-    const newState = toggleAmbientSound();
-    setEnabled(newState);
-    setLastAction(newState ? 'EXPEDITION CATHEDRAL SCORE ENGAGED' : 'SCORE MUTED');
-    if (newState) {
-      setCurrentChord(getCurrentChordName());
+  const handleToggleMusic = () => {
+    const next = toggleMusic();
+    setMusicOn(next);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVol = parseFloat(e.target.value);
+    setVolume(newVol);
+    setMusicVolume(newVol);
+  };
+
+  const handleToggleSfx = () => {
+    const next = toggleSfx();
+    setSfxOn(next);
+  };
+
+  const triggerPreview = (name: string, fn: () => void) => {
+    if (!sfxOn) {
+      setPreviewFeedback('Enable Sound Effects to preview sounds');
+      setTimeout(() => setPreviewFeedback(null), 2500);
+      return;
     }
-  };
-
-  const handlePing = () => {
-    playBeaconPing();
-    setLastAction('BEACON PING TRANSMITTED');
-  };
-
-  const handleThruster = () => {
-    playThrusterBurst();
-    setLastAction('RCS BURST PULSED');
-  };
-
-  const handleWarp = () => {
-    playWarpSurge();
-    setLastAction('WARP ACCELERATION SURGE');
+    fn();
+    setPreviewFeedback(`Previewed: ${name}`);
+    setTimeout(() => setPreviewFeedback(null), 2000);
   };
 
   return (
@@ -76,31 +105,36 @@ export default function SoundHud(): React.ReactElement {
         zIndex: 'var(--z-fixed, 800)',
         fontFamily: 'var(--font-mono)',
       }}
-      aria-label="Expedition Orchestral Synthesizer Controls"
+      role="region"
+      aria-label="Cinematic Audio & Sound Controls"
     >
-      {/* Expanded Controls Drawer */}
+      {/* Expanded Master Drawer */}
       {expanded && (
         <div
           style={{
-            marginBottom: '0.5rem',
-            backgroundColor: 'var(--deep)',
-            border: '1px solid color-mix(in srgb, var(--orbit) 50%, transparent)',
+            marginBottom: '0.65rem',
+            backgroundColor: 'color-mix(in srgb, var(--deep) 96%, black)',
+            border: '1px solid color-mix(in srgb, var(--orbit) 55%, transparent)',
             borderRadius: 'var(--radius-md)',
-            padding: '1rem',
-            boxShadow: '0 12px 36px rgba(0, 0, 0, 0.45), 0 0 20px color-mix(in srgb, var(--orbit) 25%, transparent)',
-            backdropFilter: 'blur(16px)',
-            width: '270px',
+            padding: '1.1rem',
+            boxShadow:
+              '0 16px 40px rgba(0, 0, 0, 0.5), 0 0 24px color-mix(in srgb, var(--orbit) 25%, transparent)',
+            backdropFilter: 'blur(20px)',
+            width: '320px',
+            maxWidth: 'calc(100vw - 2.5rem)',
+            boxSizing: 'border-box',
             animation: 'fadeIn 0.2s ease',
           }}
         >
+          {/* Header */}
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               borderBottom: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-              paddingBottom: '0.5rem',
-              marginBottom: '0.75rem',
+              paddingBottom: '0.6rem',
+              marginBottom: '1rem',
             }}
           >
             <div>
@@ -109,261 +143,523 @@ export default function SoundHud(): React.ReactElement {
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   color: 'var(--moon)',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.1em',
                 }}
               >
-                EXPEDITION CATHEDRAL SCORE
+                EXPEDITION AUDIO CONSOLE
               </div>
               <div
                 style={{
                   fontSize: '0.625rem',
-                  color: 'var(--orbit)',
-                  letterSpacing: '0.05em',
+                  color: 'var(--astrophage)',
+                  letterSpacing: '0.06em',
                 }}
               >
-                CATHEDRAL PIPE ORGAN
+                TWO INDEPENDENT CHANNELS
               </div>
             </div>
             <button
+              type="button"
               onClick={() => setExpanded(false)}
               style={{
                 background: 'transparent',
                 border: 'none',
                 color: 'var(--steel)',
                 cursor: 'pointer',
-                fontSize: '1.1rem',
+                fontSize: '1.2rem',
+                lineHeight: 1,
                 padding: '0 0.25rem',
               }}
-              aria-label="Close Sound Controls"
+              aria-label="Close Audio Console"
             >
               &times;
             </button>
           </div>
 
-          {/* Current Live Chord Monitor */}
+          {/* CHANNEL A: CINEMATIC BACKGROUND MUSIC */}
           <div
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--void) 80%, black)',
-              border: '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
+              backgroundColor: 'color-mix(in srgb, var(--void) 75%, transparent)',
+              border: `1px solid ${
+                musicOn
+                  ? 'color-mix(in srgb, var(--orbit) 60%, transparent)'
+                  : 'color-mix(in srgb, var(--steel) 25%, transparent)'
+              }`,
               borderRadius: 'var(--radius-sm)',
-              padding: '0.5rem 0.65rem',
-              marginBottom: '0.75rem',
+              padding: '0.75rem',
+              marginBottom: '0.85rem',
             }}
           >
-            <div style={{ fontSize: '0.5625rem', color: 'var(--steel)', letterSpacing: '0.1em' }}>
-              ACTIVE TEMPLE HARMONIC
-            </div>
             <div
               style={{
-                fontSize: '0.8125rem',
-                color: enabled ? 'var(--astrophage)' : 'var(--steel)',
-                fontWeight: 700,
-                marginTop: '0.15rem',
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '0.4rem',
+                marginBottom: '0.45rem',
               }}
             >
               <span
                 style={{
-                  display: 'inline-block',
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  backgroundColor: enabled ? '#4ade80' : 'var(--steel)',
-                  boxShadow: enabled ? '0 0 8px #4ade80' : 'none',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  color: 'var(--moon)',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                CHANNEL A: BACKGROUND MUSIC
+              </span>
+              <span
+                style={{
+                  fontSize: '0.625rem',
+                  fontWeight: 700,
+                  color: musicOn ? '#4ade80' : 'var(--steel)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: musicOn ? '#4ade80' : 'var(--steel)',
+                    boxShadow: musicOn ? '0 0 6px #4ade80' : 'none',
+                  }}
+                />
+                {musicOn ? 'ENGAGED' : 'OFF'}
+              </span>
+            </div>
+
+            {/* Live Movement / Motif Status */}
+            <div
+              style={{
+                fontSize: '0.625rem',
+                color: musicOn ? 'var(--orbit)' : 'var(--steel)',
+                marginBottom: '0.65rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {musicOn
+                ? `Active: ${movement.name} // ${movement.theme}`
+                : 'Score in standby (click button to engage)'}
+            </div>
+
+            {/* Toggle Button */}
+            <button
+              type="button"
+              onClick={handleToggleMusic}
+              style={{
+                width: '100%',
+                padding: '0.55rem',
+                backgroundColor: musicOn
+                  ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
+                  : 'color-mix(in srgb, var(--navy) 60%, transparent)',
+                border: `1px solid ${
+                  musicOn ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 40%, transparent)'
+                }`,
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--moon)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                marginBottom: '0.65rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                transition: 'all 0.2s',
+              }}
+              aria-pressed={musicOn}
+            >
+              <span>{musicOn ? 'Pause Background Music' : 'Start Background Music'}</span>
+            </button>
+
+            {/* Volume Slider */}
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '0.625rem',
+                  color: 'var(--steel)',
+                  marginBottom: '0.25rem',
+                }}
+              >
+                <span>Music Volume</span>
+                <span>{Math.round(volume * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.02"
+                value={volume}
+                onChange={handleVolumeChange}
+                disabled={!musicOn}
+                aria-label="Background Music Volume"
+                style={{
+                  width: '100%',
+                  accentColor: 'var(--orbit)',
+                  cursor: musicOn ? 'pointer' : 'not-allowed',
+                  opacity: musicOn ? 1 : 0.45,
                 }}
               />
-              {enabled ? `${currentChord} • CATHEDRAL ORGAN` : 'SYNTHESIZER STANDBY'}
             </div>
           </div>
 
-          {/* Master Score Toggle */}
-          <button
-            onClick={handleToggleSound}
+          {/* CHANNEL B: INTERACTION SOUND EFFECTS */}
+          <div
             style={{
-              width: '100%',
-              padding: '0.55rem 0.75rem',
-              backgroundColor: enabled
-                ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
-                : 'color-mix(in srgb, var(--navy) 60%, transparent)',
+              backgroundColor: 'color-mix(in srgb, var(--void) 75%, transparent)',
               border: `1px solid ${
-                enabled ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 40%, transparent)'
+                sfxOn
+                  ? 'color-mix(in srgb, var(--astrophage) 60%, transparent)'
+                  : 'color-mix(in srgb, var(--steel) 25%, transparent)'
               }`,
               borderRadius: 'var(--radius-sm)',
-              color: 'var(--moon)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              marginBottom: '0.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s ease',
-              boxShadow: enabled ? '0 0 12px color-mix(in srgb, var(--orbit) 40%, transparent)' : 'none',
+              padding: '0.75rem',
             }}
           >
-            <span>{enabled ? 'PAUSE EXPEDITION SCORE' : 'ENGAGE EXPEDITION SCORE'}</span>
-          </button>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '0.45rem',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  color: 'var(--moon)',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                CHANNEL B: SOUND EFFECTS
+              </span>
+              <span
+                style={{
+                  fontSize: '0.625rem',
+                  fontWeight: 700,
+                  color: sfxOn ? '#4ade80' : 'var(--steel)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: sfxOn ? '#4ade80' : 'var(--steel)',
+                    boxShadow: sfxOn ? '0 0 6px #4ade80' : 'none',
+                  }}
+                />
+                {sfxOn ? 'ENABLED' : 'MUTED'}
+              </span>
+            </div>
 
-          {/* Telemetry SFX Action Buttons */}
+            <p
+              style={{
+                fontSize: '0.625rem',
+                color: 'var(--steel)',
+                margin: '0 0 0.55rem 0',
+                lineHeight: 1.35,
+              }}
+            >
+              Controls navigation chimes, telemetry clicks, and interface audio.
+            </p>
+
+            {/* Toggle Button */}
+            <button
+              type="button"
+              onClick={handleToggleSfx}
+              style={{
+                width: '100%',
+                padding: '0.55rem',
+                backgroundColor: sfxOn
+                  ? 'color-mix(in srgb, var(--astrophage) 25%, var(--void))'
+                  : 'color-mix(in srgb, var(--navy) 60%, transparent)',
+                border: `1px solid ${
+                  sfxOn ? 'var(--astrophage)' : 'color-mix(in srgb, var(--steel) 40%, transparent)'
+                }`,
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--moon)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                transition: 'all 0.2s',
+              }}
+              aria-pressed={sfxOn}
+            >
+              <span>{sfxOn ? 'Mute Sound Effects' : 'Enable Sound Effects'}</span>
+            </button>
+
+            {/* Page Sound Profile Audition Grid */}
+            <div
+              style={{
+                fontSize: '0.5625rem',
+                color: 'var(--steel)',
+                letterSpacing: '0.06em',
+                marginBottom: '0.35rem',
+              }}
+            >
+              AUDITION PAGE AUDIO PROFILES:
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '0.3rem',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => triggerPreview('Home Chime', playCelestialChime)}
+                style={previewBtnStyle}
+                title="Home: Soft celestial chime"
+              >
+                Home
+              </button>
+              <button
+                type="button"
+                onClick={() => triggerPreview('Missions Console', playConsoleChirp)}
+                style={previewBtnStyle}
+                title="Missions: Spacecraft console telemetry"
+              >
+                Missions
+              </button>
+              <button
+                type="button"
+                onClick={() => triggerPreview('Observatory Glass', playGlassPing)}
+                style={previewBtnStyle}
+                title="Observatory: Delicate glass ping"
+              >
+                Observatory
+              </button>
+              <button
+                type="button"
+                onClick={() => triggerPreview('Expedition Confirm', playConfirmationTone)}
+                style={previewBtnStyle}
+                title="Expedition: Electronic confirmation tone"
+              >
+                Expedition
+              </button>
+              <button
+                type="button"
+                onClick={() => triggerPreview('Events Radio', playRadioSignal)}
+                style={previewBtnStyle}
+                title="Events: Radio signal chirp"
+              >
+                Events
+              </button>
+              <button
+                type="button"
+                onClick={() => triggerPreview('About Click', playSyntheticClick)}
+                style={previewBtnStyle}
+                title="About/Crew/Join: Warm synthetic click"
+              >
+                About
+              </button>
+            </div>
+          </div>
+
+          {/* Feedback notice */}
+          {previewFeedback && (
+            <div
+              style={{
+                marginTop: '0.55rem',
+                fontSize: '0.625rem',
+                color: 'var(--astrophage)',
+                textAlign: 'center',
+              }}
+            >
+              {previewFeedback}
+            </div>
+          )}
+
           <div
             style={{
-              fontSize: '0.5625rem',
-              color: 'var(--steel)',
-              letterSpacing: '0.08em',
-              marginBottom: '0.35rem',
-            }}
-          >
-            SPATIAL EXPEDITION FX
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.35rem' }}>
-            <button
-              onClick={handlePing}
-              style={{
-                padding: '0.35rem 0.2rem',
-                backgroundColor: 'color-mix(in srgb, var(--navy) 80%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--moon)',
-                fontSize: '0.625rem',
-                cursor: 'pointer',
-              }}
-              title="Transmit navigational acoustic beacon"
-            >
-              BEACON
-            </button>
-            <button
-              onClick={handleThruster}
-              style={{
-                padding: '0.35rem 0.2rem',
-                backgroundColor: 'color-mix(in srgb, var(--navy) 80%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--moon)',
-                fontSize: '0.625rem',
-                cursor: 'pointer',
-              }}
-              title="Test maneuvering thruster impulse"
-            >
-              RCS
-            </button>
-            <button
-              onClick={handleWarp}
-              style={{
-                padding: '0.35rem 0.2rem',
-                backgroundColor: 'color-mix(in srgb, var(--navy) 80%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--moon)',
-                fontSize: '0.625rem',
-                cursor: 'pointer',
-              }}
-              title="Trigger warp engine burst"
-            >
-              WARP
-            </button>
-          </div>
-
-          <div
-            style={{
-              marginTop: '0.65rem',
+              marginTop: '0.75rem',
               fontSize: '0.5625rem',
               color: 'var(--steel)',
               textAlign: 'center',
               letterSpacing: '0.04em',
             }}
           >
-            STATUS: {lastAction}
+            PREFERENCES PERSISTED ACROSS NAVIGATION
           </div>
         </div>
       )}
 
-      {/* Floating Pill HUD Button */}
-      <button
-        onClick={handleToggleSound}
+      {/* Floating HUD Bar with Two Independent Controls */}
+      <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.55rem',
-          padding: '0.5rem 0.95rem',
-          backgroundColor: enabled ? 'var(--orbit)' : 'var(--deep)',
-          border: `1px solid ${
-            enabled ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 45%, transparent)'
-          }`,
+          backgroundColor: 'color-mix(in srgb, var(--deep) 90%, black)',
+          border: '1px solid color-mix(in srgb, var(--orbit) 40%, transparent)',
           borderRadius: 'var(--radius-full)',
-          boxShadow: enabled
-            ? '0 0 20px color-mix(in srgb, var(--orbit) 50%, transparent), 0 4px 16px rgba(0,0,0,0.3)'
-            : '0 4px 14px rgba(0,0,0,0.2)',
-          cursor: 'pointer',
-          color: enabled ? '#FFFFFF' : 'var(--moon)',
-          fontSize: '0.75rem',
-          fontWeight: 600,
-          letterSpacing: '0.06em',
-          transition: 'all 0.25s ease',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(12px)',
+          padding: '0.25rem',
+          gap: '0.2rem',
         }}
-        title={enabled ? 'Pause expedition orchestral score (or click arrow for options)' : 'Play expedition orchestral score'}
       >
-        {/* Animated Pipe Organ Waveform Indicator */}
-        <span
+        {/* Control A: Music Pill */}
+        <button
+          type="button"
+          onClick={handleToggleMusic}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '2.5px',
-            height: '14px',
+            gap: '0.45rem',
+            padding: '0.45rem 0.75rem',
+            backgroundColor: musicOn
+              ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
+              : 'transparent',
+            border: `1px solid ${
+              musicOn ? 'var(--orbit)' : 'transparent'
+            }`,
+            borderRadius: 'var(--radius-full)',
+            color: musicOn ? 'var(--moon)' : 'var(--steel)',
+            cursor: 'pointer',
+            fontSize: '0.6875rem',
+            fontWeight: 600,
+            transition: 'all 0.2s',
           }}
-          aria-hidden="true"
+          title={musicOn ? 'Background Music: ON (Click to turn off)' : 'Background Music: OFF (Click to turn on)'}
+          aria-pressed={musicOn}
+          aria-label="Background Music Toggle"
+        >
+          {/* Animated audio bar visualizer */}
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '2px',
+              height: '12px',
+            }}
+            aria-hidden="true"
+          >
+            <span
+              style={{
+                width: '2px',
+                height: musicOn ? '10px' : '3px',
+                backgroundColor: musicOn ? '#4ade80' : 'var(--steel)',
+                borderRadius: '1px',
+                transition: 'height 0.2s ease',
+              }}
+            />
+            <span
+              style={{
+                width: '2px',
+                height: musicOn ? '14px' : '5px',
+                backgroundColor: musicOn ? 'var(--orbit)' : 'var(--steel)',
+                borderRadius: '1px',
+                transition: 'height 0.2s ease',
+              }}
+            />
+            <span
+              style={{
+                width: '2px',
+                height: musicOn ? '8px' : '3px',
+                backgroundColor: musicOn ? 'var(--astrophage)' : 'var(--steel)',
+                borderRadius: '1px',
+                transition: 'height 0.2s ease',
+              }}
+            />
+          </span>
+          <span>{musicOn ? 'MUSIC ON' : 'MUSIC OFF'}</span>
+        </button>
+
+        {/* Control B: Sound Effects Pill */}
+        <button
+          type="button"
+          onClick={handleToggleSfx}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            padding: '0.45rem 0.75rem',
+            backgroundColor: sfxOn
+              ? 'color-mix(in srgb, var(--astrophage) 25%, var(--void))'
+              : 'transparent',
+            border: `1px solid ${
+              sfxOn ? 'var(--astrophage)' : 'transparent'
+            }`,
+            borderRadius: 'var(--radius-full)',
+            color: sfxOn ? 'var(--moon)' : 'var(--steel)',
+            cursor: 'pointer',
+            fontSize: '0.6875rem',
+            fontWeight: 600,
+            transition: 'all 0.2s',
+          }}
+          title={sfxOn ? 'Sound Effects: ON (Click to mute)' : 'Sound Effects: OFF (Click to enable)'}
+          aria-pressed={sfxOn}
+          aria-label="Interface Sound Effects Toggle"
         >
           <span
             style={{
-              width: '2px',
-              height: enabled ? '12px' : '4px',
-              backgroundColor: enabled ? 'var(--astrophage)' : 'var(--steel)',
-              borderRadius: '1px',
-              transition: 'height 0.2s ease',
+              display: 'inline-block',
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: sfxOn ? '#4ade80' : 'var(--steel)',
+              boxShadow: sfxOn ? '0 0 6px #4ade80' : 'none',
             }}
+            aria-hidden="true"
           />
-          <span
-            style={{
-              width: '2.5px',
-              height: enabled ? '16px' : '6px',
-              backgroundColor: enabled ? 'var(--orbit)' : 'var(--steel)',
-              borderRadius: '1px',
-              transition: 'height 0.2s ease',
-            }}
-          />
-          <span
-            style={{
-              width: '2px',
-              height: enabled ? '10px' : '3px',
-              backgroundColor: enabled ? 'var(--star)' : 'var(--steel)',
-              borderRadius: '1px',
-              transition: 'height 0.2s ease',
-            }}
-          />
-        </span>
+          <span>{sfxOn ? 'SFX ON' : 'SFX OFF'}</span>
+        </button>
 
-        <span>{enabled ? 'EXPEDITION SCORE' : 'SCORE OFF'}</span>
-
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            setExpanded(!expanded);
-          }}
+        {/* Options / Drawer Toggle */}
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
           style={{
-            marginLeft: '0.35rem',
+            background: 'transparent',
+            border: 'none',
             color: 'var(--orbit)',
-            fontWeight: 700,
+            padding: '0.45rem 0.55rem',
             cursor: 'pointer',
-            padding: '0 4px',
-            fontSize: '0.85rem',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
           }}
-          title="Open Audio Controls"
+          title={expanded ? 'Collapse audio panel' : 'Open audio console & volume controls'}
+          aria-expanded={expanded}
+          aria-label="Open detailed audio settings"
         >
           {expanded ? '▾' : '▴'}
-        </span>
-      </button>
+        </button>
+      </div>
     </div>
   );
 }
+
+const previewBtnStyle: React.CSSProperties = {
+  padding: '0.35rem 0.2rem',
+  backgroundColor: 'color-mix(in srgb, var(--navy) 75%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
+  borderRadius: 'var(--radius-sm)',
+  color: 'var(--moon)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.625rem',
+  cursor: 'pointer',
+  textAlign: 'center',
+  transition: 'all 0.15s ease',
+};
