@@ -1,126 +1,581 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 /* =========================================================================
-   3D LIDAR POINT-CLOUD & TERRAIN RADAR FLYOVER
-   Callisto Orbital Survey Platform // Valhalla Multi-Ring Basin
-   Real-time 3D perspective terrain rendering, multi-spectral band visualization,
-   radar sweep pulses, and geological waypoint tracking.
+   COSMIC SYSTEMS & EXOPLANET EXPLORER // INTERACTIVE ORRERY
+   Expedition Command Deck • Callisto Space Club
+   Visualizes multi-star systems, planets, moons, and exoplanets with
+   habitable zone overlays, transit light curves, and comparative scale physics.
    ========================================================================= */
 
-type SensorBand = 'LIDAR' | 'SUBSURFACE' | 'THERMAL' | 'SAR';
-
-interface Waypoint {
+export interface CelestialBody {
   id: string;
   name: string;
-  gridX: number; // -1 to 1
-  gridY: number; // -1 to 1
-  elevationM: number;
+  type: 'STAR' | 'TERRESTRIAL' | 'GAS_GIANT' | 'ICE_GIANT' | 'MOON' | 'EXOPLANET';
+  orbitalRadiusAuOrKm: number; // AU for planets, km for moons
+  actualDiameterKm: number;
+  orbitalPeriodDays: number;
+  color: string;
+  glowColor: string;
+  orbitColor: string;
+  surfaceTempC: string;
+  atmosphere: string;
+  surfaceGravityG: number;
+  habitableStatus: 'IN_HABITABLE_ZONE' | 'POTENTIALLY_HABITABLE' | 'NON_HABITABLE' | 'HOST_STAR';
+  habitabilityIndexPct: number;
+  funAnalogy: string;
   description: string;
-  classification: string;
-  hazardRating: 'LOW' | 'MODERATE' | 'SEVERE';
+  discoveryMethod?: string;
+  discoveryYear?: number;
+  hasRings?: boolean;
 }
 
-const CALLISTO_WAYPOINTS: Waypoint[] = [
+export interface CosmicSystem {
+  id: string;
+  name: string;
+  subtitle: string;
+  systemType: string;
+  distanceLightYears: number;
+  centralStar: {
+    name: string;
+    spectralClass: string;
+    tempK: number;
+    color: string;
+    diameterSunRatio: number;
+  };
+  habitableZoneAu: { min: number; max: number };
+  bodies: CelestialBody[];
+  overviewLore: string;
+}
+
+export const COSMIC_SYSTEMS: CosmicSystem[] = [
   {
-    id: 'valhalla_center',
-    name: 'Valhalla Basin Ground Zero',
-    gridX: 0.0,
-    gridY: 0.0,
-    elevationM: -1820,
-    description: 'Central bright impact palimpsest (~360 km diameter) formed by ancient hypervelocity asteroidal impact into ice shell.',
-    classification: 'Class I Impact Palimpsest',
-    hazardRating: 'LOW',
+    id: 'trappist1',
+    name: 'TRAPPIST-1 System',
+    subtitle: '7 Earth-Sized Terrestrial Worlds • Aquarius Constellation',
+    systemType: 'Ultra-Cool Red Dwarf Planetary System',
+    distanceLightYears: 39.5,
+    centralStar: {
+      name: 'TRAPPIST-1',
+      spectralClass: 'M8V Ultra-Cool Dwarf',
+      tempK: 2566,
+      color: '#ff6b4a',
+      diameterSunRatio: 0.12,
+    },
+    habitableZoneAu: { min: 0.024, max: 0.052 },
+    overviewLore:
+      'Discovered in 2017, TRAPPIST-1 hosts the largest known cluster of Earth-sized planets around a single star. Three of its worlds (e, f, g) orbit directly inside the temperate habitable zone where surface liquid water can exist.',
+    bodies: [
+      {
+        id: 'trappist1_b',
+        name: 'TRAPPIST-1b',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0115,
+        actualDiameterKm: 14220,
+        orbitalPeriodDays: 1.51,
+        color: '#f97316',
+        glowColor: 'rgba(249, 115, 22, 0.4)',
+        orbitColor: 'rgba(249, 115, 22, 0.25)',
+        surfaceTempC: '+127°C (400 K)',
+        atmosphere: 'Dense CO2 / Volatile envelope',
+        surfaceGravityG: 0.81,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 18,
+        funAnalogy: 'Orbits so close to its dwarf star that a full year passes in just 36 hours!',
+        description: 'Innermost rocky world subjected to intense tidal baking and stellar flares.',
+        discoveryMethod: 'Transit Photometry (Spitzer / TRAPPIST)',
+        discoveryYear: 2016,
+      },
+      {
+        id: 'trappist1_c',
+        name: 'TRAPPIST-1c',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0158,
+        actualDiameterKm: 13950,
+        orbitalPeriodDays: 2.42,
+        color: '#fbbf24',
+        glowColor: 'rgba(251, 191, 36, 0.4)',
+        orbitColor: 'rgba(251, 191, 36, 0.25)',
+        surfaceTempC: '+68°C (341 K)',
+        atmosphere: 'Thin CO2 / Nitrogen (JWST MIRI observation)',
+        surfaceGravityG: 1.15,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 29,
+        funAnalogy: 'Similar in size and mass to Venus, but bathed in infrared red-dwarf light.',
+        description: 'Hot terrestrial planet. JWST infrared spectroscopy revealed little to no thick atmosphere.',
+        discoveryMethod: 'Transit Photometry',
+        discoveryYear: 2016,
+      },
+      {
+        id: 'trappist1_d',
+        name: 'TRAPPIST-1d',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0223,
+        actualDiameterKm: 9990,
+        orbitalPeriodDays: 4.05,
+        color: '#38bdf8',
+        glowColor: 'rgba(56, 189, 248, 0.4)',
+        orbitColor: 'rgba(56, 189, 248, 0.3)',
+        surfaceTempC: '+15°C (288 K)',
+        atmosphere: 'Water vapor / Volatile rich',
+        surfaceGravityG: 0.48,
+        habitableStatus: 'POTENTIALLY_HABITABLE',
+        habitabilityIndexPct: 68,
+        funAnalogy: 'A lightweight cousin of Earth sitting right at the inner edge of the habitable zone.',
+        description: 'Low density suggests it may possess significant water content or deep volatile oceans.',
+        discoveryMethod: 'Transit Photometry',
+        discoveryYear: 2016,
+      },
+      {
+        id: 'trappist1_e',
+        name: 'TRAPPIST-1e (Prime Candidate)',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0293,
+        actualDiameterKm: 11720,
+        orbitalPeriodDays: 6.10,
+        color: '#34d399',
+        glowColor: 'rgba(52, 211, 153, 0.5)',
+        orbitColor: 'rgba(52, 211, 153, 0.45)',
+        surfaceTempC: '-22°C to +18°C',
+        atmosphere: 'Nitrogen / Carbon Dioxide / Water vapor',
+        surfaceGravityG: 0.93,
+        habitableStatus: 'IN_HABITABLE_ZONE',
+        habitabilityIndexPct: 89,
+        funAnalogy: 'The most Earth-like exoplanet in the system: almost identical size, gravity, and rock-to-iron ratio!',
+        description: 'Located dead-center in the Goldilocks zone. High probability of maintaining liquid surface water.',
+        discoveryMethod: 'Transit Photometry',
+        discoveryYear: 2017,
+      },
+      {
+        id: 'trappist1_f',
+        name: 'TRAPPIST-1f',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0385,
+        actualDiameterKm: 13320,
+        orbitalPeriodDays: 9.21,
+        color: '#06b6d4',
+        glowColor: 'rgba(6, 182, 212, 0.4)',
+        orbitColor: 'rgba(6, 182, 212, 0.3)',
+        surfaceTempC: '-54°C (219 K)',
+        atmosphere: 'Water-rich / Volatile layer',
+        surfaceGravityG: 0.82,
+        habitableStatus: 'IN_HABITABLE_ZONE',
+        habitabilityIndexPct: 76,
+        funAnalogy: 'A potential global water-world with a global ocean under a protective ice shell.',
+        description: 'Tidally locked water-world in the outer habitable zone with possible geothermal thermal vents.',
+        discoveryMethod: 'Transit Photometry',
+        discoveryYear: 2017,
+      },
+      {
+        id: 'trappist1_g',
+        name: 'TRAPPIST-1g',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0469,
+        actualDiameterKm: 14640,
+        orbitalPeriodDays: 12.35,
+        color: '#818cf8',
+        glowColor: 'rgba(129, 140, 248, 0.4)',
+        orbitColor: 'rgba(129, 140, 248, 0.25)',
+        surfaceTempC: '-75°C (198 K)',
+        atmosphere: 'Nitrogen / Methane / CO2',
+        surfaceGravityG: 1.06,
+        habitableStatus: 'IN_HABITABLE_ZONE',
+        habitabilityIndexPct: 62,
+        funAnalogy: 'The heavyweight of TRAPPIST-1: 1.15 Earth masses bathed in dim scarlet twilight.',
+        description: 'Largest world in the system. Cold terrestrial planet with a deep volatile icy mantle.',
+        discoveryMethod: 'Transit Photometry',
+        discoveryYear: 2017,
+      },
+      {
+        id: 'trappist1_h',
+        name: 'TRAPPIST-1h',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0619,
+        actualDiameterKm: 9870,
+        orbitalPeriodDays: 18.77,
+        color: '#c084fc',
+        glowColor: 'rgba(192, 132, 252, 0.4)',
+        orbitColor: 'rgba(192, 132, 252, 0.2)',
+        surfaceTempC: '-104°C (169 K)',
+        atmosphere: 'Frozen CO2 / Trace volatile gases',
+        surfaceGravityG: 0.54,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 22,
+        funAnalogy: 'Resembles Jupiter’s icy moons, orbiting far beyond the system’s frost line.',
+        description: 'Outermost cryogenic ball of rock and ice, perpetually frozen in deep interstellar cold.',
+        discoveryMethod: 'Transit Photometry',
+        discoveryYear: 2017,
+      },
+    ],
   },
   {
-    id: 'concentric_ridge_alpha',
-    name: 'Valhalla Outer Ridge Escarpment',
-    gridX: 0.45,
-    gridY: -0.35,
-    elevationM: 2150,
-    description: 'Concentric extensional normal fault scarp towering over frozen cryo-slopes with active mass wasting.',
-    classification: 'Extensional Fault Scarp',
-    hazardRating: 'MODERATE',
+    id: 'jovian',
+    name: 'Jovian Realm (Jupiter IV)',
+    subtitle: 'Gas Giant & The Four Galilean Moons • Jupiter Sub-System',
+    systemType: 'Gas Giant Planetary System',
+    distanceLightYears: 0.00008, // ~5.2 AU
+    centralStar: {
+      name: 'Jupiter (Primary)',
+      spectralClass: 'Gas Giant Monarch',
+      tempK: 165,
+      color: '#d97706',
+      diameterSunRatio: 0.10,
+    },
+    habitableZoneAu: { min: 0.8, max: 2.2 }, // Relative to tidal heating zones
+    overviewLore:
+      'Home base of our club namesake! Jupiter is a miniature planetary system in its own right with 95 moons. Its Galilean satellites showcase extreme diversity: volcanic Io, oceanic Europa, magnetic Ganymede, and cratered Callisto.',
+    bodies: [
+      {
+        id: 'io',
+        name: 'Io',
+        type: 'MOON',
+        orbitalRadiusAuOrKm: 421700,
+        actualDiameterKm: 3643,
+        orbitalPeriodDays: 1.77,
+        color: '#facc15',
+        glowColor: 'rgba(250, 204, 21, 0.4)',
+        orbitColor: 'rgba(250, 204, 21, 0.25)',
+        surfaceTempC: '-130°C to +1,600°C',
+        atmosphere: 'Sulfur Dioxide volcanic plumes',
+        surfaceGravityG: 0.183,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 5,
+        funAnalogy: 'Tidal flexing from Jupiter stretches Io like a rubber ball, creating 400 active volcanoes!',
+        description: 'Most geologically active body in the Solar System, erupting sulfur plumes 300 km high.',
+      },
+      {
+        id: 'europa',
+        name: 'Europa',
+        type: 'MOON',
+        orbitalRadiusAuOrKm: 670900,
+        actualDiameterKm: 3122,
+        orbitalPeriodDays: 3.55,
+        color: '#e0e7ff',
+        glowColor: 'rgba(224, 231, 255, 0.5)',
+        orbitColor: 'rgba(224, 231, 255, 0.3)',
+        surfaceTempC: '-160°C',
+        atmosphere: 'Trace molecular Oxygen exosphere',
+        surfaceGravityG: 0.134,
+        habitableStatus: 'POTENTIALLY_HABITABLE',
+        habitabilityIndexPct: 82,
+        funAnalogy: 'Hides a global liquid ocean containing more water than all of Earth’s oceans combined!',
+        description: 'Smooth icy crust crisscrossed by red tectonic cycloid fractures over a warm saline ocean.',
+      },
+      {
+        id: 'ganymede',
+        name: 'Ganymede',
+        type: 'MOON',
+        orbitalRadiusAuOrKm: 1070400,
+        actualDiameterKm: 5268,
+        orbitalPeriodDays: 7.15,
+        color: '#94a3b8',
+        glowColor: 'rgba(148, 163, 184, 0.4)',
+        orbitColor: 'rgba(148, 163, 184, 0.25)',
+        surfaceTempC: '-163°C',
+        atmosphere: 'Thin Oxygen exosphere',
+        surfaceGravityG: 0.146,
+        habitableStatus: 'POTENTIALLY_HABITABLE',
+        habitabilityIndexPct: 65,
+        funAnalogy: 'Bigger than the planet Mercury and the only moon known to generate its own magnetic field!',
+        description: 'Massive moon featuring sandwich layers of ice and liquid brines around a metallic core.',
+      },
+      {
+        id: 'callisto',
+        name: 'Callisto (Our Namesake)',
+        type: 'MOON',
+        orbitalRadiusAuOrKm: 1882700,
+        actualDiameterKm: 4821,
+        orbitalPeriodDays: 16.69,
+        color: '#38bdf8',
+        glowColor: 'rgba(56, 189, 248, 0.5)',
+        orbitColor: 'rgba(56, 189, 248, 0.4)',
+        surfaceTempC: '-139°C',
+        atmosphere: 'Carbon Dioxide & Oxygen traces',
+        surfaceGravityG: 0.126,
+        habitableStatus: 'POTENTIALLY_HABITABLE',
+        habitabilityIndexPct: 74,
+        funAnalogy: 'Outside Jupiter’s lethal radiation belts, making it the safest sanctuary for human bases!',
+        description: 'Ancient, heavily cratered icy world holding a quiescent sub-surface conductive ocean.',
+      },
+    ],
   },
   {
-    id: 'tornarsuk_catena',
-    name: 'Tornarsuk Secondary Crater Chain',
-    gridX: -0.55,
-    gridY: 0.40,
-    elevationM: -640,
-    description: 'Linear catena created by fragmented comet train impacts, exposing fresh icy bedrock below dark regolith blanket.',
-    classification: 'Cometary Crater Catena',
-    hazardRating: 'MODERATE',
+    id: 'inner_solar',
+    name: 'Inner Solar System',
+    subtitle: 'Sun (Sol) & Terrestrial Planets • Our Cosmic Backyard',
+    systemType: 'Main-Sequence Yellow Dwarf System',
+    distanceLightYears: 0.0,
+    centralStar: {
+      name: 'The Sun (Sol)',
+      spectralClass: 'G2V Yellow Dwarf',
+      tempK: 5778,
+      color: '#facc15',
+      diameterSunRatio: 1.0,
+    },
+    habitableZoneAu: { min: 0.95, max: 1.67 },
+    overviewLore:
+      'Our home planetary system. Formed 4.6 billion years ago, its habitable zone encompasses Earth and reaches past the orbit of Mars. Understanding our own system is the baseline for comparing all exoplanets.',
+    bodies: [
+      {
+        id: 'mercury',
+        name: 'Mercury',
+        type: 'TERRESTRIAL',
+        orbitalRadiusAuOrKm: 0.387,
+        actualDiameterKm: 4879,
+        orbitalPeriodDays: 87.97,
+        color: '#9ca3af',
+        glowColor: 'rgba(156, 163, 175, 0.3)',
+        orbitColor: 'rgba(156, 163, 175, 0.2)',
+        surfaceTempC: '-180°C to +430°C',
+        atmosphere: 'Exosphere (Sodium, Helium, Oxygen)',
+        surfaceGravityG: 0.38,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 4,
+        funAnalogy: 'A dense ball of iron with a paper-thin rock crust baking under intense solar glare.',
+        description: 'Innermost planet with extreme temperature swings and deep cratered polar ice traps.',
+      },
+      {
+        id: 'venus',
+        name: 'Venus',
+        type: 'TERRESTRIAL',
+        orbitalRadiusAuOrKm: 0.723,
+        actualDiameterKm: 12104,
+        orbitalPeriodDays: 224.7,
+        color: '#fde047',
+        glowColor: 'rgba(253, 224, 71, 0.4)',
+        orbitColor: 'rgba(253, 224, 71, 0.25)',
+        surfaceTempC: '+464°C (Runaway Greenhouse)',
+        atmosphere: '96.5% Carbon Dioxide, Sulfuric Acid clouds',
+        surfaceGravityG: 0.90,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 14,
+        funAnalogy: 'Earth’s runaway greenhouse twin: hot enough to melt lead, with pressure like 900m under the sea!',
+        description: 'Shrouded in dense reflective clouds with crushing surface atmospheric pressure of 92 bar.',
+      },
+      {
+        id: 'earth',
+        name: 'Earth (The Pale Blue Dot)',
+        type: 'TERRESTRIAL',
+        orbitalRadiusAuOrKm: 1.0,
+        actualDiameterKm: 12742,
+        orbitalPeriodDays: 365.25,
+        color: '#0284c7',
+        glowColor: 'rgba(2, 132, 199, 0.5)',
+        orbitColor: 'rgba(2, 132, 199, 0.4)',
+        surfaceTempC: '+15°C (Average)',
+        atmosphere: '78% Nitrogen, 21% Oxygen, 1% Argon/CO2',
+        surfaceGravityG: 1.0,
+        habitableStatus: 'IN_HABITABLE_ZONE',
+        habitabilityIndexPct: 100,
+        funAnalogy: 'The only known world with open oceans, plate tectonics, and thriving student space clubs!',
+        description: 'Benchmark for planetary habitability: dynamic magnetic dynamo, liquid water, and active biosphere.',
+      },
+      {
+        id: 'mars',
+        name: 'Mars (The Red Planet)',
+        type: 'TERRESTRIAL',
+        orbitalRadiusAuOrKm: 1.524,
+        actualDiameterKm: 6779,
+        orbitalPeriodDays: 686.98,
+        color: '#ef4444',
+        glowColor: 'rgba(239, 68, 68, 0.4)',
+        orbitColor: 'rgba(239, 68, 68, 0.25)',
+        surfaceTempC: '-63°C',
+        atmosphere: '95% Carbon Dioxide (0.006 atm)',
+        surfaceGravityG: 0.38,
+        habitableStatus: 'POTENTIALLY_HABITABLE',
+        habitabilityIndexPct: 64,
+        funAnalogy: 'Hosts Olympus Mons, a volcano three times the height of Mount Everest!',
+        description: 'Dry, cold desert world with ancient dry river valleys, polar dry-ice caps, and subsurface ice.',
+      },
+    ],
   },
   {
-    id: 'outpost_alpha_site',
-    name: 'Candidate Outpost Alpha Touchdown Zone',
-    gridX: 0.28,
-    gridY: 0.52,
-    elevationM: 140,
-    description: 'Ultra-flat dielectric plains shielded by concentric crater walls with stable sub-surface ice and low boulder roughness.',
-    classification: 'Smooth Cryo-Regolith Plain',
-    hazardRating: 'LOW',
+    id: 'proxima',
+    name: 'Proxima Centauri System',
+    subtitle: 'Our Nearest Stellar Neighbor • Alpha Centauri Triple Star',
+    systemType: 'Red Dwarf Planetary System',
+    distanceLightYears: 4.246,
+    centralStar: {
+      name: 'Proxima Centauri',
+      spectralClass: 'M5.5Ve Flare Star',
+      tempK: 3042,
+      color: '#ef4444',
+      diameterSunRatio: 0.15,
+    },
+    habitableZoneAu: { min: 0.042, max: 0.095 },
+    overviewLore:
+      'At 4.25 light-years away, Proxima Centauri is the closest star to our Solar System. Its planet Proxima b is the closest known exoplanet to Earth and orbits squarely inside its star’s habitable zone.',
+    bodies: [
+      {
+        id: 'proxima_d',
+        name: 'Proxima d',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0288,
+        actualDiameterKm: 10200,
+        orbitalPeriodDays: 5.12,
+        color: '#fb923c',
+        glowColor: 'rgba(251, 146, 60, 0.4)',
+        orbitColor: 'rgba(251, 146, 60, 0.2)',
+        surfaceTempC: '+87°C (360 K)',
+        atmosphere: 'Tenuous / Sputtered',
+        surfaceGravityG: 0.26,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 19,
+        funAnalogy: 'One of the lightest exoplanets ever discovered—only a quarter of Earth’s mass!',
+        description: 'Sub-Earth mass world in rapid orbit close to its host flare star.',
+        discoveryMethod: 'Radial Velocity (ESPRESSO / VLT)',
+        discoveryYear: 2022,
+      },
+      {
+        id: 'proxima_b',
+        name: 'Proxima b (Nearest Exoplanet)',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0485,
+        actualDiameterKm: 13380,
+        orbitalPeriodDays: 11.19,
+        color: '#10b981',
+        glowColor: 'rgba(16, 185, 129, 0.5)',
+        orbitColor: 'rgba(16, 185, 129, 0.4)',
+        surfaceTempC: '-39°C (Equilibrium)',
+        atmosphere: 'Nitrogen / Carbon Dioxide / Water',
+        surfaceGravityG: 1.08,
+        habitableStatus: 'IN_HABITABLE_ZONE',
+        habitabilityIndexPct: 87,
+        funAnalogy: 'If interstellar travel becomes real, Proxima b will be humanity’s very first destination!',
+        description: 'Terrestrial exoplanet orbiting within the habitable zone; faces intense stellar flare activity.',
+        discoveryMethod: 'Radial Velocity (HARPS / ESO)',
+        discoveryYear: 2016,
+      },
+      {
+        id: 'proxima_c',
+        name: 'Proxima c',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 1.489,
+        actualDiameterKm: 31800,
+        orbitalPeriodDays: 1928,
+        color: '#818cf8',
+        glowColor: 'rgba(129, 140, 248, 0.4)',
+        orbitColor: 'rgba(129, 140, 248, 0.2)',
+        surfaceTempC: '-234°C (39 K)',
+        atmosphere: 'Hydrogen / Helium / Methane',
+        surfaceGravityG: 1.25,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 12,
+        funAnalogy: 'A freezing mini-Neptune coasting in the outer fringes, taking over 5 years to complete an orbit.',
+        description: 'Candidate cold super-Earth or mini-Neptune far beyond the snow line.',
+        discoveryMethod: 'Radial Velocity & Astrometry',
+        discoveryYear: 2020,
+      },
+    ],
   },
   {
-    id: 'dielectric_anomaly',
-    name: 'Basal Dielectric Permittivity Anomaly',
-    gridX: -0.32,
-    gridY: -0.48,
-    elevationM: -1450,
-    description: 'High-attenuation radar sounding anomaly indicating liquid saline brines or methane clathrates 15 km beneath the fractured ice.',
-    classification: 'Sub-Surface Ocean Interface',
-    hazardRating: 'SEVERE',
+    id: 'kepler186',
+    name: 'Kepler-186 System',
+    subtitle: 'First Earth-Sized Habitable World Discovered • Cygnus',
+    systemType: 'M-Dwarf Multiple Planetary System',
+    distanceLightYears: 582,
+    centralStar: {
+      name: 'Kepler-186',
+      spectralClass: 'M1V Red Dwarf',
+      tempK: 3755,
+      color: '#f87171',
+      diameterSunRatio: 0.52,
+    },
+    habitableZoneAu: { min: 0.32, max: 0.70 },
+    overviewLore:
+      'In April 2014, NASA announced Kepler-186f: the historic first validated Earth-sized exoplanet orbiting within the habitable zone of another star, proving that temperate rocky worlds exist across the galaxy.',
+    bodies: [
+      {
+        id: 'kepler186_b',
+        name: 'Kepler-186b',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.0343,
+        actualDiameterKm: 13630,
+        orbitalPeriodDays: 3.89,
+        color: '#fb923c',
+        glowColor: 'rgba(251, 146, 60, 0.3)',
+        orbitColor: 'rgba(251, 146, 60, 0.2)',
+        surfaceTempC: '+310°C',
+        atmosphere: 'Superheated silicate crust',
+        surfaceGravityG: 1.1,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 10,
+        funAnalogy: 'Tidally locked with a scorching dayside magma ocean.',
+        description: 'Innermost rocky world in a tight resonant orbit.',
+        discoveryMethod: 'Transit Photometry (Kepler)',
+        discoveryYear: 2014,
+      },
+      {
+        id: 'kepler186_e',
+        name: 'Kepler-186e',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.110,
+        actualDiameterKm: 16180,
+        orbitalPeriodDays: 22.41,
+        color: '#fbbf24',
+        glowColor: 'rgba(251, 191, 36, 0.4)',
+        orbitColor: 'rgba(251, 191, 36, 0.25)',
+        surfaceTempC: '+75°C',
+        atmosphere: 'Dense steam / CO2',
+        surfaceGravityG: 1.25,
+        habitableStatus: 'NON_HABITABLE',
+        habitabilityIndexPct: 35,
+        funAnalogy: 'A super-Venus bathed in infrared warmth.',
+        description: 'Sub-Neptune or super-Earth positioned just inside the habitable boundary.',
+        discoveryMethod: 'Transit Photometry (Kepler)',
+        discoveryYear: 2014,
+      },
+      {
+        id: 'kepler186_f',
+        name: 'Kepler-186f (Historic Discovery)',
+        type: 'EXOPLANET',
+        orbitalRadiusAuOrKm: 0.432,
+        actualDiameterKm: 14900,
+        orbitalPeriodDays: 129.9,
+        color: '#34d399',
+        glowColor: 'rgba(52, 211, 153, 0.5)',
+        orbitColor: 'rgba(52, 211, 153, 0.4)',
+        surfaceTempC: '-45°C to +10°C',
+        atmosphere: 'Protective Nitrogen / CO2 greenhouse layer',
+        surfaceGravityG: 1.05,
+        habitableStatus: 'IN_HABITABLE_ZONE',
+        habitabilityIndexPct: 84,
+        funAnalogy: 'The very first Earth-sized planet ever confirmed in another star’s habitable zone!',
+        description: 'Receives about 32% of the stellar flux Earth gets, making its midday look like an hour before sunset on Earth.',
+        discoveryMethod: 'Transit Photometry (Kepler Space Telescope)',
+        discoveryYear: 2014,
+      },
+    ],
   },
 ];
 
 export default function ExpeditionSimulator() {
+  const [selectedSystemId, setSelectedSystemId] = useState<string>('trappist1');
+  const currentSystem = COSMIC_SYSTEMS.find((s) => s.id === selectedSystemId) || COSMIC_SYSTEMS[0];
+
+  const [selectedBodyId, setSelectedBodyId] = useState<string>(currentSystem.bodies[3]?.id || currentSystem.bodies[0].id);
+  const selectedBody =
+    currentSystem.bodies.find((b) => b.id === selectedBodyId) || currentSystem.bodies[0];
+
+  // Simulation controls
+  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(1.0);
+  const [showHabitableZone, setShowHabitableZone] = useState<boolean>(true);
+  const [viewMode, setViewMode] = useState<'ORBITAL' | 'SCALE_COMPARISON' | 'TRANSIT_LIGHTCURVE'>('ORBITAL');
+  const [briefingModalOpen, setBriefingModalOpen] = useState<boolean>(false);
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const anglesRef = useRef<{ [key: string]: number }>({});
 
-  // Sensor & Viewport States
-  const [activeBand, setActiveBand] = useState<SensorBand>('LIDAR');
-  const [isFlyoverActive, setIsFlyoverActive] = useState<boolean>(true);
-  const [elevationScale, setElevationScale] = useState<number>(1.8);
-  const [selectedWaypoint, setSelectedWaypoint] = useState<Waypoint>(CALLISTO_WAYPOINTS[0]);
-  const [wireframeMeshEnabled, setWireframeMeshEnabled] = useState<boolean>(true);
-  const [pointCloudDensity, setPointCloudDensity] = useState<'STANDARD' | 'HIGH' | 'ULTRA'>('HIGH');
-  const [reportModalOpen, setReportModalOpen] = useState(false);
+  // Reset selected body when system changes
+  const handleSystemChange = (sysId: string) => {
+    setSelectedSystemId(sysId);
+    const targetSys = COSMIC_SYSTEMS.find((s) => s.id === sysId) || COSMIC_SYSTEMS[0];
+    const defaultBody = targetSys.bodies.find((b) => b.habitableStatus === 'IN_HABITABLE_ZONE') || targetSys.bodies[0];
+    setSelectedBodyId(defaultBody.id);
+  };
 
-  // Camera 3D Angles
-  const cameraRef = useRef({
-    yaw: 0.75, // Horizontal orbit angle (radians)
-    pitch: 0.62, // Vertical tilt angle (radians)
-    zoom: 1.05,
-    panX: 0,
-    panY: 0,
-    flyoverProgress: 0,
-  });
-
-  const isDraggingRef = useRef(false);
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const sweepOffsetRef = useRef(0);
-
-  // Resolution Grid Size
-  const gridDim = pointCloudDensity === 'STANDARD' ? 36 : pointCloudDensity === 'HIGH' ? 48 : 60;
-
-  // Elevation Math Function for Callisto's Valhalla Multi-Ring System
-  const getElevation = useCallback(
-    (x: number, y: number, exag: number) => {
-      const r = Math.sqrt(x * x + y * y);
-      // Central impact basin depression
-      const centralBasin = -Math.exp(-r * r * 8.0) * 1.6;
-      // Concentric multi-ring ridges (damped cosine waves around center)
-      const concentricRings = Math.cos(r * 18.0) * Math.exp(-r * 1.6) * 0.45;
-      // Secondary craters and catena fractures
-      const cr1 = Math.exp(-((x - 0.4) ** 2 + (y + 0.3) ** 2) * 32.0) * 0.6;
-      const cr2 = -Math.exp(-((x + 0.45) ** 2 + (y - 0.35) ** 2) * 24.0) * 0.7;
-      const microRoughness = Math.sin(x * 32.0) * Math.cos(y * 32.0) * 0.08;
-
-      return (centralBasin + concentricRings + cr1 + cr2 + microRoughness) * exag;
-    },
-    []
-  );
-
-  // --- 3D Projection Canvas Render Loop ---
+  // --- Main 2D Canvas Orbital Simulation Loop ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -134,663 +589,556 @@ export default function ExpeditionSimulator() {
       const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
 
-      // Deep space background with subtle grid lines
+      // Deep space canvas background
       ctx.fillStyle = '#060a12';
       ctx.fillRect(0, 0, width, height);
 
-      // Subtle background orbital grid
-      ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+      // Subtle celestial coordinate grid
+      ctx.strokeStyle = 'rgba(30, 41, 59, 0.35)';
       ctx.lineWidth = 1;
-      const bgStep = 40;
-      for (let x = 0; x < width; x += bgStep) {
+      const step = 45;
+      for (let x = 0; x < width; x += step) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
         ctx.stroke();
       }
-      for (let y = 0; y < height; y += bgStep) {
+      for (let y = 0; y < height; y += step) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
         ctx.stroke();
       }
 
-      // Flyover auto-rotation
-      if (isFlyoverActive && !isDraggingRef.current) {
-        cameraRef.current.yaw += 0.0035;
-        cameraRef.current.flyoverProgress = (cameraRef.current.flyoverProgress + 0.002) % (Math.PI * 2);
-      }
+      const centerX = width * 0.5;
+      const centerY = height * 0.5;
 
-      // Radar sweep wave progress
-      sweepOffsetRef.current = (sweepOffsetRef.current + 0.012) % 2.0;
-      const currentSweepWave = sweepOffsetRef.current - 1.0; // -1 to 1
-
-      const yaw = cameraRef.current.yaw;
-      const pitch = cameraRef.current.pitch;
-      const zoom = cameraRef.current.zoom;
-      const cosYaw = Math.cos(yaw);
-      const sinYaw = Math.sin(yaw);
-      const cosPitch = Math.cos(pitch);
-      const sinPitch = Math.sin(pitch);
-
-      const fovDistance = 3.2;
-      const baseScale = Math.min(width, height) * 0.58 * zoom;
-      const centerX = width * 0.5 + cameraRef.current.panX;
-      const centerY = height * 0.52 + cameraRef.current.panY;
-
-      // Generate & Project 3D Grid Points
-      const projectedGrid: Array<Array<{ sx: number; sy: number; sz: number; elev: number; rawX: number; rawY: number }>> = [];
-
-      for (let i = 0; i <= gridDim; i++) {
-        projectedGrid[i] = [];
-        const gy = (i / gridDim) * 2 - 1; // -1 to 1
-
-        for (let j = 0; j <= gridDim; j++) {
-          const gx = (j / gridDim) * 2 - 1; // -1 to 1
-          const elev = getElevation(gx, gy, elevationScale);
-
-          // 3D Rotate around Y axis (yaw)
-          const rx1 = gx * cosYaw - gy * sinYaw;
-          const ry1 = gx * sinYaw + gy * cosYaw;
-          const rz1 = -elev;
-
-          // 3D Rotate around X axis (pitch)
-          const rx2 = rx1;
-          const ry2 = ry1 * cosPitch - rz1 * sinPitch;
-          const rz2 = ry1 * sinPitch + rz1 * cosPitch;
-
-          // Perspective transformation
-          const depth = fovDistance + rz2;
-          const pFactor = depth > 0.1 ? fovDistance / depth : 0.1;
-          const sx = centerX + rx2 * baseScale * pFactor;
-          const sy = centerY + ry2 * baseScale * pFactor;
-
-          projectedGrid[i][j] = { sx, sy, sz: rz2, elev, rawX: gx, rawY: gy };
-        }
-      }
-
-      // Render Wireframe Mesh Lines if enabled
-      if (wireframeMeshEnabled) {
-        ctx.lineWidth = 1;
-
-        // Draw horizontal mesh rows
-        for (let i = 0; i <= gridDim; i++) {
-          ctx.beginPath();
-          let started = false;
-          for (let j = 0; j <= gridDim; j++) {
-            const p = projectedGrid[i][j];
-            if (!started) {
-              ctx.moveTo(p.sx, p.sy);
-              started = true;
-            } else {
-              ctx.lineTo(p.sx, p.sy);
-            }
-          }
-          const alpha = 0.14 + (i / gridDim) * 0.12;
-          ctx.strokeStyle =
-            activeBand === 'LIDAR'
-              ? `rgba(56, 189, 248, ${alpha})`
-              : activeBand === 'SUBSURFACE'
-              ? `rgba(168, 85, 247, ${alpha})`
-              : activeBand === 'THERMAL'
-              ? `rgba(244, 63, 94, ${alpha})`
-              : `rgba(34, 197, 94, ${alpha})`;
-          ctx.stroke();
-        }
-
-        // Draw vertical mesh columns
-        for (let j = 0; j <= gridDim; j++) {
-          ctx.beginPath();
-          let started = false;
-          for (let i = 0; i <= gridDim; i++) {
-            const p = projectedGrid[i][j];
-            if (!started) {
-              ctx.moveTo(p.sx, p.sy);
-              started = true;
-            } else {
-              ctx.lineTo(p.sx, p.sy);
-            }
-          }
-          const alpha = 0.14 + (j / gridDim) * 0.12;
-          ctx.strokeStyle =
-            activeBand === 'LIDAR'
-              ? `rgba(56, 189, 248, ${alpha})`
-              : activeBand === 'SUBSURFACE'
-              ? `rgba(168, 85, 247, ${alpha})`
-              : activeBand === 'THERMAL'
-              ? `rgba(244, 63, 94, ${alpha})`
-              : `rgba(34, 197, 94, ${alpha})`;
-          ctx.stroke();
-        }
-      }
-
-      // Render Glowing Point-Cloud Voxel Points
-      for (let i = 0; i <= gridDim; i++) {
-        for (let j = 0; j <= gridDim; j++) {
-          const p = projectedGrid[i][j];
-          const normElev = (p.elev / elevationScale + 1.6) / 3.2; // 0 to 1
-
-          // Calculate distance to radar sweep plane
-          const sweepDist = Math.abs(p.rawX - currentSweepWave);
-          const isSweeping = sweepDist < 0.14;
-
-          let ptColor = '#38bdf8';
-          let ptRadius = 1.4;
-
-          if (activeBand === 'LIDAR') {
-            // Cyan-to-Emerald Topographic Gradient
-            if (normElev > 0.72) ptColor = '#f8fafc'; // snow/frost peaks
-            else if (normElev > 0.55) ptColor = '#38bdf8'; // elevated crater rims
-            else if (normElev > 0.38) ptColor = '#2dd4bf'; // mid plain
-            else ptColor = '#0284c7'; // deep depression
-          } else if (activeBand === 'SUBSURFACE') {
-            // Subsurface Radar: Purple to Hot Gold Dielectric
-            if (normElev > 0.65) ptColor = '#fbbf24';
-            else if (normElev > 0.40) ptColor = '#c084fc';
-            else ptColor = '#4c1d95';
-          } else if (activeBand === 'THERMAL') {
-            // Thermal IR: Deep Indigo (110 K) to Magenta & White (165 K)
-            if (normElev > 0.68) ptColor = '#f43f5e';
-            else if (normElev > 0.45) ptColor = '#e11d48';
-            else ptColor = '#4338ca';
-          } else {
-            // SAR: High-Contrast Green Phosphor Radar
-            ptColor = normElev > 0.5 ? '#4ade80' : '#15803d';
-          }
-
-          if (isSweeping) {
-            ptColor = '#ffffff';
-            ptRadius = 2.8;
-          }
-
-          ctx.beginPath();
-          ctx.arc(p.sx, p.sy, ptRadius, 0, Math.PI * 2);
-          ctx.fillStyle = ptColor;
-          ctx.fill();
-        }
-      }
-
-      // Draw Animated Radar Sweep Beam Curtain
-      const sweepX1 = currentSweepWave;
-      const sweepPts: Array<{ sx: number; sy: number }> = [];
-      for (let i = 0; i <= gridDim; i += 4) {
-        const gy = (i / gridDim) * 2 - 1;
-        const elev = getElevation(sweepX1, gy, elevationScale);
-        const rx1 = sweepX1 * cosYaw - gy * sinYaw;
-        const ry1 = sweepX1 * sinYaw + gy * cosYaw;
-        const rz1 = -elev;
-        const rx2 = rx1;
-        const ry2 = ry1 * cosPitch - rz1 * sinPitch;
-        const rz2 = ry1 * sinPitch + rz1 * cosPitch;
-        const depth = fovDistance + rz2;
-        const pFactor = depth > 0.1 ? fovDistance / depth : 0.1;
-        sweepPts.push({
-          sx: centerX + rx2 * baseScale * pFactor,
-          sy: centerY + ry2 * baseScale * pFactor,
+      // Update orbital angles
+      if (isPlaying) {
+        currentSystem.bodies.forEach((b) => {
+          if (!anglesRef.current[b.id]) anglesRef.current[b.id] = Math.random() * Math.PI * 2;
+          const orbitalSpeed = (1 / Math.max(1, b.orbitalPeriodDays)) * 0.08 * speedMultiplier;
+          anglesRef.current[b.id] += orbitalSpeed;
         });
       }
 
-      if (sweepPts.length > 1) {
+      // 1. Draw Habitable Zone Torus (The Goldilocks Band)
+      if (showHabitableZone && viewMode === 'ORBITAL') {
+        const hzMinPx = 130;
+        const hzMaxPx = 230;
+
+        const hzGrad = ctx.createRadialGradient(centerX, centerY, hzMinPx, centerX, centerY, hzMaxPx);
+        hzGrad.addColorStop(0, 'rgba(16, 185, 129, 0.02)');
+        hzGrad.addColorStop(0.5, 'rgba(16, 185, 129, 0.12)');
+        hzGrad.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+
         ctx.beginPath();
-        ctx.moveTo(sweepPts[0].sx, sweepPts[0].sy);
-        for (let k = 1; k < sweepPts.length; k++) {
-          ctx.lineTo(sweepPts[k].sx, sweepPts[k].sy);
-        }
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
-        ctx.lineWidth = 2;
-        ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 10;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      }
+        ctx.arc(centerX, centerY, hzMaxPx, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, hzMinPx, 0, Math.PI * 2, true);
+        ctx.fillStyle = hzGrad;
+        ctx.fill();
 
-      // Render 3D Geological Waypoints & Floating Reticles
-      CALLISTO_WAYPOINTS.forEach((wp) => {
-        const elev = getElevation(wp.gridX, wp.gridY, elevationScale);
-        const rx1 = wp.gridX * cosYaw - wp.gridY * sinYaw;
-        const ry1 = wp.gridX * sinYaw + wp.gridY * cosYaw;
-        const rz1 = -elev;
-
-        const rx2 = rx1;
-        const ry2 = ry1 * cosPitch - rz1 * sinPitch;
-        const rz2 = ry1 * sinPitch + rz1 * cosPitch;
-
-        const depth = fovDistance + rz2;
-        const pFactor = depth > 0.1 ? fovDistance / depth : 0.1;
-        const px = centerX + rx2 * baseScale * pFactor;
-        const py = centerY + ry2 * baseScale * pFactor;
-
-        const isTarget = selectedWaypoint.id === wp.id;
-        const pinColor = isTarget ? '#38bdf8' : 'rgba(248, 250, 252, 0.75)';
-
-        // Vertical holographic tether
         ctx.beginPath();
-        ctx.moveTo(px, py);
-        ctx.lineTo(px, py - 32);
-        ctx.strokeStyle = pinColor;
-        ctx.lineWidth = isTarget ? 2 : 1;
-        ctx.setLineDash([2, 2]);
+        ctx.arc(centerX, centerY, (hzMinPx + hzMaxPx) * 0.5, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Waypoint beacon diamond
+        ctx.fillStyle = '#34d399';
+        ctx.font = '700 9px ui-monospace, SFMono-Regular, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('HABITABLE "GOLDILOCKS" ZONE', centerX, centerY - (hzMinPx + hzMaxPx) * 0.5 - 6);
+      }
+
+      // 2. Draw Central Star
+      const star = currentSystem.centralStar;
+      const starRadius = Math.max(16, Math.min(32, star.diameterSunRatio * 28));
+
+      // Star outer corona glow
+      const coronaGrad = ctx.createRadialGradient(centerX, centerY, starRadius * 0.5, centerX, centerY, starRadius * 3.2);
+      coronaGrad.addColorStop(0, star.color);
+      coronaGrad.addColorStop(0.4, 'rgba(249, 115, 22, 0.25)');
+      coronaGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, starRadius * 3.2, 0, Math.PI * 2);
+      ctx.fillStyle = coronaGrad;
+      ctx.fill();
+
+      // Star core sphere
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, starRadius, 0, Math.PI * 2);
+      ctx.fillStyle = star.color;
+      ctx.fill();
+
+      // Star text label
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '700 10px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(star.name, centerX, centerY + starRadius + 15);
+
+      // 3. Draw Orbit Rings & Celestial Bodies
+      const totalBodies = currentSystem.bodies.length;
+      const minRadiusPx = 55;
+      const maxRadiusPx = Math.min(width, height) * 0.44;
+      const radiusStep = (maxRadiusPx - minRadiusPx) / Math.max(1, totalBodies);
+
+      currentSystem.bodies.forEach((b, idx) => {
+        const orbitRadiusPx = minRadiusPx + (idx + 1) * radiusStep;
+        const currentAngle = anglesRef.current[b.id] || 0;
+
+        // Draw orbital trajectory ring
         ctx.beginPath();
-        ctx.moveTo(px, py - 38);
-        ctx.lineTo(px + 6, py - 32);
-        ctx.lineTo(px, py - 26);
-        ctx.lineTo(px - 6, py - 32);
-        ctx.closePath();
-        ctx.fillStyle = isTarget ? '#38bdf8' : 'rgba(15, 23, 42, 0.85)';
-        ctx.fill();
-        ctx.strokeStyle = pinColor;
-        ctx.lineWidth = 1.5;
+        ctx.arc(centerX, centerY, orbitRadiusPx, 0, Math.PI * 2);
+        ctx.strokeStyle = b.orbitColor || 'rgba(100, 116, 139, 0.2)';
+        ctx.lineWidth = 1;
         ctx.stroke();
 
-        if (isTarget) {
-          // Radar lock-on brackets
+        // Calculate body position
+        const bx = centerX + Math.cos(currentAngle) * orbitRadiusPx;
+        const by = centerY + Math.sin(currentAngle) * orbitRadiusPx;
+
+        const isSelected = selectedBodyId === b.id;
+        const bodyRadius = Math.max(4.5, Math.min(14, (b.actualDiameterKm / 14000) * 8));
+
+        // Selected body pulsing target bracket
+        if (isSelected) {
           ctx.beginPath();
-          ctx.arc(px, py - 32, 12, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-
-          // Waypoint HUD label tag
-          ctx.fillStyle = '#0f172a';
+          ctx.arc(bx, by, bodyRadius + 9, 0, Math.PI * 2);
           ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 1;
-          const tagW = 140;
-          const tagH = 26;
-          const tagX = px + 12;
-          const tagY = py - 45;
-          ctx.fillRect(tagX, tagY, tagW, tagH);
-          ctx.strokeRect(tagX, tagY, tagW, tagH);
+          ctx.lineWidth = 2;
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 12;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
 
-          ctx.fillStyle = '#38bdf8';
-          ctx.font = '700 9px ui-monospace, SFMono-Regular, monospace';
-          ctx.textAlign = 'left';
-          ctx.fillText(`LOC: ${wp.elevationM > 0 ? '+' : ''}${wp.elevationM}m`, tagX + 8, tagY + 11);
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '600 10px system-ui, sans-serif';
-          ctx.fillText(wp.name.slice(0, 18), tagX + 8, tagY + 22);
+          // Target reticle crosshairs
+          ctx.beginPath();
+          ctx.moveTo(bx - (bodyRadius + 14), by);
+          ctx.lineTo(bx - (bodyRadius + 5), by);
+          ctx.moveTo(bx + (bodyRadius + 5), by);
+          ctx.lineTo(bx + (bodyRadius + 14), by);
+          ctx.moveTo(bx, by - (bodyRadius + 14));
+          ctx.lineTo(bx, by - (bodyRadius + 5));
+          ctx.moveTo(bx, by + (bodyRadius + 5));
+          ctx.lineTo(bx, by + (bodyRadius + 14));
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
         }
+
+        // Body sphere
+        ctx.beginPath();
+        ctx.arc(bx, by, bodyRadius, 0, Math.PI * 2);
+        ctx.fillStyle = b.color;
+        ctx.shadowColor = b.glowColor;
+        ctx.shadowBlur = isSelected ? 15 : 6;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Planet text tag
+        ctx.fillStyle = isSelected ? '#38bdf8' : '#e2e8f0';
+        ctx.font = isSelected ? '700 10px system-ui, sans-serif' : '600 9px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(b.name.replace(/ \(.*\)/, ''), bx, by + bodyRadius + 12);
       });
-
-      // Compass & Sensor Reticle Overlay (Bottom Right)
-      const compassX = width - 55;
-      const compassY = height - 55;
-      ctx.beginPath();
-      ctx.arc(compassX, compassY, 28, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(100, 116, 139, 0.35)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Heading needle
-      const needleX = compassX + Math.sin(yaw) * 20;
-      const needleY = compassY - Math.cos(yaw) * 20;
-      ctx.beginPath();
-      ctx.moveTo(compassX, compassY);
-      ctx.lineTo(needleX, needleY);
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = '700 8px ui-monospace, monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('N', needleX, needleY - 4);
 
       animId = requestAnimationFrame(render);
     };
 
     render();
     return () => cancelAnimationFrame(animId);
-  }, [activeBand, isFlyoverActive, elevationScale, selectedWaypoint, wireframeMeshEnabled, pointCloudDensity, getElevation]);
+  }, [currentSystem, selectedBodyId, isPlaying, speedMultiplier, showHabitableZone, viewMode]);
 
-  // Touch and Mouse Controls for 3D Camera Rotation
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    isDraggingRef.current = true;
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
-  };
+  // Click on Canvas to Select Nearest Body
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDraggingRef.current) return;
-    const dx = e.clientX - dragStartRef.current.x;
-    const dy = e.clientY - dragStartRef.current.y;
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    const centerX = canvas.width * 0.5;
+    const centerY = canvas.height * 0.5;
 
-    cameraRef.current.yaw += dx * 0.007;
-    cameraRef.current.pitch = Math.max(0.15, Math.min(1.45, cameraRef.current.pitch + dy * 0.006));
-  };
+    const totalBodies = currentSystem.bodies.length;
+    const minRadiusPx = 55;
+    const maxRadiusPx = Math.min(canvas.width, canvas.height) * 0.44;
+    const radiusStep = (maxRadiusPx - minRadiusPx) / Math.max(1, totalBodies);
 
-  const handleMouseUp = () => {
-    isDraggingRef.current = false;
-  };
+    for (let idx = 0; idx < totalBodies; idx++) {
+      const b = currentSystem.bodies[idx];
+      const orbitRadiusPx = minRadiusPx + (idx + 1) * radiusStep;
+      const angle = anglesRef.current[b.id] || 0;
+      const bx = centerX + Math.cos(angle) * orbitRadiusPx;
+      const by = centerY + Math.sin(angle) * orbitRadiusPx;
 
-  // Touch handlers for mobile
-  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (e.touches.length === 1) {
-      isDraggingRef.current = true;
-      dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      const dist = Math.hypot(clickX - bx, clickY - by);
+      if (dist < 24) {
+        setSelectedBodyId(b.id);
+        break;
+      }
     }
   };
 
-  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDraggingRef.current || e.touches.length !== 1) return;
-    const dx = e.touches[0].clientX - dragStartRef.current.x;
-    const dy = e.touches[0].clientY - dragStartRef.current.y;
-    dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-
-    cameraRef.current.yaw += dx * 0.008;
-    cameraRef.current.pitch = Math.max(0.15, Math.min(1.45, cameraRef.current.pitch + dy * 0.007));
-  };
-
-  const handleTouchEnd = () => {
-    isDraggingRef.current = false;
-  };
-
-  // Reset Camera View
-  const handleResetCamera = () => {
-    cameraRef.current.yaw = 0.75;
-    cameraRef.current.pitch = 0.62;
-    cameraRef.current.zoom = 1.05;
-    cameraRef.current.panX = 0;
-    cameraRef.current.panY = 0;
-  };
-
-  // Focus on Selected Waypoint
-  const handleSelectWaypoint = (wp: Waypoint) => {
-    setSelectedWaypoint(wp);
-    // Smooth angle transition towards waypoint
-    const targetYaw = Math.atan2(wp.gridX, wp.gridY) + Math.PI * 0.5;
-    cameraRef.current.yaw = targetYaw;
-    cameraRef.current.pitch = 0.55;
-  };
-
   return (
-    <div className="lidar-cockpit">
-      {/* Platform Header */}
+    <div className="cosmos-cockpit">
+      {/* Header Deck */}
       <div className="cockpit-header">
         <div className="header-left">
           <div className="tag-row">
-            <span className="platform-badge">CALLISTO ORBITAL SURVEYOR // 3D LIDAR ALTIMETRY</span>
-            <span className="orbit-badge">ALT: 150.0 KM • INCLINATION: 88.4° POLAR</span>
+            <span className="station-badge">COSMIC ORRERY // MULTI-SYSTEM EXPLORER</span>
+            <span className="orbit-badge">{currentSystem.distanceLightYears === 0 ? 'LOCAL SYSTEM (0 LY)' : `${currentSystem.distanceLightYears} LIGHT YEARS AWAY`}</span>
           </div>
-          <h2 className="deck-title">3D LIDAR Point-Cloud & Terrain Radar Flyover</h2>
-          <p className="deck-subtitle">
-            Pulsed Nd:YAG laser altimeter and synthetic aperture radar mapping of Callisto’s Valhalla impact multi-ring system.
-          </p>
+          <h2 className="deck-title">{currentSystem.name}</h2>
+          <p className="deck-subtitle">{currentSystem.subtitle}</p>
         </div>
 
+        {/* System Selector Dropdown & Briefing Modal */}
         <div className="header-actions">
-          <button
-            type="button"
-            className={`action-btn flyover-btn ${isFlyoverActive ? 'active' : ''}`}
-            onClick={() => setIsFlyoverActive(!isFlyoverActive)}
-            title="Toggle autonomous orbital flyover camera"
+          <select
+            className="system-select-dropdown"
+            value={selectedSystemId}
+            onChange={(e) => handleSystemChange(e.target.value)}
+            aria-label="Select Cosmic System"
           >
-            <span className="btn-icon">{isFlyoverActive ? '⏸' : '▶'}</span>
-            <span>{isFlyoverActive ? 'PAUSE FLYOVER' : 'AUTO FLYOVER'}</span>
-          </button>
+            {COSMIC_SYSTEMS.map((sys) => (
+              <option key={sys.id} value={sys.id}>
+                {sys.name} ({sys.centralStar.name})
+              </option>
+            ))}
+          </select>
+
           <button
             type="button"
             className="action-btn report-btn"
-            onClick={() => setReportModalOpen(true)}
-            title="View geological topographic report"
+            onClick={() => setBriefingModalOpen(true)}
+            title="Read system astrobiology briefing"
           >
             <span className="btn-icon">📑</span>
-            <span>MISSION BRIEFING</span>
+            <span>SYSTEM DOSSIER</span>
           </button>
         </div>
       </div>
 
-      {/* Static Telemetry Badges (CLEAN STATIC READOUTS) */}
-      <div className="telemetry-bar" aria-label="Static Radar Telemetry">
+      {/* Static Mission Telemetry Badges (CLEAN STATIC READOUTS) */}
+      <div className="telemetry-bar" aria-label="Static Stellar Telemetry">
         <div className="telemetry-card">
-          <span className="card-label">SENSOR PAYLOAD</span>
+          <span className="card-label">CENTRAL STAR</span>
+          <span className="card-value">{currentSystem.centralStar.name}</span>
+          <span className="card-subtext">Class: {currentSystem.centralStar.spectralClass}</span>
+        </div>
+
+        <div className="telemetry-card">
+          <span className="card-label">STELLAR TEMPERATURE</span>
+          <span className="card-value">{currentSystem.centralStar.tempK.toLocaleString()} K</span>
+          <span className="card-subtext">Radius: {currentSystem.centralStar.diameterSunRatio}x Solar</span>
+        </div>
+
+        <div className="telemetry-card">
+          <span className="card-label">HABITABLE GOLDILOCKS ZONE</span>
           <span className="card-value">
-            {activeBand === 'LIDAR'
-              ? 'LIDAR 1064nm'
-              : activeBand === 'SUBSURFACE'
-              ? 'RADAR 15MHz'
-              : activeBand === 'THERMAL'
-              ? 'THERMAL IR'
-              : 'SAR 1.2GHz'}
+            {currentSystem.habitableZoneAu.min} – {currentSystem.habitableZoneAu.max} AU
           </span>
-          <span className="card-subtext">Spatial Resolution: 0.85 m/pixel</span>
+          <span className="card-subtext">Water Stability Range</span>
         </div>
 
         <div className="telemetry-card">
-          <span className="card-label">ORBITAL TARGET</span>
-          <span className="card-value">VALHALLA BASIN</span>
-          <span className="card-subtext">Coordinates: 15.9°N, 55.6°W</span>
+          <span className="card-label">ACTIVE SELECTION</span>
+          <span className="card-value">{selectedBody.name}</span>
+          <span className="card-subtext">{selectedBody.type} // {selectedBody.surfaceTempC}</span>
         </div>
 
         <div className="telemetry-card">
-          <span className="card-label">RELIEF RANGE</span>
-          <span className="card-value">-1,820 m to +2,150 m</span>
-          <span className="card-subtext">Vertical Exaggeration: {elevationScale.toFixed(1)}x</span>
-        </div>
-
-        <div className="telemetry-card">
-          <span className="card-label">ACTIVE RADAR WAYPOINT</span>
-          <span className="card-value">{selectedWaypoint.name.slice(0, 16)}</span>
-          <span className="card-subtext">Elev: {selectedWaypoint.elevationM > 0 ? '+' : ''}{selectedWaypoint.elevationM} m</span>
-        </div>
-
-        <div className="telemetry-card">
-          <span className="card-label">SURFACE REGOLITH</span>
-          <span className="card-value">H₂O ICE + SILICATE</span>
-          <span className="card-subtext">Dielectric Permittivity: ε = 3.1</span>
+          <span className="card-label">EARTH SIMILARITY (ESI)</span>
+          <span className="card-value" style={{ color: selectedBody.habitabilityIndexPct > 70 ? '#34d399' : '#38bdf8' }}>
+            {selectedBody.habitabilityIndexPct}%
+          </span>
+          <span className="card-subtext">Gravity: {selectedBody.surfaceGravityG}g</span>
         </div>
       </div>
 
-      {/* Main 3D Viewport Workspace */}
+      {/* Main Interactive Workspace */}
       <div className="deck-workspace">
+        {/* Left Column: Interactive Canvas / Viewport */}
         <div className="viewport-col">
           <div className="canvas-container">
-            <canvas
-              ref={canvasRef}
-              width={860}
-              height={500}
-              className="lidar-canvas"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            />
+            {/* View Mode 1: Real-Time Orbital Orrery */}
+            {viewMode === 'ORBITAL' && (
+              <canvas
+                ref={canvasRef}
+                width={860}
+                height={520}
+                className="orrery-canvas"
+                onClick={handleCanvasClick}
+              />
+            )}
 
-            {/* Overlaid Interactive Controls within Canvas HUD */}
-            <div className="canvas-hud-overlay">
-              <div className="hud-band-picker">
-                {(
-                  [
-                    { id: 'LIDAR', label: 'LIDAR TOPOGRAPHY' },
-                    { id: 'SUBSURFACE', label: 'SUBSURFACE RADAR' },
-                    { id: 'THERMAL', label: 'THERMAL INFRARED' },
-                    { id: 'SAR', label: 'SAR WIREFRAME' },
-                  ] as const
-                ).map((b) => (
+            {/* View Mode 2: True Relative Planetary Scale Comparison */}
+            {viewMode === 'SCALE_COMPARISON' && (
+              <div className="scale-comparison-view">
+                <div className="scale-header">
+                  <span className="scale-title">TRUE RELATIVE PHYSICAL DIAMETERS</span>
+                  <span className="scale-subtitle">Planetary sizes drawn to scale against Earth (12,742 km)</span>
+                </div>
+                <div className="scale-body-row">
+                  {currentSystem.bodies.map((b) => {
+                    const diameterPx = Math.max(22, Math.min(120, (b.actualDiameterKm / 14000) * 48));
+                    const isSelected = selectedBodyId === b.id;
+                    return (
+                      <div
+                        key={b.id}
+                        className={`scale-body-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => setSelectedBodyId(b.id)}
+                      >
+                        <div
+                          className="scale-sphere"
+                          style={{
+                            width: `${diameterPx}px`,
+                            height: `${diameterPx}px`,
+                            backgroundColor: b.color,
+                            boxShadow: `0 0 16px ${b.glowColor}`,
+                          }}
+                        />
+                        <span className="scale-name">{b.name.replace(/ \(.*\)/, '')}</span>
+                        <span className="scale-km">{b.actualDiameterKm.toLocaleString()} km</span>
+                        <span className="scale-ratio">{(b.actualDiameterKm / 12742).toFixed(2)}x Earth</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* View Mode 3: Exoplanet Transit Photometry Light Curve */}
+            {viewMode === 'TRANSIT_LIGHTCURVE' && (
+              <div className="transit-view">
+                <div className="transit-header">
+                  <span className="transit-title">TRANSIT PHOTOMETRY LIGHT CURVE SIMULATION</span>
+                  <span className="transit-subtitle">
+                    How NASA Kepler & JWST detect exoplanets when they block a fraction of stellar flux
+                  </span>
+                </div>
+                <div className="transit-graph-box">
+                  <svg viewBox="0 0 760 220" className="transit-svg">
+                    <line x1="50" y1="40" x2="710" y2="40" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4 4" />
+                    <line x1="50" y1="180" x2="710" y2="180" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+                    
+                    {/* Transit Dip Curve */}
+                    <path
+                      d="M 60 50 L 260 50 Q 330 50 350 140 Q 380 165 410 140 Q 430 50 500 50 L 700 50"
+                      fill="none"
+                      stroke="#38bdf8"
+                      strokeWidth="3"
+                    />
+                    
+                    {/* Measurement Labels */}
+                    <text x="70" y="42" fill="#94a3b8" fontSize="11" fontFamily="monospace">100.0% Baseline Flux</text>
+                    <text x="380" y="185" fill="#f43f5e" fontSize="12" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                      TRANSIT DEPTH ΔF = (R_planet / R_star)² = 0.84%
+                    </text>
+                    <text x="380" y="130" fill="#38bdf8" fontSize="11" textAnchor="middle" fontFamily="monospace">
+                      {selectedBody.name} Mid-Transit
+                    </text>
+                  </svg>
+                </div>
+                <div className="transit-explanation">
+                  <span className="transit-tag">METHODOLOGY:</span>
+                  <p>
+                    As <strong>{selectedBody.name}</strong> transits across the disc of{' '}
+                    <strong>{currentSystem.centralStar.name}</strong>, it obscures a small percentage of the star’s light.
+                    By measuring the depth and duration of this dip, astronomers determine the planet’s precise diameter,
+                    orbital inclination, and atmospheric transmission spectrum.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Canvas HUD Controls Bar */}
+            <div className="canvas-hud-bar">
+              <div className="hud-view-modes">
+                <button
+                  type="button"
+                  className={`hud-tab-btn ${viewMode === 'ORBITAL' ? 'active' : ''}`}
+                  onClick={() => setViewMode('ORBITAL')}
+                >
+                  ORBITAL ORRERY
+                </button>
+                <button
+                  type="button"
+                  className={`hud-tab-btn ${viewMode === 'SCALE_COMPARISON' ? 'active' : ''}`}
+                  onClick={() => setViewMode('SCALE_COMPARISON')}
+                >
+                  SCALE COMPARISON
+                </button>
+                <button
+                  type="button"
+                  className={`hud-tab-btn ${viewMode === 'TRANSIT_LIGHTCURVE' ? 'active' : ''}`}
+                  onClick={() => setViewMode('TRANSIT_LIGHTCURVE')}
+                >
+                  TRANSIT PHOTOMETRY
+                </button>
+              </div>
+
+              {viewMode === 'ORBITAL' && (
+                <div className="hud-time-controls">
                   <button
-                    key={b.id}
                     type="button"
-                    className={`hud-band-btn ${activeBand === b.id ? 'active' : ''}`}
-                    onClick={() => setActiveBand(b.id)}
+                    className="hud-ctrl-btn"
+                    onClick={() => setIsPlaying(!isPlaying)}
                   >
-                    {b.label}
+                    {isPlaying ? '⏸ PAUSE' : '▶ RESUME'}
                   </button>
-                ))}
-              </div>
-
-              <div className="hud-floating-tools">
-                <button
-                  type="button"
-                  className="hud-tool-btn"
-                  onClick={handleResetCamera}
-                  title="Reset 3D camera angles"
-                >
-                  RESET VIEW
-                </button>
-                <button
-                  type="button"
-                  className={`hud-tool-btn ${wireframeMeshEnabled ? 'active' : ''}`}
-                  onClick={() => setWireframeMeshEnabled(!wireframeMeshEnabled)}
-                  title="Toggle topographic mesh wireframe lines"
-                >
-                  MESH: {wireframeMeshEnabled ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Gradient Scale Legend */}
-            <div className="spectrum-legend">
-              <span className="legend-title">SPECTRAL BAND ELEVATION SPECTRUM</span>
-              <div className="gradient-bar-wrapper">
-                <span className="legend-bound">-1,850 m (Depression)</span>
-                <div className={`gradient-fill band-${activeBand.toLowerCase()}`}></div>
-                <span className="legend-bound">+2,320 m (Crater Rim)</span>
-              </div>
+                  <button
+                    type="button"
+                    className={`hud-ctrl-btn ${showHabitableZone ? 'active' : ''}`}
+                    onClick={() => setShowHabitableZone(!showHabitableZone)}
+                  >
+                    GOLDILOCKS ZONE: {showHabitableZone ? 'ON' : 'OFF'}
+                  </button>
+                  <div className="speed-pills">
+                    {[0.5, 1.0, 5.0, 20.0].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`speed-btn ${speedMultiplier === s ? 'active' : ''}`}
+                        onClick={() => setSpeedMultiplier(s)}
+                      >
+                        {s}x
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Geological Waypoint & Flight Deck Side Panel */}
+        {/* Right Column: Planetary Dossier & Educational Analysis */}
         <div className="sidebar-col">
+          {/* Body Selector List */}
           <div className="sidebar-card">
-            <span className="sidebar-category">TARGETED GEOLOGICAL SITES</span>
-            <h3 className="sidebar-title">Surface Radar Waypoints</h3>
+            <span className="sidebar-category">SYSTEM ROSTER</span>
+            <h3 className="sidebar-title">Planets & Moons</h3>
 
-            <div className="waypoint-list">
-              {CALLISTO_WAYPOINTS.map((wp) => {
-                const isSelected = selectedWaypoint.id === wp.id;
+            <div className="body-roster-list">
+              {currentSystem.bodies.map((b) => {
+                const isSelected = selectedBodyId === b.id;
                 return (
                   <div
-                    key={wp.id}
-                    className={`waypoint-item ${isSelected ? 'selected' : ''}`}
-                    onClick={() => handleSelectWaypoint(wp)}
+                    key={b.id}
+                    className={`roster-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => setSelectedBodyId(b.id)}
                   >
-                    <div className="wp-header">
-                      <span className="wp-name">{wp.name}</span>
-                      <span className={`wp-hazard hazard-${wp.hazardRating.toLowerCase()}`}>
-                        {wp.hazardRating}
+                    <span className="roster-dot" style={{ backgroundColor: b.color, boxShadow: `0 0 8px ${b.glowColor}` }} />
+                    <div className="roster-info">
+                      <span className="roster-name">{b.name}</span>
+                      <span className="roster-meta">
+                        {b.orbitalPeriodDays}d Orbit • {b.surfaceTempC}
                       </span>
                     </div>
-                    <div className="wp-meta">
-                      <span>Elev: {wp.elevationM > 0 ? '+' : ''}{wp.elevationM} m</span>
-                      <span>{wp.classification}</span>
-                    </div>
+                    {b.habitableStatus === 'IN_HABITABLE_ZONE' && (
+                      <span className="hz-badge" title="Inside Temperate Habitable Zone">HZ</span>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Active Target Deep Telemetry Card */}
-          <div className="sidebar-card target-detail-card">
-            <span className="sidebar-category">SELECTED TARGET PROFILE</span>
-            <h4 className="detail-name">{selectedWaypoint.name}</h4>
-            <p className="detail-desc">{selectedWaypoint.description}</p>
+          {/* Detailed Selected Body Card */}
+          <div className="sidebar-card target-dossier-card">
+            <div className="dossier-header">
+              <span className="sidebar-category">{selectedBody.type}</span>
+              <span className={`status-pill pill-${selectedBody.habitableStatus.toLowerCase()}`}>
+                {selectedBody.habitableStatus === 'IN_HABITABLE_ZONE'
+                  ? 'HABITABLE ZONE'
+                  : selectedBody.habitableStatus === 'POTENTIALLY_HABITABLE'
+                  ? 'SUB-SURFACE OCEAN'
+                  : 'EXTREME ENVIRONMENT'}
+              </span>
+            </div>
 
-            <div className="detail-stat-grid">
-              <div className="stat-cell">
-                <span className="stat-label">GEOLOGIC UNIT</span>
-                <span className="stat-val">{selectedWaypoint.classification}</span>
+            <h4 className="dossier-name">{selectedBody.name}</h4>
+            <p className="dossier-desc">{selectedBody.description}</p>
+
+            {/* "In Plain English" Cosmic Analogy Box */}
+            <div className="analogy-box">
+              <span className="analogy-title">IN PLAIN ENGLISH (COSMIC ANALOGY):</span>
+              <p className="analogy-text">"{selectedBody.funAnalogy}"</p>
+            </div>
+
+            {/* Physical Parameter Grid */}
+            <div className="param-grid">
+              <div className="param-cell">
+                <span className="param-label">DIAMETER</span>
+                <span className="param-val">{selectedBody.actualDiameterKm.toLocaleString()} km</span>
               </div>
-              <div className="stat-cell">
-                <span className="stat-label">ELEVATION</span>
-                <span className="stat-val">{selectedWaypoint.elevationM > 0 ? '+' : ''}{selectedWaypoint.elevationM} m</span>
+              <div className="param-cell">
+                <span className="param-label">SURFACE GRAVITY</span>
+                <span className="param-val">{selectedBody.surfaceGravityG} g ({selectedBody.surfaceGravityG === 1 ? 'Earth Normal' : `${(selectedBody.surfaceGravityG * 100).toFixed(0)}% Earth`})</span>
               </div>
-              <div className="stat-cell">
-                <span className="stat-label">TOUCHDOWN HAZARD</span>
-                <span className="stat-val">{selectedWaypoint.hazardRating}</span>
+              <div className="param-cell">
+                <span className="param-label">SURFACE TEMP</span>
+                <span className="param-val">{selectedBody.surfaceTempC}</span>
               </div>
-              <div className="stat-cell">
-                <span className="stat-label">SLOPE STABILITY</span>
-                <span className="stat-val">Stable (&lt; 6.5°)</span>
+              <div className="param-cell">
+                <span className="param-label">ORBITAL PERIOD</span>
+                <span className="param-val">{selectedBody.orbitalPeriodDays} Earth Days</span>
               </div>
             </div>
 
-            {/* Slider Controls */}
-            <div className="control-slider-box">
-              <div className="slider-label-row">
-                <span>Relief Exaggeration</span>
-                <span>{elevationScale.toFixed(1)}x</span>
-              </div>
-              <input
-                type="range"
-                min="1.0"
-                max="3.0"
-                step="0.1"
-                value={elevationScale}
-                onChange={(e) => setElevationScale(Number(e.target.value))}
-                className="terrain-slider"
-              />
+            {/* Atmosphere Readout */}
+            <div className="atm-box">
+              <span className="atm-label">ATMOSPHERIC COMPOSITION:</span>
+              <span className="atm-val">{selectedBody.atmosphere}</span>
             </div>
 
-            <div className="control-slider-box">
-              <div className="slider-label-row">
-                <span>Point Cloud Density</span>
-                <span>{pointCloudDensity}</span>
+            {selectedBody.discoveryMethod && (
+              <div className="discovery-footer">
+                <span>Discovered via {selectedBody.discoveryMethod} ({selectedBody.discoveryYear})</span>
               </div>
-              <div className="density-toggle-group">
-                {(['STANDARD', 'HIGH', 'ULTRA'] as const).map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    className={`density-btn ${pointCloudDensity === d ? 'active' : ''}`}
-                    onClick={() => setPointCloudDensity(d)}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mission Briefing Modal */}
-      {reportModalOpen && (
-        <div className="modal-overlay" onClick={() => setReportModalOpen(false)}>
+      {/* System Dossier Briefing Modal */}
+      {briefingModalOpen && (
+        <div className="modal-overlay" onClick={() => setBriefingModalOpen(false)}>
           <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-tag">EXPEDITION TECHNICAL ARCHIVE // GEOLOGICAL SURVEY</div>
-              <h3 className="modal-title">Valhalla Basin LIDAR & Radar Altimetry</h3>
+              <div className="modal-tag">CALLISTO ASTRONOMICAL ARCHIVE // SYSTEM BRIEFING</div>
+              <h3 className="modal-title">{currentSystem.name} Comprehensive Dossier</h3>
             </div>
             <div className="modal-content">
-              <h4>1. The Multi-Ring Architecture of Valhalla</h4>
+              <h4>1. System Architecture & Context</h4>
+              <p>{currentSystem.overviewLore}</p>
+              <h4>2. The Habitable Zone (The Goldilocks Band)</h4>
               <p>
-                Valhalla is the largest multi-ring impact structure in the entire Solar System, spanning
-                approximately $3,800\text{ km}$ across Callisto’s crust. Its concentric fault scarps formed
-                as the shockwave of a titanic ancient impact shattered the brittle frozen crust over a warmer,
-                ductile ice-slush asthenosphere.
+                The circumstellar habitable zone ({currentSystem.habitableZoneAu.min} AU to {currentSystem.habitableZoneAu.max} AU)
+                is the distance from a star where liquid water can pool on a planet’s surface without freezing or boiling away.
+                Around dim red dwarf stars like TRAPPIST-1 and Proxima Centauri, this band is extremely close to the star—often
+                orbiting in days rather than years.
               </p>
-              <h4>2. Multi-Spectral Orbital Sounding</h4>
+              <h4>3. Detection & Astrobiological Potential</h4>
               <p>
-                - <strong>LIDAR (1064 nm):</strong> Emits nanosecond laser pulses to register sub-meter surface
-                elevation and crater depth geometries.
-                <br />
-                - <strong>Sub-Surface Radar (15 MHz):</strong> Penetrates through dark cryo-regolith to bounce off
-                dielectric transitions, mapping the boundary of the hypothesized sub-surface ocean at depth.
-                <br />
-                - <strong>Thermal IR:</strong> Identifies bedrock outcrops exhibiting high thermal inertia compared
-                to loose, highly insulating impact dust.
-              </p>
-              <h4>3. Touchdown Site Selection</h4>
-              <p>
-                Candidate Outpost Alpha resides on the sheltered floor between Valhalla’s third and fourth concentric
-                rings, offering flat terrain, low boulder scatter, and shielding from solar cosmic ray flux.
+                Transit photometry measures tiny dips in star brightness to determine exoplanet sizes. By pairing transit data
+                with transmission spectroscopy from the James Webb Space Telescope (JWST), astronomers search for biosignatures:
+                water vapor, carbon dioxide, methane, and oxygen in these alien atmospheres.
               </p>
             </div>
             <div className="modal-footer">
               <button
                 type="button"
                 className="action-btn report-btn"
-                onClick={() => setReportModalOpen(false)}
+                onClick={() => setBriefingModalOpen(false)}
               >
-                RETURN TO ORBITAL SURVEYOR
+                RETURN TO ORBITAL EXPLORER
               </button>
             </div>
           </div>
@@ -799,7 +1147,7 @@ export default function ExpeditionSimulator() {
 
       {/* Embedded High-Contrast Stylesheet */}
       <style>{`
-        .lidar-cockpit {
+        .cosmos-cockpit {
           background-color: var(--surface, #0c121e);
           border: 1px solid color-mix(in srgb, var(--border, #334155) 45%, transparent);
           border-radius: var(--radius-lg, 12px);
@@ -833,7 +1181,7 @@ export default function ExpeditionSimulator() {
           margin-bottom: 0.5rem;
         }
 
-        .platform-badge {
+        .station-badge {
           font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -875,6 +1223,20 @@ export default function ExpeditionSimulator() {
           display: flex;
           gap: 0.75rem;
           flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .system-select-dropdown {
+          background: #0f172a;
+          color: #38bdf8;
+          border: 1px solid #38bdf8;
+          padding: 0.65rem 1rem;
+          border-radius: 6px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          cursor: pointer;
+          outline: none;
         }
 
         .action-btn {
@@ -888,22 +1250,6 @@ export default function ExpeditionSimulator() {
           letter-spacing: 0.04em;
           cursor: pointer;
           transition: all 0.2s ease;
-        }
-
-        .flyover-btn {
-          background: #0284c7;
-          color: #ffffff;
-          border: 1px solid #38bdf8;
-        }
-
-        .flyover-btn:hover {
-          background: #0369a1;
-          box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
-        }
-
-        .flyover-btn.active {
-          background: #0ea5e9;
-          box-shadow: 0 0 16px rgba(14, 165, 233, 0.5);
         }
 
         .report-btn {
@@ -975,141 +1321,233 @@ export default function ExpeditionSimulator() {
           border: 1px solid rgba(51, 65, 85, 0.5);
           border-radius: 8px;
           overflow: hidden;
+          display: flex;
+          flex-direction: column;
         }
 
-        .lidar-canvas {
+        .orrery-canvas {
           width: 100%;
           height: auto;
-          aspect-ratio: 860 / 500;
+          aspect-ratio: 860 / 520;
           display: block;
-          cursor: grab;
-          touch-action: none;
+          cursor: crosshair;
         }
 
-        .lidar-canvas:active {
-          cursor: grabbing;
-        }
-
-        /* Canvas HUD Overlay */
-        .canvas-hud-overlay {
-          position: absolute;
-          top: 1rem;
-          left: 1rem;
-          right: 1rem;
+        /* Scale Comparison View */
+        .scale-comparison-view {
+          padding: 2rem;
+          min-height: 480px;
           display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-          pointer-events: none;
+          flex-direction: column;
+          justify-content: center;
+          gap: 2rem;
         }
 
-        .hud-band-picker {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.4rem;
-          pointer-events: auto;
-        }
-
-        .hud-band-btn {
-          background: rgba(15, 23, 42, 0.85);
-          border: 1px solid rgba(51, 65, 85, 0.6);
-          color: #94a3b8;
-          padding: 0.4rem 0.75rem;
-          border-radius: 4px;
-          font-size: 0.68rem;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          cursor: pointer;
-          backdrop-filter: blur(4px);
-          transition: all 0.2s ease;
-        }
-
-        .hud-band-btn:hover {
-          color: #ffffff;
-          border-color: #38bdf8;
-        }
-
-        .hud-band-btn.active {
-          background: rgba(56, 189, 248, 0.2);
-          color: #38bdf8;
-          border-color: #38bdf8;
-        }
-
-        .hud-floating-tools {
-          display: flex;
-          gap: 0.4rem;
-          pointer-events: auto;
-        }
-
-        .hud-tool-btn {
-          background: rgba(15, 23, 42, 0.85);
-          border: 1px solid rgba(51, 65, 85, 0.6);
-          color: #94a3b8;
-          padding: 0.4rem 0.75rem;
-          border-radius: 4px;
-          font-size: 0.68rem;
-          font-weight: 700;
-          cursor: pointer;
-          backdrop-filter: blur(4px);
-          transition: all 0.2s ease;
-        }
-
-        .hud-tool-btn:hover {
-          color: #ffffff;
-        }
-
-        .hud-tool-btn.active {
-          background: rgba(56, 189, 248, 0.15);
-          color: #38bdf8;
-          border-color: #38bdf8;
-        }
-
-        /* Spectrum Legend Bar */
-        .spectrum-legend {
-          padding: 0.75rem 1rem;
-          background: rgba(8, 12, 20, 0.9);
-          border-top: 1px solid rgba(51, 65, 85, 0.4);
+        .scale-header {
           display: flex;
           flex-direction: column;
           gap: 0.35rem;
         }
 
-        .legend-title {
-          font-size: 0.65rem;
+        .scale-title {
+          font-size: 0.85rem;
           font-weight: 700;
-          color: #94a3b8;
+          color: #38bdf8;
           letter-spacing: 0.05em;
         }
 
-        .gradient-bar-wrapper {
+        .scale-subtitle {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+
+        .scale-body-row {
           display: flex;
+          align-items: flex-end;
+          gap: 1.5rem;
+          overflow-x: auto;
+          padding: 2rem 1rem;
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(51, 65, 85, 0.4);
+          border-radius: 8px;
+        }
+
+        .scale-body-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.6rem;
+          cursor: pointer;
+          min-width: 90px;
+          padding: 0.5rem;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+        }
+
+        .scale-body-item:hover,
+        .scale-body-item.selected {
+          background: rgba(56, 189, 248, 0.12);
+        }
+
+        .scale-sphere {
+          border-radius: 50%;
+        }
+
+        .scale-name {
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #ffffff;
+          text-align: center;
+        }
+
+        .scale-km {
+          font-size: 0.7rem;
+          color: #38bdf8;
+        }
+
+        .scale-ratio {
+          font-size: 0.65rem;
+          color: #94a3b8;
+        }
+
+        /* Transit View */
+        .transit-view {
+          padding: 1.5rem;
+          min-height: 480px;
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .transit-header {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .transit-title {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #38bdf8;
+          letter-spacing: 0.05em;
+        }
+
+        .transit-subtitle {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+
+        .transit-graph-box {
+          background: rgba(7, 11, 19, 0.8);
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          border-radius: 8px;
+          padding: 1rem;
+        }
+
+        .transit-svg {
+          width: 100%;
+          height: auto;
+        }
+
+        .transit-explanation {
+          background: rgba(15, 23, 42, 0.6);
+          border-left: 2px solid #38bdf8;
+          padding: 0.85rem 1rem;
+          border-radius: 0 6px 6px 0;
+          font-size: 0.78rem;
+          line-height: 1.6;
+          color: #cbd5e1;
+        }
+
+        .transit-tag {
+          font-weight: 800;
+          color: #38bdf8;
+          margin-right: 0.5rem;
+        }
+
+        /* Canvas Bottom HUD Bar */
+        .canvas-hud-bar {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
           align-items: center;
           gap: 0.75rem;
-          font-size: 0.65rem;
-          color: #64748b;
+          padding: 0.75rem 1.25rem;
+          background: rgba(8, 12, 20, 0.95);
+          border-top: 1px solid rgba(51, 65, 85, 0.4);
         }
 
-        .gradient-fill {
-          flex: 1;
-          height: 8px;
+        .hud-view-modes {
+          display: flex;
+          gap: 0.4rem;
+        }
+
+        .hud-tab-btn {
+          background: rgba(15, 23, 42, 0.8);
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          color: #94a3b8;
+          padding: 0.4rem 0.75rem;
           border-radius: 4px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
 
-        .gradient-fill.band-lidar {
-          background: linear-gradient(90deg, #0284c7 0%, #2dd4bf 50%, #38bdf8 75%, #f8fafc 100%);
+        .hud-tab-btn:hover {
+          color: #ffffff;
         }
 
-        .gradient-fill.band-subsurface {
-          background: linear-gradient(90deg, #4c1d95 0%, #c084fc 60%, #fbbf24 100%);
+        .hud-tab-btn.active {
+          background: rgba(56, 189, 248, 0.2);
+          color: #38bdf8;
+          border-color: #38bdf8;
         }
 
-        .gradient-fill.band-thermal {
-          background: linear-gradient(90deg, #4338ca 0%, #e11d48 50%, #f43f5e 100%);
+        .hud-time-controls {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          flex-wrap: wrap;
         }
 
-        .gradient-fill.band-sar {
-          background: linear-gradient(90deg, #15803d 0%, #4ade80 100%);
+        .hud-ctrl-btn {
+          background: rgba(15, 23, 42, 0.8);
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          color: #e2e8f0;
+          padding: 0.4rem 0.7rem;
+          border-radius: 4px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .hud-ctrl-btn.active {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+          border-color: #10b981;
+        }
+
+        .speed-pills {
+          display: flex;
+          gap: 0.25rem;
+        }
+
+        .speed-btn {
+          background: transparent;
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          color: #94a3b8;
+          padding: 0.35rem 0.55rem;
+          border-radius: 4px;
+          font-size: 0.68rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .speed-btn.active {
+          background: #38bdf8;
+          color: #070b13;
+          border-color: #38bdf8;
         }
 
         /* Sidebar Column */
@@ -1143,73 +1581,108 @@ export default function ExpeditionSimulator() {
           margin: 0;
         }
 
-        .waypoint-list {
+        .body-roster-list {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 0.45rem;
+          max-height: 230px;
+          overflow-y: auto;
         }
 
-        .waypoint-item {
+        .roster-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.65rem 0.75rem;
           background: rgba(7, 11, 19, 0.6);
           border: 1px solid rgba(51, 65, 85, 0.4);
           border-radius: 6px;
-          padding: 0.75rem;
           cursor: pointer;
           transition: all 0.2s ease;
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
         }
 
-        .waypoint-item:hover {
+        .roster-item:hover {
           border-color: #38bdf8;
-          background: rgba(15, 23, 42, 0.8);
+          background: rgba(15, 23, 42, 0.85);
         }
 
-        .waypoint-item.selected {
+        .roster-item.selected {
           border-color: #38bdf8;
           background: rgba(56, 189, 248, 0.12);
         }
 
-        .wp-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        .roster-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          flex-shrink: 0;
         }
 
-        .wp-name {
+        .roster-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.15rem;
+          flex: 1;
+        }
+
+        .roster-name {
           font-size: 0.78rem;
           font-weight: 700;
           color: #f1f5f9;
         }
 
-        .wp-hazard {
+        .roster-meta {
+          font-size: 0.68rem;
+          color: #94a3b8;
+        }
+
+        .hz-badge {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+          border: 1px solid #10b981;
           font-size: 0.62rem;
           font-weight: 800;
           padding: 0.1rem 0.35rem;
           border-radius: 3px;
         }
 
-        .hazard-low { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .hazard-moderate { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .hazard-severe { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-
-        .wp-meta {
+        /* Selected Target Dossier Card */
+        .dossier-header {
           display: flex;
           justify-content: space-between;
-          font-size: 0.68rem;
-          color: #94a3b8;
+          align-items: center;
         }
 
-        /* Target Detail Card */
-        .detail-name {
-          font-size: 1rem;
+        .status-pill {
+          font-size: 0.65rem;
+          font-weight: 800;
+          padding: 0.15rem 0.5rem;
+          border-radius: 4px;
+        }
+
+        .pill-in_habitable_zone {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+        }
+
+        .pill-potentially_habitable {
+          background: rgba(56, 189, 248, 0.2);
+          color: #38bdf8;
+        }
+
+        .pill-non_habitable {
+          background: rgba(244, 63, 94, 0.2);
+          color: #fb7185;
+        }
+
+        .dossier-name {
+          font-size: 1.1rem;
           font-weight: 700;
           color: #ffffff;
           margin: 0;
         }
 
-        .detail-desc {
+        .dossier-desc {
           font-size: 0.76rem;
           line-height: 1.5;
           color: #cbd5e1;
@@ -1217,7 +1690,30 @@ export default function ExpeditionSimulator() {
           font-family: var(--font-body, inherit);
         }
 
-        .detail-stat-grid {
+        .analogy-box {
+          background: rgba(2, 6, 23, 0.65);
+          border-left: 2px solid #f59e0b;
+          padding: 0.65rem 0.85rem;
+          border-radius: 0 4px 4px 0;
+        }
+
+        .analogy-title {
+          font-size: 0.62rem;
+          font-weight: 800;
+          color: #fbbf24;
+          display: block;
+          margin-bottom: 0.25rem;
+        }
+
+        .analogy-text {
+          font-size: 0.74rem;
+          line-height: 1.5;
+          color: #fef3c7;
+          font-style: italic;
+          margin: 0;
+        }
+
+        .param-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 0.5rem;
@@ -1226,66 +1722,46 @@ export default function ExpeditionSimulator() {
           border-radius: 6px;
         }
 
-        .stat-cell {
+        .param-cell {
           display: flex;
           flex-direction: column;
           gap: 0.15rem;
         }
 
-        .stat-label {
+        .param-label {
           font-size: 0.62rem;
           color: #64748b;
           font-weight: 700;
         }
 
-        .stat-val {
+        .param-val {
           font-size: 0.74rem;
           color: #38bdf8;
           font-weight: 700;
         }
 
-        .control-slider-box {
+        .atm-box {
           display: flex;
           flex-direction: column;
-          gap: 0.35rem;
-        }
-
-        .slider-label-row {
-          display: flex;
-          justify-content: space-between;
+          gap: 0.2rem;
           font-size: 0.72rem;
+        }
+
+        .atm-label {
+          font-size: 0.62rem;
           color: #94a3b8;
-          font-weight: 600;
-        }
-
-        .terrain-slider {
-          width: 100%;
-          accent-color: #38bdf8;
-          cursor: pointer;
-        }
-
-        .density-toggle-group {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.4rem;
-        }
-
-        .density-btn {
-          background: rgba(7, 11, 19, 0.6);
-          border: 1px solid rgba(51, 65, 85, 0.4);
-          color: #94a3b8;
-          padding: 0.35rem;
-          border-radius: 4px;
-          font-size: 0.68rem;
           font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
         }
 
-        .density-btn.active {
-          background: rgba(56, 189, 248, 0.2);
-          color: #38bdf8;
-          border-color: #38bdf8;
+        .atm-val {
+          color: #e2e8f0;
+        }
+
+        .discovery-footer {
+          border-top: 1px solid rgba(51, 65, 85, 0.4);
+          padding-top: 0.5rem;
+          font-size: 0.65rem;
+          color: #64748b;
         }
 
         /* Modal */
