@@ -3,13 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import TelescopeSimulator from '../components/react/TelescopeSimulator';
 import NasaDeepSpaceFeed from '../components/react/NasaDeepSpaceFeed';
-
-const celestialTargets = [
-  { name: 'Jupiter (Great Red Spot Transit)', constellation: 'Taurus', magnitude: '-2.7', bestViewing: '22:00 – 02:30 IST' },
-  { name: 'Saturn & Ring Plane Angle', constellation: 'Aquarius', magnitude: '+0.7', bestViewing: '19:30 – 23:00 IST' },
-  { name: 'Orion Nebula (M42 / NGC 1976)', constellation: 'Orion', magnitude: '+4.0', bestViewing: '00:30 – 04:30 IST' },
-  { name: 'Andromeda Galaxy (M31)', constellation: 'Andromeda', magnitude: '+3.4', bestViewing: '20:00 – 01:00 IST' },
-];
+import TonightSkyEphemeris from '../components/react/TonightSkyEphemeris';
 ---
 
 <BaseLayout
@@ -37,41 +31,9 @@ const celestialTargets = [
       <NasaDeepSpaceFeed client:visible />
     </section>
 
-    <!-- Tonight's Sky Section -->
-    <section class="sky-section" aria-labelledby="sky-heading">
-      <div class="section-card">
-        <div class="card-meta-badge">OBSERVATIONAL RADAR</div>
-        <h2 id="sky-heading" class="card-title">Tonight's Sky & Ephemeris</h2>
-        <p class="card-lead">
-          Estimated seeing conditions from the CIT campus observation deck. Calibrate your optics for prime Jovian and deep-sky observation windows.
-        </p>
-
-        <div class="targets-table-wrapper">
-          <table class="targets-table">
-            <thead>
-              <tr>
-                <th scope="col">CELESTIAL TARGET</th>
-                <th scope="col">CONSTELLATION</th>
-                <th scope="col">MAGNITUDE</th>
-                <th scope="col">OPTIMAL WINDOW</th>
-              </tr>
-            </thead>
-            <tbody>
-              {celestialTargets.map((target) => (
-                <tr>
-                  <td class="target-name">
-                    <span class="target-bullet"></span>
-                    {target.name}
-                  </td>
-                  <td class="target-constellation">{target.constellation}</td>
-                  <td class="target-mag">{target.magnitude}</td>
-                  <td class="target-time">{target.bestViewing}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <!-- Dynamic Automatic Ephemeris & Tonight's Sky Radar Island -->
+    <section class="sky-section" aria-label="Dynamic Astronomical Ephemeris and Seeing Radar">
+      <TonightSkyEphemeris client:load />
     </section>
 
     <!-- Featured Article Section -->
@@ -96,23 +58,6 @@ const celestialTargets = [
         </div>
         <div class="article-footer">
           <span class="full-article-note">Full scientific publication releasing in Callisto Journal Vol. IV</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- APOD Section -->
-    <section class="apod-section" aria-labelledby="apod-heading">
-      <div class="apod-card">
-        <div class="apod-badge">COSMIC ARCHIVE</div>
-        <h2 id="apod-heading" class="apod-title">Astronomy Picture of the Day</h2>
-        <div class="apod-placeholder-canvas">
-          <div class="apod-icon" aria-hidden="true">
-            <img src="/icons/dept-general.png" alt="" width="54" height="54" style="object-fit: contain;" />
-          </div>
-          <span class="apod-status">NASA APOD API PIPELINE INTEGRATION IN PROGRESS</span>
-          <p class="apod-note">
-            Our web systems team (Tesseract) is linking edge caching for NASA’s daily high-resolution astronomy stream with local metadata annotation.
-          </p>
         </div>
       </div>
     </section>

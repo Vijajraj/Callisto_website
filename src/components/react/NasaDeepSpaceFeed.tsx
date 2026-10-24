@@ -64,6 +64,23 @@ const FALLBACK_DISPATCHES: ApodData[] = [
   },
 ];
 
+interface IconicDispatch {
+  label: string;
+  date: string;
+  icon: string;
+}
+
+const ICONIC_DISPATCHES: IconicDispatch[] = [
+  { label: 'Pillars of Creation (JWST)', date: '2022-10-19', icon: '🦅' },
+  { label: 'Deep Field SMACS 0723', date: '2022-07-12', icon: '🌌' },
+  { label: "Webb's Saturn Rings", date: '2023-07-05', icon: '🪐' },
+  { label: 'Juno Over Great Red Spot', date: '2019-07-11', icon: '🌪️' },
+  { label: 'Io Volcano Plumes', date: '2024-01-03', icon: '🌋' },
+  { label: 'Perseverance at Jezero', date: '2021-03-05', icon: '🔴' },
+  { label: 'Total Solar Eclipse 2024', date: '2024-04-09', icon: '🌑' },
+  { label: 'Andromeda Spiral Core', date: '2023-11-08', icon: '🌀' },
+];
+
 export default function NasaDeepSpaceFeed() {
   const [currentApod, setCurrentApod] = useState<ApodData>(FALLBACK_DISPATCHES[0]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -152,10 +169,8 @@ export default function NasaDeepSpaceFeed() {
             <span className="status-dot"></span>
             {apiOnline ? 'LIVE NASA GATEWAY CONNECTED' : 'CACHED ARCHIVE'}
           </span>
-          <span className="api-key-badge">
-            KEY: {NASA_API_KEY && NASA_API_KEY !== 'DEMO_KEY'
-              ? `${NASA_API_KEY.slice(0, 4)}••••${NASA_API_KEY.slice(-4)}`
-              : 'DEMO_KEY'}
+          <span className="station-badge">
+            STATION: CIT-OBSERVATORY // CHENNAI
           </span>
         </div>
       </div>
@@ -223,6 +238,28 @@ export default function NasaDeepSpaceFeed() {
             <button type="button" className="time-btn random-btn" onClick={handleRandomDate}>
               🎲 RANDOM COSMIC ARCHIVE
             </button>
+          </div>
+
+          {/* Curated Iconic Deep-Space Expeditions (Quick Discovery Pills) */}
+          <div className="iconic-expeditions-bar">
+            <span className="expeditions-label">ICONIC EXPEDITIONS // ONE-CLICK DISCOVERY:</span>
+            <div className="expeditions-pills-row">
+              {ICONIC_DISPATCHES.map((item) => (
+                <button
+                  key={item.date}
+                  type="button"
+                  className={`expedition-pill ${currentApod.date === item.date || selectedDate === item.date ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedDate(item.date);
+                    fetchNasaApod(item.date);
+                  }}
+                  title={`View NASA Observation from ${item.date}`}
+                >
+                  <span className="pill-icon">{item.icon}</span>
+                  <span className="pill-title">{item.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -381,13 +418,14 @@ export default function NasaDeepSpaceFeed() {
           box-shadow: 0 0 6px currentColor;
         }
 
-        .api-key-badge {
+        .station-badge {
           font-size: 0.68rem;
-          color: #94a3b8;
-          background: rgba(148, 163, 184, 0.1);
-          border: 1px solid rgba(148, 163, 184, 0.25);
+          color: #38bdf8;
+          background: rgba(56, 189, 248, 0.1);
+          border: 1px solid rgba(56, 189, 248, 0.25);
           padding: 0.2rem 0.5rem;
           border-radius: 4px;
+          letter-spacing: 0.05em;
         }
 
         .nasa-content-grid {
@@ -558,6 +596,65 @@ export default function NasaDeepSpaceFeed() {
         .random-btn:hover {
           background: #f59e0b;
           color: #070b13;
+        }
+
+        .iconic-expeditions-bar {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          background: rgba(15, 23, 42, 0.45);
+          border: 1px solid rgba(51, 65, 85, 0.35);
+          border-radius: 6px;
+          padding: 0.65rem 0.85rem;
+        }
+
+        .expeditions-label {
+          font-family: var(--font-mono, monospace);
+          font-size: 0.625rem;
+          font-weight: 700;
+          color: #94a3b8;
+          letter-spacing: 0.08em;
+        }
+
+        .expeditions-pills-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+        }
+
+        .expedition-pill {
+          background: rgba(15, 23, 42, 0.8);
+          border: 1px solid rgba(56, 189, 248, 0.25);
+          color: #cbd5e1;
+          padding: 0.3rem 0.65rem;
+          border-radius: 4px;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.68rem;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .expedition-pill:hover {
+          border-color: #38bdf8;
+          color: #ffffff;
+          background: rgba(56, 189, 248, 0.15);
+          transform: translateY(-1px);
+        }
+
+        .expedition-pill.active {
+          background: #38bdf8;
+          color: #030712;
+          border-color: #38bdf8;
+          font-weight: 700;
+          box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
+        .pill-icon {
+          font-size: 0.75rem;
         }
 
         /* Metadata Column */
