@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import TelescopeSimulator from '../components/react/TelescopeSimulator';
+import NasaDeepSpaceFeed from '../components/react/NasaDeepSpaceFeed';
 
 const celestialTargets = [
   { name: 'Jupiter (Great Red Spot Transit)', constellation: 'Taurus', magnitude: '-2.7', bestViewing: '22:00 – 02:30 IST' },
@@ -29,6 +30,11 @@ const celestialTargets = [
     <!-- Interactive Telescope Eyepiece Simulator Island -->
     <section class="simulator-section" aria-label="Interactive Optical Telescope Eyepiece">
       <TelescopeSimulator client:load />
+    </section>
+
+    <!-- Live NASA Deep Space & APOD Gateway Island -->
+    <section class="nasa-section" aria-label="NASA Deep Space & APOD Feed">
+      <NasaDeepSpaceFeed client:visible />
     </section>
 
     <!-- Tonight's Sky Section -->
@@ -144,6 +150,15 @@ const celestialTargets = [
 
   .observatory-header {
     margin-bottom: var(--space-2xl);
+  }
+
+  /* Simulator Section */
+  .simulator-section {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .nasa-section {
+    margin-bottom: var(--space-3xl);
   }
 
   /* Section Card */

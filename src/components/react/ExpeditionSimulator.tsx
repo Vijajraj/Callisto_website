@@ -1278,10 +1278,11 @@ export default function ExpeditionSimulator() {
         .system-selector-group {
           display: flex;
           align-items: center;
-          background: rgba(15, 23, 42, 0.9);
-          border: 1px solid rgba(56, 189, 248, 0.35);
+          background: #0f172a;
+          border: 1px solid rgba(56, 189, 248, 0.45);
           border-radius: 6px;
           padding-left: 0.75rem;
+          color-scheme: dark;
         }
 
         .selector-prefix {
@@ -1292,8 +1293,8 @@ export default function ExpeditionSimulator() {
         }
 
         .system-select-dropdown {
-          background: transparent;
-          color: #f8fafc;
+          background-color: #0f172a;
+          color: #38bdf8;
           border: none;
           padding: 0.65rem 0.85rem;
           font-size: 0.8rem;
@@ -1301,6 +1302,20 @@ export default function ExpeditionSimulator() {
           letter-spacing: 0.04em;
           cursor: pointer;
           outline: none;
+          color-scheme: dark;
+        }
+
+        .system-select-dropdown option {
+          background-color: #0b1120;
+          color: #f8fafc;
+          padding: 0.6rem 1rem;
+          font-weight: 600;
+        }
+
+        .system-select-dropdown option:checked,
+        .system-select-dropdown option:hover {
+          background-color: #0284c7;
+          color: #ffffff;
         }
 
         .action-btn {

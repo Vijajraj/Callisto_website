@@ -123,6 +123,31 @@ html.light-mode .faculty-card {
   border-color: rgba(71, 85, 105, 0.22);
 }
 
+/* Form Select & Option Cross-Platform Contrast */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+html[data-theme="solar-flare"] select,
+html[data-theme="light"] select,
+html.theme-solar-flare select,
+html.light-mode select {
+  color-scheme: light;
+}
+
+html[data-theme="solar-flare"] select option,
+html[data-theme="light"] select option,
+html.theme-solar-flare select option,
+html.light-mode select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
 /* Media Elements */
 img,
 svg,
