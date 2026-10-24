@@ -256,7 +256,7 @@ export default function GalleryViewer(): React.ReactElement {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: 'var(--star)',
+                  color: 'var(--moon)',
                   fontSize: '1.5rem',
                   cursor: 'pointer',
                   padding: '0.5rem',

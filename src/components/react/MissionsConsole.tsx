@@ -236,7 +236,7 @@ export default function MissionsConsole(): React.ReactElement {
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.875rem', fontWeight: 600, color: 'var(--moon)', margin: '0.2rem 0' }}>
             Simulate Your Mission Budget & Timeline
           </h3>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9375rem', color: 'var(--star)', margin: 0 }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9375rem', color: 'var(--steel)', margin: 0 }}>
             Configure your research requirements to generate resource allocations from Callisto Club command.
           </p>
         </div>
@@ -255,7 +255,7 @@ export default function MissionsConsole(): React.ReactElement {
             <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--moon)', margin: '0 0 var(--space-xs) 0' }}>
               Mission Proposal Initialized!
             </h4>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.875rem', color: 'var(--star)', margin: '0 0 var(--space-md) 0' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.875rem', color: 'var(--steel)', margin: '0 0 var(--space-md) 0' }}>
               Your simulation parameters have been queued for review by Aether Wing and the Executive Circle.
             </p>
             <button

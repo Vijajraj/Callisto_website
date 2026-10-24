@@ -392,7 +392,7 @@ export default function EventExplorer({ initialEvents }: EventExplorerProps): Re
                       gap: '0.25rem',
                       fontSize: '0.75rem',
                       fontFamily: 'var(--font-mono)',
-                      color: 'var(--star)',
+                      color: 'var(--steel)',
                       marginBottom: '0.75rem',
                     }}
                   >
@@ -402,7 +402,7 @@ export default function EventExplorer({ initialEvents }: EventExplorerProps): Re
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                       <span style={{ color: 'var(--steel)' }}>📍</span>
-                      <span style={{ color: 'var(--star)' }}>{event.location}</span>
+                      <span style={{ color: 'var(--moon)' }}>{event.location}</span>
                     </div>
                   </div>
 

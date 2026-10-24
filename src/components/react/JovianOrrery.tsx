@@ -359,7 +359,7 @@ export default function JovianOrrery(): React.ReactElement {
               fontFamily: 'var(--font-mono)',
               fontWeight: 600,
               backgroundColor: 'color-mix(in srgb, var(--navy) 70%, transparent)',
-              color: 'var(--star)',
+              color: 'var(--moon)',
               border: '1px solid color-mix(in srgb, var(--steel) 40%, transparent)',
               borderRadius: 'var(--radius-sm)',
               cursor: 'pointer',
@@ -431,46 +431,65 @@ export default function JovianOrrery(): React.ReactElement {
           <div
             style={{
               position: 'absolute',
-              bottom: '0.65rem',
-              left: '0.65rem',
-              right: '0.65rem',
+              bottom: '0.75rem',
+              left: '0.75rem',
+              right: '0.75rem',
               display: 'flex',
               justifyContent: 'center',
               flexWrap: 'wrap',
-              gap: '0.35rem',
-              backgroundColor: 'rgba(6, 9, 25, 0.8)',
-              backdropFilter: 'blur(8px)',
-              padding: '0.4rem',
+              gap: '0.4rem',
+              backgroundColor: 'color-mix(in srgb, var(--deep) 92%, var(--navy))',
+              backdropFilter: 'blur(14px)',
+              padding: '0.4rem 0.6rem',
               borderRadius: 'var(--radius-full)',
-              border: '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
+              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
+              zIndex: 10,
             }}
           >
-            {JOVIAN_BODIES.map((b) => (
-              <button
-                key={b.id}
-                onClick={() => selectBody(b)}
-                style={{
-                  padding: '0.25rem 0.55rem',
-                  fontSize: '0.6875rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: selectedBody.id === b.id ? 700 : 500,
-                  color: selectedBody.id === b.id ? 'var(--moon)' : 'var(--star)',
-                  backgroundColor:
-                    selectedBody.id === b.id
-                      ? 'color-mix(in srgb, var(--orbit) 50%, var(--deep))'
+            {JOVIAN_BODIES.map((b) => {
+              const isSelected = selectedBody.id === b.id;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => selectBody(b)}
+                  style={{
+                    padding: '0.35rem 0.8rem',
+                    fontSize: '0.75rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: isSelected ? 700 : 600,
+                    letterSpacing: '0.04em',
+                    color: isSelected ? '#FFFFFF' : 'var(--moon)',
+                    backgroundColor: isSelected
+                      ? 'var(--orbit)'
                       : 'transparent',
-                  border:
-                    selectedBody.id === b.id
+                    border: isSelected
                       ? '1px solid var(--orbit)'
                       : '1px solid transparent',
-                  borderRadius: 'var(--radius-full)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {b.name}
-              </button>
-            ))}
+                    borderRadius: 'var(--radius-full)',
+                    cursor: 'pointer',
+                    boxShadow: isSelected
+                      ? '0 0 14px color-mix(in srgb, var(--orbit) 50%, transparent)'
+                      : 'none',
+                    transition: 'all 0.18s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--orbit) 15%, transparent)';
+                      e.currentTarget.style.color = 'var(--orbit)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'var(--moon)';
+                    }
+                  }}
+                >
+                  {b.name}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -532,7 +551,7 @@ export default function JovianOrrery(): React.ReactElement {
               fontFamily: 'var(--font-body)',
               fontSize: '0.875rem',
               lineHeight: 1.6,
-              color: 'var(--star)',
+              color: 'var(--moon)',
               margin: 0,
             }}
           >

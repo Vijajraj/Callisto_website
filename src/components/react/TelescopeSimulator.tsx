@@ -306,7 +306,7 @@ export default function TelescopeSimulator(): React.ReactElement {
                       transition: 'all 0.2s',
                     }}
                   >
-                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 600, color: isSel ? 'var(--moon)' : 'var(--star)' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 600, color: isSel ? 'var(--orbit)' : 'var(--moon)' }}>
                       {t.name}
                     </div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.625rem', color: 'var(--steel)' }}>
