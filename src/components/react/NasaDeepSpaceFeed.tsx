@@ -154,6 +154,9 @@ export default function NasaDeepSpaceFeed() {
                 title={currentApod.title}
                 allowFullScreen
                 className="nasa-iframe"
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                referrerPolicy="strict-origin-when-cross-origin"
               />
             </div>
           ) : (
