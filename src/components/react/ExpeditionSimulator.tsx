@@ -787,31 +787,46 @@ export default function ExpeditionSimulator() {
 
   return (
     <div className="cosmos-cockpit">
-      {/* Header Deck */}
+      {/* Top Command Ribbon */}
+      <div className="cockpit-top-ribbon">
+        <div className="ribbon-brand">
+          <span className="ribbon-star">✦</span>
+          <span className="station-badge">COSMIC ORRERY // MULTI-SYSTEM EXPLORER</span>
+        </div>
+        <div className="ribbon-telemetry">
+          <span className="orbit-badge">
+            <span className="status-live-dot"></span>
+            {currentSystem.distanceLightYears === 0
+              ? 'SOLAR SYSTEM (ORIGIN 0 LY)'
+              : `${currentSystem.distanceLightYears} LIGHT YEARS FROM EARTH`}
+          </span>
+        </div>
+      </div>
+
+      {/* Main Command Header */}
       <div className="cockpit-header">
         <div className="header-left">
-          <div className="tag-row">
-            <span className="station-badge">COSMIC ORRERY // MULTI-SYSTEM EXPLORER</span>
-            <span className="orbit-badge">{currentSystem.distanceLightYears === 0 ? 'LOCAL SYSTEM (0 LY)' : `${currentSystem.distanceLightYears} LIGHT YEARS AWAY`}</span>
-          </div>
           <h2 className="deck-title">{currentSystem.name}</h2>
           <p className="deck-subtitle">{currentSystem.subtitle}</p>
         </div>
 
         {/* System Selector Dropdown & Briefing Modal */}
         <div className="header-actions">
-          <select
-            className="system-select-dropdown"
-            value={selectedSystemId}
-            onChange={(e) => handleSystemChange(e.target.value)}
-            aria-label="Select Cosmic System"
-          >
-            {COSMIC_SYSTEMS.map((sys) => (
-              <option key={sys.id} value={sys.id}>
-                {sys.name} ({sys.centralStar.name})
-              </option>
-            ))}
-          </select>
+          <div className="system-selector-group">
+            <span className="selector-prefix">SECTOR:</span>
+            <select
+              className="system-select-dropdown"
+              value={selectedSystemId}
+              onChange={(e) => handleSystemChange(e.target.value)}
+              aria-label="Select Cosmic System"
+            >
+              {COSMIC_SYSTEMS.map((sys) => (
+                <option key={sys.id} value={sys.id}>
+                  {sys.name} ({sys.centralStar.name})
+                </option>
+              ))}
+            </select>
+          </div>
 
           <button
             type="button"
@@ -1157,39 +1172,54 @@ export default function ExpeditionSimulator() {
           box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
         }
 
-        .cockpit-header {
+        .cockpit-top-ribbon {
           display: flex;
-          flex-direction: column;
-          gap: 1.25rem;
-          padding: 1.75rem 2rem;
-          border-bottom: 1px solid color-mix(in srgb, var(--border, #334155) 35%, transparent);
-          background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(12, 18, 30, 0.5) 100%);
-        }
-
-        @media (min-width: 860px) {
-          .cockpit-header {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-          }
-        }
-
-        .tag-row {
-          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 2rem;
+          background: rgba(6, 10, 18, 0.95);
+          border-bottom: 1px solid rgba(56, 189, 248, 0.2);
           flex-wrap: wrap;
-          gap: 0.5rem;
-          margin-bottom: 0.5rem;
+          gap: 0.65rem;
+        }
+
+        .ribbon-brand {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+        }
+
+        .ribbon-star {
+          color: #38bdf8;
+          font-size: 0.85rem;
         }
 
         .station-badge {
-          font-size: 0.72rem;
-          font-weight: 700;
+          font-size: 0.76rem;
+          font-weight: 800;
           letter-spacing: 0.08em;
           color: #38bdf8;
           background: rgba(56, 189, 248, 0.12);
-          border: 1px solid rgba(56, 189, 248, 0.3);
-          padding: 0.2rem 0.6rem;
+          border: 1px solid rgba(56, 189, 248, 0.35);
+          padding: 0.25rem 0.75rem;
           border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .ribbon-telemetry {
+          display: flex;
+          align-items: center;
+        }
+
+        .status-live-dot {
+          width: 7px;
+          height: 7px;
+          background-color: #10b981;
+          border-radius: 50%;
+          box-shadow: 0 0 8px #10b981;
+          display: inline-block;
+          margin-right: 0.45rem;
         }
 
         .orbit-badge {
@@ -1199,8 +1229,27 @@ export default function ExpeditionSimulator() {
           color: #94a3b8;
           background: rgba(148, 163, 184, 0.08);
           border: 1px solid rgba(148, 163, 184, 0.2);
-          padding: 0.2rem 0.6rem;
+          padding: 0.25rem 0.65rem;
           border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .cockpit-header {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+          padding: 1.5rem 2rem;
+          border-bottom: 1px solid color-mix(in srgb, var(--border, #334155) 35%, transparent);
+          background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, rgba(12, 18, 30, 0.6) 100%);
+        }
+
+        @media (min-width: 860px) {
+          .cockpit-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
         }
 
         .deck-title {
@@ -1226,12 +1275,27 @@ export default function ExpeditionSimulator() {
           align-items: center;
         }
 
-        .system-select-dropdown {
-          background: #0f172a;
-          color: #38bdf8;
-          border: 1px solid #38bdf8;
-          padding: 0.65rem 1rem;
+        .system-selector-group {
+          display: flex;
+          align-items: center;
+          background: rgba(15, 23, 42, 0.9);
+          border: 1px solid rgba(56, 189, 248, 0.35);
           border-radius: 6px;
+          padding-left: 0.75rem;
+        }
+
+        .selector-prefix {
+          font-size: 0.68rem;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          color: #38bdf8;
+        }
+
+        .system-select-dropdown {
+          background: transparent;
+          color: #f8fafc;
+          border: none;
+          padding: 0.65rem 0.85rem;
           font-size: 0.8rem;
           font-weight: 700;
           letter-spacing: 0.04em;

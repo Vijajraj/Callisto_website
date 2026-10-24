@@ -6,62 +6,62 @@ import ExpeditionSimulator from '../components/react/ExpeditionSimulator';
 const acts = [
   {
     act: 'ACT I',
-    title: 'Departure',
-    subtitle: 'Leaving the Cradle of Earth',
+    title: 'The Terrestrial Realm',
+    subtitle: 'Sol, Mercury, Venus, Earth & Mars',
     description:
-      'Experience the solemn awe of orbital ascent. As atmospheric friction yields to the silent vacuum, watch the blue crescent of Earth recede through the observation portal. All engine telemetry transitions to deep-space propulsion.',
-    mood: 'Cosmic Odyssey',
+      'Our cosmic journey begins in our home star system. Surveying the terrestrial worlds from the baked iron core of Mercury and the runaway greenhouse furnace of Venus, to Earth’s thriving biosphere and the rust canyons of Mars. All orbital vectors align toward the deep cosmos.',
+    mood: 'Solar System Genesis',
     accentColor: 'var(--orbit)',
     themeBg: 'color-mix(in srgb, var(--orbit) 10%, var(--deep))',
-    icon: '/icons/dept-event.png',
+    icon: '/icons/dept-astronomy.png',
   },
   {
     act: 'ACT II',
-    title: 'Sol 1',
-    subtitle: 'Survive, Adapt, Explore',
+    title: 'The Jovian Sanctuary',
+    subtitle: 'Jupiter, Galilean Ocean Moons & Callisto Base',
     description:
-      'Touch down upon initial waypoint dust. Calibrate environmental life support, measure ambient ionizing radiation, and establish your first Martian radio relay. Every grain of red regolith demands acute problem-solving.',
-    mood: 'Martian Frontier',
-    accentColor: 'var(--sol-dust)',
-    themeBg: 'color-mix(in srgb, var(--sol-dust) 10%, var(--deep))',
-    icon: '/icons/dept-content.png',
+      'Navigating past the asteroid belt into the monarch realm of Jupiter. In the calm shadow of Valhalla Basin on Callisto—safely shielded from Jupiter’s lethal inner radiation belts—our club pioneers permanent deep-space observation outposts and cryogenic ocean surveys.',
+    mood: 'Jovian Sanctuary',
+    accentColor: 'var(--star)',
+    themeBg: 'color-mix(in srgb, var(--star) 10%, var(--deep))',
+    icon: '/icons/icon-explore.png',
   },
   {
     act: 'ACT III',
-    title: 'The Ship',
-    subtitle: 'Meet Your Crew, Decode the Unknown',
+    title: 'The Interstellar Leap',
+    subtitle: 'Crossing 4.25 Light-Years to Proxima Centauri',
     description:
-      'Stationed within the rotating habitat ring of the expedition cruiser. Gather with your cross-disciplinary wing leads, crunch astrophysical spectral lines, and decipher enigmatic extraterrestrial signals across deep space.',
-    mood: 'First Contact Enigma',
+      'Propelling beyond the heliosphere across the light-year abyss. We reach humanity’s closest stellar neighbor in the Alpha Centauri triple star system, discovering the temperate ocean world of Proxima b orbiting inside the habitable zone of its scarlet red dwarf star.',
+    mood: 'Interstellar Odyssey',
     accentColor: 'var(--astrophage)',
     themeBg: 'color-mix(in srgb, var(--astrophage) 10%, var(--deep))',
     icon: '/icons/dept-tech.png',
   },
   {
     act: 'ACT IV',
-    title: 'Callisto Base',
-    subtitle: 'Arrival. Your New Home Among the Stars',
+    title: 'The Exoplanet Frontier',
+    subtitle: '7 Earth-Sized Worlds in the Cosmic Ocean',
     description:
-      'Touchdown in the shadow of Valhalla Crater on the Jovian moon. Deploy cryogenic drills into the icy crust, gaze upward at the swirling bands of Jupiter dominating the night sky, and pioneer humanity’s furthest permanent astronomical observatory.',
-    mood: 'Jovian Frontier',
-    accentColor: 'var(--star)',
-    themeBg: 'color-mix(in srgb, var(--star) 10%, var(--deep))',
-    icon: '/icons/dept-astronomy.png',
+      'Venturing 39.5 light-years into the constellation Aquarius to explore the seven Earth-sized worlds of TRAPPIST-1 and the temperate continents of Kepler-186f. By analyzing atmospheric transit light curves, we confirm that humanity is part of an inhabited, interconnected galaxy.',
+    mood: 'Exoplanet Genesis',
+    accentColor: 'var(--sol-dust)',
+    themeBg: 'color-mix(in srgb, var(--sol-dust) 10%, var(--deep))',
+    icon: '/icons/dept-research.png',
   },
 ];
 ---
 
 <BaseLayout
   title="The Expedition | A Cinematic Narrative Journey"
-  description="Embark through Acts I to IV of the Callisto Expedition — from Earth departure to permanent Jovian outposts."
+  description="Embark through Acts I to IV of the Callisto Cosmic Expedition — from our Solar System and Callisto outposts to alien exoplanetary realms."
 >
   <div class="expedition-container">
     <!-- Header -->
     <header class="expedition-header">
       <SectionHeading
         mono="THE EXPEDITION"
-        title="Your Journey Awaits"
-        subtitle="A multi-act interactive narrative chronicling humanity's leap from campus observation domes to deep-space orbital outposts."
+        title="Your Journey Across the Stars"
+        subtitle="A multi-system cosmic exploration chronicling our voyage from the Solar System and Callisto outposts to alien exoplanet systems."
         align="center"
       />
     </header>
