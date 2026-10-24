@@ -1022,20 +1022,6 @@ export function initAudioManager(): void {
     });
   }
 
-  // Intercept navigation link clicks to trigger unique page sounds
-  document.addEventListener('click', (e) => {
-    const target = (e.target as HTMLElement)?.closest('a');
-    if (!target) return;
-
-    const href = target.getAttribute('href');
-    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('http')) return;
-
-    // Trigger page-specific navigation sound if SFX is enabled
-    if (sfxEnabled && isInitialPageLoaded) {
-      playSoundForRoute(href);
-    }
-  });
-
   // Flag initial load complete so sounds NEVER play automatically on initial load
   setTimeout(() => {
     isInitialPageLoaded = true;
