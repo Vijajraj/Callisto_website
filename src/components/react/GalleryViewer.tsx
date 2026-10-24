@@ -127,9 +127,19 @@ export default function GalleryViewer(): React.ReactElement {
                     padding: '2px 8px',
                     borderRadius: '4px',
                     border: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
                   }}
                 >
-                  🔍 CLICK TO INSPECT EXIF
+                  <img
+                    src="/icons/icon-search.jpg"
+                    alt=""
+                    width="12"
+                    height="12"
+                    style={{ borderRadius: '2px', objectFit: 'cover' }}
+                  />
+                  <span>INSPECT EXIF</span>
                 </div>
               </div>
 
@@ -181,7 +191,15 @@ export default function GalleryViewer(): React.ReactElement {
           }}
           aria-label="Astrophotography archive kept blank for user future photos"
         >
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📷</div>
+          <div style={{ marginBottom: '1rem' }}>
+            <img
+              src="/icons/icon-camera.jpg"
+              alt=""
+              width="56"
+              height="56"
+              style={{ borderRadius: '14px', objectFit: 'cover', margin: '0 auto', border: '1.5px solid var(--orbit)' }}
+            />
+          </div>
           <h4
             style={{
               fontFamily: 'var(--font-display)',

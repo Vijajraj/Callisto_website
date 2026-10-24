@@ -204,7 +204,7 @@ export default function SoundHud(): React.ReactElement {
               boxShadow: enabled ? '0 0 12px color-mix(in srgb, var(--orbit) 40%, transparent)' : 'none',
             }}
           >
-            <span>{enabled ? '⏸ PAUSE EXPEDITION SCORE' : '▶ ENGAGE EXPEDITION SCORE'}</span>
+            <span>{enabled ? 'PAUSE EXPEDITION SCORE' : 'ENGAGE EXPEDITION SCORE'}</span>
           </button>
 
           {/* Telemetry SFX Action Buttons */}

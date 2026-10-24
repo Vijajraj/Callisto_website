@@ -396,12 +396,24 @@ export default function EventExplorer({ initialEvents }: EventExplorerProps): Re
                       marginBottom: '0.75rem',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span style={{ color: 'var(--steel)' }}>📅</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <img
+                        src="/icons/icon-calendar.jpg"
+                        alt=""
+                        width="15"
+                        height="15"
+                        style={{ borderRadius: '3px', objectFit: 'cover' }}
+                      />
                       <span>{formattedDate}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span style={{ color: 'var(--steel)' }}>📍</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <img
+                        src="/icons/icon-location.jpg"
+                        alt=""
+                        width="15"
+                        height="15"
+                        style={{ borderRadius: '3px', objectFit: 'cover' }}
+                      />
                       <span style={{ color: 'var(--moon)' }}>{event.location}</span>
                     </div>
                   </div>
@@ -475,7 +487,15 @@ export default function EventExplorer({ initialEvents }: EventExplorerProps): Re
           }}
           aria-label="Event schedule kept blank for user future events"
         >
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🔭</div>
+          <div style={{ marginBottom: '1rem' }}>
+            <img
+              src="/icons/icon-telescope.jpg"
+              alt=""
+              width="56"
+              height="56"
+              style={{ borderRadius: '14px', objectFit: 'cover', margin: '0 auto', border: '1.5px solid var(--orbit)' }}
+            />
+          </div>
           <h4
             style={{
               fontFamily: 'var(--font-display)',

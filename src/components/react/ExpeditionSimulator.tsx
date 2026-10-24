@@ -872,11 +872,17 @@ export default function ExpeditionSimulator(): React.ReactElement {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Core lightning bolt
+    // Core lightning bolt vector
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '10px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('⚡', 0, 4);
+    ctx.beginPath();
+    ctx.moveTo(1, -5);
+    ctx.lineTo(-4, 0);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(-1, 5);
+    ctx.lineTo(4, -1);
+    ctx.lineTo(0, -1);
+    ctx.closePath();
+    ctx.fill();
 
     ctx.restore();
   };
@@ -1082,14 +1088,24 @@ export default function ExpeditionSimulator(): React.ReactElement {
                 gap: '1.25rem',
                 flexWrap: 'wrap',
                 justifyContent: 'center',
+                alignItems: 'center',
                 fontSize: '0.75rem',
                 color: '#F43F5E',
                 marginBottom: '1.5rem',
               }}
             >
-              <span>🎮 DRIVE: [D / RIGHT ARROW] or [A / LEFT ARROW]</span>
-              <span>🚀 JET THRUSTERS: [SPACE / W]</span>
-              <span>⚡ NITRO BOOST: [SHIFT]</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <img src="/icons/craft-rover.jpg" alt="" width="16" height="16" style={{ borderRadius: '3px', objectFit: 'cover' }} />
+                <span>DRIVE: [D / RIGHT ARROW] or [A / LEFT ARROW]</span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <img src="/icons/icon-rocket.jpg" alt="" width="16" height="16" style={{ borderRadius: '3px', objectFit: 'cover' }} />
+                <span>JET THRUSTERS: [SPACE / W]</span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <img src="/icons/icon-energy.jpg" alt="" width="16" height="16" style={{ borderRadius: '3px', objectFit: 'cover' }} />
+                <span>NITRO BOOST: [SHIFT]</span>
+              </span>
             </div>
             <button
               onClick={startMission}
@@ -1126,7 +1142,15 @@ export default function ExpeditionSimulator(): React.ReactElement {
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.4rem' }}>🚩</div>
+            <div style={{ marginBottom: '0.65rem' }}>
+              <img
+                src="/icons/icon-flag.jpg"
+                alt=""
+                width="64"
+                height="64"
+                style={{ borderRadius: '16px', objectFit: 'cover', margin: '0 auto', border: '2px solid #22c55e' }}
+              />
+            </div>
             <div
               style={{
                 fontSize: '1.6rem',
@@ -1221,7 +1245,7 @@ export default function ExpeditionSimulator(): React.ReactElement {
         </div>
 
         {/* Center: On-Screen Touch Drive & Jump Controls */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             onMouseDown={() => (engineRef.current.touchControls.backward = true)}
             onMouseUp={() => (engineRef.current.touchControls.backward = false)}
@@ -1230,17 +1254,18 @@ export default function ExpeditionSimulator(): React.ReactElement {
             style={roverControlBtnStyle}
             title="Reverse / Brake"
           >
-            ◀ REVERSE
+            REVERSE
           </button>
           <button
             onMouseDown={() => (engineRef.current.touchControls.jump = true)}
             onMouseUp={() => (engineRef.current.touchControls.jump = false)}
             onTouchStart={() => (engineRef.current.touchControls.jump = true)}
             onTouchEnd={() => (engineRef.current.touchControls.jump = false)}
-            style={{ ...roverControlBtnStyle, backgroundColor: '#F43F5E', color: '#0B0507', fontWeight: 800 }}
+            style={{ ...roverControlBtnStyle, backgroundColor: '#F43F5E', color: '#0B0507', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             title="Fire Ventral Jet Thrusters"
           >
-            🚀 JET JUMP
+            <img src="/icons/icon-rocket.jpg" alt="" width="14" height="14" style={{ borderRadius: '2px', objectFit: 'cover' }} />
+            <span>JET JUMP</span>
           </button>
           <button
             onMouseDown={() => (engineRef.current.touchControls.forward = true)}
@@ -1250,17 +1275,18 @@ export default function ExpeditionSimulator(): React.ReactElement {
             style={{ ...roverControlBtnStyle, borderColor: '#FFB399', color: '#FFB399' }}
             title="Accelerate Forward"
           >
-            DRIVE FORWARD ▶
+            DRIVE FORWARD
           </button>
           <button
             onMouseDown={() => (engineRef.current.touchControls.boost = true)}
             onMouseUp={() => (engineRef.current.touchControls.boost = false)}
             onTouchStart={() => (engineRef.current.touchControls.boost = true)}
             onTouchEnd={() => (engineRef.current.touchControls.boost = false)}
-            style={{ ...roverControlBtnStyle, borderColor: '#FF7A00', color: '#FF7A00' }}
+            style={{ ...roverControlBtnStyle, borderColor: '#FF7A00', color: '#FF7A00', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             title="Nitro Boost"
           >
-            ⚡ NITRO
+            <img src="/icons/icon-energy.jpg" alt="" width="14" height="14" style={{ borderRadius: '2px', objectFit: 'cover' }} />
+            <span>NITRO</span>
           </button>
         </div>
 
@@ -1277,9 +1303,13 @@ export default function ExpeditionSimulator(): React.ReactElement {
               fontSize: '0.6875rem',
               fontWeight: 700,
               cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
             }}
           >
-            🔄 RESTART ROUTE
+            <img src="/icons/icon-refresh.jpg" alt="" width="14" height="14" style={{ borderRadius: '2px', objectFit: 'cover' }} />
+            <span>RESTART ROUTE</span>
           </button>
         </div>
       </div>

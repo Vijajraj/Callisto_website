@@ -102,7 +102,7 @@ const SPACECRAFT_CLASSES: SpacecraftArchitecture[] = [
   {
     id: 'rover',
     name: 'Autonomous Surface Rover',
-    icon: '🚜',
+    icon: '/icons/craft-rover.jpg',
     type: 'Mobile Surface Explorer',
     baseMassKg: 320,
     instruments: ['Raman Spectrometer Arm', 'Mastcam Multispectral Imager', 'Subsurface Ground Radar'],
@@ -110,7 +110,7 @@ const SPACECRAFT_CLASSES: SpacecraftArchitecture[] = [
   {
     id: 'orbiter',
     name: 'Orbital Reconnaissance Satellite',
-    icon: '🛰️',
+    icon: '/icons/craft-orbiter.jpg',
     type: 'High-Altitude Surveyor',
     baseMassKg: 180,
     instruments: ['Synthetic Aperture Radar', 'Thermal Infrared Radiometer', 'Magnetometer Boom'],
@@ -118,7 +118,7 @@ const SPACECRAFT_CLASSES: SpacecraftArchitecture[] = [
   {
     id: 'drill',
     name: 'Cryogenic Deep-Ice Drill',
-    icon: '🔬',
+    icon: '/icons/craft-drill.jpg',
     type: 'Subsurface Probe',
     baseMassKg: 410,
     instruments: ['Thermal Melting Penetrator', 'Fluorescence Biosensor', 'Deep Acoustic Sonar'],
@@ -126,7 +126,7 @@ const SPACECRAFT_CLASSES: SpacecraftArchitecture[] = [
   {
     id: 'drone',
     name: 'Atmospheric Aerobotics Drone',
-    icon: '🚁',
+    icon: '/icons/craft-drone.jpg',
     type: 'Aerial Aerial Scout',
     baseMassKg: 95,
     instruments: ['Coaxial Rotor Array', 'Mini-Gas Chromatograph', 'Wide-Angle Navigational Lidar'],
@@ -333,7 +333,13 @@ export default function MissionsConsole(): React.ReactElement {
                 SPACECRAFT VEHICLE ARCHITECTURE & SCIENTIFIC SUITE
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '1.75rem' }}>{selectedCraft.icon}</span>
+                <img
+                  src={selectedCraft.icon}
+                  alt=""
+                  width="44"
+                  height="44"
+                  style={{ borderRadius: '8px', objectFit: 'cover', border: '1.5px solid var(--orbit)' }}
+                />
                 <div>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--moon)' }}>
                     {selectedCraft.name} ({totalSpacecraftMass} kg wet mass)
@@ -351,14 +357,24 @@ export default function MissionsConsole(): React.ReactElement {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '0.6875rem',
-                      padding: '0.2rem 0.55rem',
+                      padding: '0.25rem 0.6rem',
                       borderRadius: 'var(--radius-full)',
                       backgroundColor: 'color-mix(in srgb, var(--navy) 60%, transparent)',
                       border: '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
                       color: 'var(--moon)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
                     }}
                   >
-                    ⚙ {inst}
+                    <img
+                      src="/icons/icon-gear.jpg"
+                      alt=""
+                      width="12"
+                      height="12"
+                      style={{ borderRadius: '2px', objectFit: 'cover' }}
+                    />
+                    <span>{inst}</span>
                   </span>
                 ))}
               </div>
@@ -499,7 +515,15 @@ export default function MissionsConsole(): React.ReactElement {
                           transition: 'all 0.2s',
                         }}
                       >
-                        <div style={{ fontSize: '1.5rem', marginBottom: '0.2rem' }}>{craft.icon}</div>
+                        <div style={{ marginBottom: '0.35rem' }}>
+                          <img
+                            src={craft.icon}
+                            alt=""
+                            width="36"
+                            height="36"
+                            style={{ borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--orbit)' }}
+                          />
+                        </div>
                         <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.9375rem', fontWeight: 600, color: 'var(--moon)' }}>
                           {craft.name}
                         </div>
@@ -628,7 +652,20 @@ export default function MissionsConsole(): React.ReactElement {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  {computingTrajectory ? 'Computing Orbit Trajectory...' : '🚀 Calculate Flight Trajectory'}
+                  {computingTrajectory ? (
+                    'Computing Orbit Trajectory...'
+                  ) : (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      <img
+                        src="/icons/icon-rocket.jpg"
+                        alt=""
+                        width="18"
+                        height="18"
+                        style={{ borderRadius: '3px', objectFit: 'cover' }}
+                      />
+                      <span>Calculate Flight Trajectory</span>
+                    </span>
+                  )}
                 </button>
               </div>
             </div>

@@ -343,7 +343,7 @@ export default function JovianOrrery(): React.ReactElement {
               cursor: 'pointer',
             }}
           >
-            {isPlaying ? '⏸ PAUSE' : '▶ RESUME'}
+            {isPlaying ? 'PAUSE' : 'RESUME'}
           </button>
 
           <button
