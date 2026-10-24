@@ -1,879 +1,1881 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  playTelemetryBeep,
-  playBeaconPing,
-  playThrusterBurst,
-  playWarpSurge,
-} from '../../lib/audio';
 
 /* =========================================================================
-   SUB-SURFACE OCEAN CRYOBOT PROBE // THE DEEP ICE DESCENT
-   Scientific simulation of an autonomous nuclear-thermal melt probe descending
-   through Callisto's 150 km cryogenic ice shell down to the hidden liquid ocean.
+   OUTPOST CALLISTO // CLOSED-LOOP ISRU & LIFE SUPPORT
+   Bio-Astronautics Command Deck • Valhalla Basin, Jupiter IV
+   Simulates human habitat environmental control (ECLSS) and in-situ resource
+   utilization (ISRU) for a permanent 6-person crew in the Jovian system.
    ========================================================================= */
 
-interface IceLayer {
+// --- Chemical & Environmental Constants ---
+const CALLISTO_SURFACE_GRAVITY = 1.236; // m/s^2 (0.126 g)
+const NOMINAL_CABIN_PRESSURE = 101.3; // kPa
+const NOMINAL_O2_KPA = 21.2; // kPa pO2 (20.9%)
+const MAX_SAFE_CO2_KPA = 0.50; // kPa pCO2 (safe limit < 0.5 kPa, warning > 0.8 kPa)
+const KILOPOWER_BASE_CAPACITY_KW = 80; // dual 40 kWe Kilopower Stirling reactors
+
+interface SubsystemTelemetry {
+  id: string;
   name: string;
-  depthStartKm: number;
-  depthEndKm: number;
-  tempK: number;
-  pressureMpa: number;
-  color: string;
-  bgGrad: string;
+  code: string;
+  category: 'ISRU' | 'ECLSS' | 'POWER' | 'THERMAL' | 'BIO';
+  powerKw: number;
+  status: 'NOMINAL' | 'ELEVATED' | 'STRAINED' | 'STANDBY' | 'FAULT';
+  primaryMetric: string;
+  metricLabel: string;
   description: string;
-  spectralTarget: string;
+  chemicalReaction?: string;
 }
 
-const ICE_STRATIGRAPHY: IceLayer[] = [
-  {
-    name: 'Layer 1: Cryo-Regolith & Impact Mantle',
-    depthStartKm: 0,
-    depthEndKm: 25,
-    tempK: 115,
-    pressureMpa: 8,
-    color: '#ffb86b',
-    bgGrad: 'linear-gradient(180deg, #181115 0%, #0d1624 100%)',
-    description: 'Fine-grained silicate impact ejecta mixed with amorphous water-ice frost and frozen CO2.',
-    spectralTarget: 'Amorphous H2O Ice (84%) + Silicates (14%)',
-  },
-  {
-    name: 'Layer 2: Brittle Crystalline Ice Shell',
-    depthStartKm: 25,
-    depthEndKm: 70,
-    tempK: 155,
-    pressureMpa: 42,
-    color: '#38bdf8',
-    bgGrad: 'linear-gradient(180deg, #0d1624 0%, #092338 100%)',
-    description: 'Dense, cold crystalline ice-I lattice laced with extensive extensional thermal stress fractures.',
-    spectralTarget: 'Hexagonal Ice-Ih (92%) + Trace Noble Gases',
-  },
-  {
-    name: 'Layer 3: Ductile Convective Ice & Gas Clathrates',
-    depthStartKm: 70,
-    depthEndKm: 120,
-    tempK: 215,
-    pressureMpa: 110,
-    color: '#a855f7',
-    bgGrad: 'linear-gradient(180deg, #092338 0%, #0f172a 100%)',
-    description: 'Warm flowing plastic ice undergoing slow solid-state thermal convection; cages of methane clathrates.',
-    spectralTarget: 'CH4 Methane Clathrate Hydrates (18%)',
-  },
-  {
-    name: 'Layer 4: Basal Dielectric Melting Boundary',
-    depthStartKm: 120,
-    depthEndKm: 145,
-    tempK: 265,
-    pressureMpa: 165,
-    color: '#34d399',
-    bgGrad: 'linear-gradient(180deg, #0f172a 0%, #062e33 100%)',
-    description: 'High-pressure slush transition boundary where geothermal heat from Callisto’s core softens the basal crust.',
-    spectralTarget: 'Partially Molten Saline Slush + MgSO4 Salts',
-  },
-  {
-    name: 'Layer 5: Sub-Surface Saline Ocean Interface',
-    depthStartKm: 145,
-    depthEndKm: 160,
-    tempK: 274,
-    pressureMpa: 195,
-    color: '#22d3ee',
-    bgGrad: 'linear-gradient(180deg, #062e33 0%, #021a24 100%)',
-    description: 'Vast, conductive liquid saltwater ocean sustained by radioactive core decay and ancient Jovian tidal resonance.',
-    spectralTarget: 'Liquid Saline Ocean (3.8 S/m Conductivity)',
-  },
-];
-
-interface ObstacleRock {
-  id: number;
-  depthKm: number;
-  xPct: number; // 15 to 85%
-  radiusKm: number;
-  density: string;
+interface OutpostState {
+  sol: number;
+  isJovianDay: boolean; // 16.7-day diurnal cycle: Day (165 K) vs Night (110 K)
+  ambientTempK: number;
+  
+  // Habitat Cabin Atmosphere
+  cabinPressureKpa: number;
+  oxygenPartialKpa: number;
+  co2PartialKpa: number;
+  cabinTempC: number;
+  humidityPct: number;
+  
+  // Consumables & Inventories
+  potableWaterL: number;
+  greywaterL: number;
+  algaeBiomassKg: number;
+  propellantLoxTons: number;
+  propellantLh2Tons: number;
+  crewHealthPct: number;
+  
+  // User Interactive Sliders / Inputs
+  melterPowerPct: number;       // 0 - 100%
+  electrolyzerLoadPct: number;  // 0 - 100%
+  sabatierState: 'OFFLINE' | 'BALANCED' | 'MAX_FLUX';
+  algaeIrradiancePct: number;   // 0 - 100%
+  radiatorBypassPct: number;    // 0 - 100%
+  
+  // System Health & Events
+  siltClogPct: number;
+  activeScenarioId: string | null;
+  scenarioMessage: string | null;
+  radiationFluxMsv: number;
 }
 
-const METEORITE_INCLUSIONS: ObstacleRock[] = [
-  { id: 1, depthKm: 18, xPct: 35, radiusKm: 6, density: 'Chondritic Stony Silicate' },
-  { id: 2, depthKm: 42, xPct: 65, radiusKm: 8, density: 'Nickel-Iron Metallic Core Clast' },
-  { id: 3, depthKm: 62, xPct: 25, radiusKm: 7, density: 'Basaltic Impact Fragment' },
-  { id: 4, depthKm: 92, xPct: 70, radiusKm: 9, density: 'High-Density Carbonaceous Chondrite' },
-  { id: 5, depthKm: 115, xPct: 40, radiusKm: 7, density: 'Deep Crustal Olivine Inclusion' },
-  { id: 6, depthKm: 135, xPct: 60, radiusKm: 6, density: 'Hydrothermal Sulfide Nodules' },
-];
+const INITIAL_OUTPOST_STATE: OutpostState = {
+  sol: 42,
+  isJovianDay: true,
+  ambientTempK: 165,
+  
+  cabinPressureKpa: 101.3,
+  oxygenPartialKpa: 21.2,
+  co2PartialKpa: 0.38,
+  cabinTempC: 21.4,
+  humidityPct: 44.5,
+  
+  potableWaterL: 3850,
+  greywaterL: 140,
+  algaeBiomassKg: 28.5,
+  propellantLoxTons: 14.8,
+  propellantLh2Tons: 1.85,
+  crewHealthPct: 99.2,
+  
+  melterPowerPct: 65,
+  electrolyzerLoadPct: 60,
+  sabatierState: 'BALANCED',
+  algaeIrradiancePct: 75,
+  radiatorBypassPct: 50,
+  
+  siltClogPct: 0,
+  activeScenarioId: null,
+  scenarioMessage: null,
+  radiationFluxMsv: 0.012,
+};
 
-export default function ExpeditionSimulator(): React.ReactElement {
+export default function ExpeditionSimulator() {
+  const [state, setState] = useState<OutpostState>(INITIAL_OUTPOST_STATE);
+  const [selectedSubsystem, setSelectedSubsystem] = useState<string>('melter');
+  const [activeTab, setActiveTab] = useState<'schematic' | 'controls' | 'scenarios' | 'log'>('schematic');
+  const [logEntries, setLogEntries] = useState<Array<{ id: number; time: string; text: string; type: 'info' | 'warn' | 'success' | 'action' }>>([
+    { id: 1, time: '08:00:14', text: 'ECLSS Master Telemetry established: 6 crew metabolism synchronized.', type: 'info' },
+    { id: 2, time: '08:00:15', text: 'Valhalla Basin Cryo-Melter engaged at 65% power flux.', type: 'info' },
+    { id: 3, time: '08:00:15', text: 'Spirulina photobioreactor columns nominal: carbon fixation rate at 94.2%.', type: 'success' },
+    { id: 4, time: '08:00:16', text: 'Kilopower dual Stirling bus routing 54.2 kW of 80.0 kW total capacity.', type: 'info' },
+  ]);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Probe Telemetry State
-  const [depthKm, setDepthKm] = useState<number>(0);
-  const [probeXPct, setProbeXPct] = useState<number>(50); // 15% to 85% horizontal position
-  const [meltPowerKw, setMeltPowerKw] = useState<number>(45); // 10 to 80 kW thermal melt power
-  const [thermalHeadTempK, setThermalHeadTempK] = useState<number>(340); // Heated tungsten cone
-  const [batteryPct, setBatteryPct] = useState<number>(100);
-  const [isMelting, setIsMelting] = useState<boolean>(false);
-  const [sonarActive, setSonarActive] = useState<boolean>(false);
-  const [samplesCollected, setSamplesCollected] = useState<string[]>([]);
-  const [missionLog, setMissionLog] = useState<string>(
-    'Nuclear-thermal cryobot anchored at Valhalla Ice Shelf. Ready for deep ice descent.'
-  );
-  const [oceanDiscovered, setOceanDiscovered] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'sonar' | 'stratigraphy' | 'samples'>('sonar');
-
-  // Identify current layer based on depth
-  const currentLayer =
-    ICE_STRATIGRAPHY.find(
-      (l) => depthKm >= l.depthStartKm && depthKm < l.depthEndKm
-    ) || ICE_STRATIGRAPHY[ICE_STRATIGRAPHY.length - 1];
-
-  // Manual Descent Step
-  const stepMeltDescent = useCallback(() => {
-    if (depthKm >= 148) {
-      if (!oceanDiscovered) {
-        setOceanDiscovered(true);
-        playWarpSurge();
-        setMissionLog(
-          '[BREAKTHROUGH CONFIRMED] Basal ice penetrated at 148 km! Cryobot deployed into Callisto Subsurface Ocean!'
-        );
-      }
-      return;
-    }
-
-    // Descent rate proportional to melt thermal power (kW)
-    const deltaKm = parseFloat((meltPowerKw * 0.08).toFixed(1));
-    const nextDepth = Math.min(150, parseFloat((depthKm + deltaKm).toFixed(1)));
-
-    // Check collision with meteorite inclusions
-    const collidedRock = METEORITE_INCLUSIONS.find(
-      (rock) =>
-        Math.abs(rock.depthKm - nextDepth) < 3.5 &&
-        Math.abs(rock.xPct - probeXPct) < 12
-    );
-
-    if (collidedRock) {
-      playTelemetryBeep(320, 0.25);
-      setMissionLog(
-        `[IMPEDANCE WARNING] Probe deflected by ${collidedRock.density}. Use Lateral Water-Jets [◀ / ▶] to steer around inclusion.`
-      );
-      setBatteryPct((b) => Math.max(15, b - 4));
-      return;
-    }
-
-    setDepthKm(nextDepth);
-    setBatteryPct((b) => Math.max(12, Math.round(b - meltPowerKw * 0.02)));
-    setThermalHeadTempK(300 + Math.round(meltPowerKw * 1.5));
-    playTelemetryBeep(900 + Math.round(nextDepth * 4), 0.06);
-
-    if (nextDepth >= 148 && !oceanDiscovered) {
-      setOceanDiscovered(true);
-      playWarpSurge();
-      setMissionLog(
-        '[BREAKTHROUGH CONFIRMED] Saline liquid ocean detected at 148 km depth! Conductivity: 3.8 S/m. Mission complete!'
-      );
-    }
-  }, [depthKm, meltPowerKw, probeXPct, oceanDiscovered]);
-
-  // Steer Lateral Water Jets (Left / Right)
-  const steerProbe = useCallback((direction: 'left' | 'right') => {
-    playThrusterBurst();
-    setProbeXPct((prev) => {
-      const step = direction === 'left' ? -8 : 8;
-      const next = Math.max(18, Math.min(82, prev + step));
-      return next;
-    });
+  // Helper to add log entries
+  const addLog = useCallback((text: string, type: 'info' | 'warn' | 'success' | 'action' = 'info') => {
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0];
+    setLogEntries((prev) => [{ id: Date.now() + Math.random(), time: timeStr, text, type }, ...prev.slice(0, 49)]);
   }, []);
 
-  // Keyboard controls
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) {
-        e.preventDefault();
-        steerProbe('left');
-      } else if (['ArrowRight', 'KeyD'].includes(e.code)) {
-        e.preventDefault();
-        steerProbe('right');
-      } else if (['ArrowDown', 'KeyS', 'Space'].includes(e.code)) {
-        e.preventDefault();
-        stepMeltDescent();
-      }
-    };
+  // Calculate live energy demands and mass flows based on user inputs
+  const melterKw = (state.melterPowerPct / 100) * 18.0;
+  const electrolyzerKw = (state.electrolyzerLoadPct / 100) * 24.0;
+  const sabatierKw = state.sabatierState === 'OFFLINE' ? 0 : state.sabatierState === 'BALANCED' ? 2.5 : 4.2;
+  const algaeKw = (state.algaeIrradiancePct / 100) * 12.0;
+  const habitatBaseloadKw = 16.5;
+  const totalPowerDrawKw = Number((melterKw + electrolyzerKw + sabatierKw + algaeKw + habitatBaseloadKw).toFixed(1));
+  const powerReserveKw = Number((KILOPOWER_BASE_CAPACITY_KW - totalPowerDrawKw).toFixed(1));
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [steerProbe, stepMeltDescent]);
+  // Flow rates (kg/h and L/h)
+  const iceMeltRateLh = Number(((state.melterPowerPct / 100) * 35.0 * (1 - state.siltClogPct / 100)).toFixed(1));
+  const waterElectrolyzedLh = Number(((state.electrolyzerLoadPct / 100) * 14.0).toFixed(1));
+  const o2GeneratedKgh = Number((waterElectrolyzedLh * 0.889 + (state.algaeIrradiancePct / 100) * 0.45).toFixed(2));
+  const h2GeneratedKgh = Number((waterElectrolyzedLh * 0.111).toFixed(2));
+  const co2ScrubbedKgh = Number((
+    (state.sabatierState === 'MAX_FLUX' ? 0.32 : state.sabatierState === 'BALANCED' ? 0.25 : 0) +
+    (state.algaeIrradiancePct / 100) * 0.18
+  ).toFixed(2));
+  
+  // Crew metabolic consumption (6 crew members)
+  const crewO2ConsumptionKgh = 0.21; // 5.04 kg/day / 24h = 0.21 kg/h
+  const crewCo2ProductionKgh = 0.25; // 6.00 kg/day / 24h = 0.25 kg/h
+  const netO2FluxKgh = Number((o2GeneratedKgh - crewO2ConsumptionKgh).toFixed(2));
+  const netCo2FluxKgh = Number((crewCo2ProductionKgh - co2ScrubbedKgh).toFixed(2));
 
-  // Trigger Acoustic Sonar Scan
-  const pulseAcousticSonar = () => {
-    setSonarActive(true);
-    playBeaconPing(1450, 0.35);
+  // Determine Habitat Safety Index & Status Color
+  const isHypoxia = state.oxygenPartialKpa < 17.5;
+  const isHyperoxia = state.oxygenPartialKpa > 24.5;
+  const isHypercapnia = state.co2PartialKpa > MAX_SAFE_CO2_KPA;
+  const isPressureLow = state.cabinPressureKpa < 92.0;
+  const isOverheating = state.cabinTempC > 27.0;
+  const isFreezing = state.cabinTempC < 16.0;
 
-    setTimeout(() => {
-      setSonarActive(false);
-      // Find nearest upcoming obstacle
-      const ahead = METEORITE_INCLUSIONS.filter((r) => r.depthKm > depthKm).sort(
-        (a, b) => a.depthKm - b.depthKm
-      )[0];
+  let habitatCondition: 'OPTIMAL' | 'NOMINAL' | 'CAUTION' | 'CRITICAL' = 'OPTIMAL';
+  let habitatColor = '#10b981'; // green
 
-      if (ahead) {
-        setMissionLog(
-          `[SONAR ECHO] Detected ${ahead.density} at depth ${ahead.depthKm} km (Lateral Pos: ${ahead.xPct}%). Align probe trajectory.`
-        );
-      } else {
-        setMissionLog(
-          '[SONAR CLEAR] Acoustic reflection indicates clear cryogenic ice column. Downward path unobstructed.'
-        );
-      }
-    }, 900);
-  };
+  if (isHypoxia || isHypercapnia || isPressureLow || isFreezing || isOverheating) {
+    habitatCondition = 'CRITICAL';
+    habitatColor = '#ef4444'; // red
+  } else if (state.oxygenPartialKpa < 19.5 || state.co2PartialKpa > 0.44 || state.cabinPressureKpa < 97.0) {
+    habitatCondition = 'CAUTION';
+    habitatColor = '#f59e0b'; // amber
+  } else if (powerReserveKw < 5.0 || state.siltClogPct > 40) {
+    habitatCondition = 'NOMINAL';
+    habitatColor = '#38bdf8'; // sky
+  }
 
-  // Collect Raman Laser Spectrometry Sample
-  const sampleCurrentLayer = () => {
-    if (samplesCollected.includes(currentLayer.name)) {
-      setMissionLog(`[LOGGED] Scientific core data for ${currentLayer.name} already recorded in sample bay.`);
-      return;
-    }
-
-    playBeaconPing(1200, 0.25);
-    setSamplesCollected((prev) => [...prev, currentLayer.name]);
-    setMissionLog(
-      `[RAMAN SPECTROMETRY] Core sampled at ${depthKm} km depth: ${currentLayer.spectralTarget}.`
-    );
-  };
-
-  // Render Tactical Vertical Stratigraphy Canvas
+  // --- Animation Loop: Interactive Schematic Canvas ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const w = canvas.width;
-    const h = canvas.height;
+    let animId: number;
+    let particleOffset = 0;
 
-    // Background: Deep Ice Chamber
-    ctx.fillStyle = '#060913';
-    ctx.fillRect(0, 0, w, h);
+    const render = () => {
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
 
-    // Calculate Viewport window around probe depth
-    // Canvas displays a 40 km window centered on current depth
-    const viewTopKm = Math.max(0, depthKm - 15);
-    const viewBottomKm = viewTopKm + 45;
-
-    // Draw Strata Bands within view
-    ICE_STRATIGRAPHY.forEach((layer) => {
-      if (layer.depthEndKm >= viewTopKm && layer.depthStartKm <= viewBottomKm) {
-        const topY = ((layer.depthStartKm - viewTopKm) / 45) * h;
-        const btmY = ((layer.depthEndKm - viewTopKm) / 45) * h;
-
-        ctx.fillStyle = layer.color + '18'; // faint tint
-        ctx.fillRect(0, Math.max(0, topY), w, btmY - topY);
-
-        // Boundary Line
-        ctx.strokeStyle = layer.color + '60';
-        ctx.lineWidth = 1.5;
+      // Background subtle grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.lineWidth = 1;
+      const gridSize = 32;
+      for (let x = 0; x < width; x += gridSize) {
         ctx.beginPath();
-        ctx.moveTo(0, topY);
-        ctx.lineTo(w, topY);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
         ctx.stroke();
-
-        // Boundary Label
-        ctx.fillStyle = layer.color;
-        ctx.font = '700 10px monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(`${layer.name.toUpperCase()} [${layer.depthStartKm} km]`, 12, topY + 14);
       }
-    });
-
-    // Draw Ocean Water Floor at 145+ km
-    if (viewBottomKm >= 145) {
-      const oceanY = ((145 - viewTopKm) / 45) * h;
-      ctx.fillStyle = 'rgba(6, 182, 212, 0.35)';
-      ctx.fillRect(0, Math.max(0, oceanY), w, h - oceanY);
-
-      // Water Waves
-      ctx.strokeStyle = '#22d3ee';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (let x = 0; x <= w; x += 20) {
-        const wy = oceanY + Math.sin(x * 0.05 + Date.now() * 0.003) * 4;
-        if (x === 0) ctx.moveTo(x, wy);
-        else ctx.lineTo(x, wy);
+      for (let y = 0; y < height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
       }
-      ctx.stroke();
-    }
 
-    // Draw Meteorite Inclusions within viewport
-    METEORITE_INCLUSIONS.forEach((rock) => {
-      if (rock.depthKm >= viewTopKm - 5 && rock.depthKm <= viewBottomKm + 5) {
-        const rx = (rock.xPct / 100) * w;
-        const ry = ((rock.depthKm - viewTopKm) / 45) * h;
+      // Nodes Coordinates (Normalized for responsiveness)
+      const nodes = {
+        melter: { x: width * 0.16, y: height * 0.30, label: 'ISRU CRYO-MELTER', color: '#38bdf8' },
+        waterTank: { x: width * 0.38, y: height * 0.30, label: 'WATER RESERVOIR', color: '#06b6d4' },
+        electrolyzer: { x: width * 0.60, y: height * 0.30, label: 'PEM ELECTROLYZER', color: '#a855f7' },
+        propellant: { x: width * 0.84, y: height * 0.30, label: 'PROPELLANT DEPOT', color: '#f59e0b' },
+        habitat: { x: width * 0.50, y: height * 0.70, label: 'CREW HABITAT (ECLSS)', color: habitatColor },
+        sabatier: { x: width * 0.25, y: height * 0.70, label: 'SABATIER METHANATION', color: '#fb923c' },
+        algae: { x: width * 0.75, y: height * 0.70, label: 'SPIRULINA ALGAE PBR', color: '#10b981' },
+      };
 
-        // Sonar glow if sonar active
-        if (sonarActive) {
+      // Draw Flow Pipelines with Animated Particle Pulses
+      const drawPipe = (
+        from: { x: number; y: number },
+        to: { x: number; y: number },
+        strokeColor: string,
+        active: boolean
+      ) => {
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.strokeStyle = active ? strokeColor : 'rgba(100, 116, 139, 0.25)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        if (active) {
+          // Flowing pulse particles
+          const dx = to.x - from.x;
+          const dy = to.y - from.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const steps = Math.floor(dist / 40);
+          for (let i = 0; i < steps; i++) {
+            const t = ((i / steps) + (particleOffset / dist)) % 1;
+            const px = from.x + dx * t;
+            const py = from.y + dy * t;
+            ctx.beginPath();
+            ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = strokeColor;
+            ctx.shadowColor = strokeColor;
+            ctx.shadowBlur = 8;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
+      };
+
+      // Connect nodes
+      drawPipe(nodes.melter, nodes.waterTank, '#38bdf8', state.melterPowerPct > 0);
+      drawPipe(nodes.waterTank, nodes.electrolyzer, '#06b6d4', state.electrolyzerLoadPct > 0);
+      drawPipe(nodes.electrolyzer, nodes.propellant, '#f59e0b', state.electrolyzerLoadPct > 30);
+      drawPipe(nodes.electrolyzer, nodes.habitat, '#38bdf8', state.electrolyzerLoadPct > 0);
+      drawPipe(nodes.habitat, nodes.sabatier, '#a855f7', state.sabatierState !== 'OFFLINE');
+      drawPipe(nodes.sabatier, nodes.waterTank, '#06b6d4', state.sabatierState !== 'OFFLINE');
+      drawPipe(nodes.habitat, nodes.algae, '#10b981', state.algaeIrradiancePct > 0);
+      drawPipe(nodes.algae, nodes.habitat, '#34d399', state.algaeIrradiancePct > 0);
+
+      // Render Nodes
+      Object.entries(nodes).forEach(([key, node]) => {
+        const isSelected = selectedSubsystem === key;
+
+        // Outer glow on selected
+        if (isSelected) {
           ctx.beginPath();
-          ctx.arc(rx, ry, rock.radiusKm * 3.5, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
-          ctx.fill();
+          ctx.arc(node.x, node.y, 34, 0, Math.PI * 2);
+          ctx.strokeStyle = node.color;
+          ctx.lineWidth = 2;
+          ctx.shadowColor = node.color;
+          ctx.shadowBlur = 15;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
         }
 
-        // Rock Ingot Body
+        // Base circular node
         ctx.beginPath();
-        ctx.arc(rx, ry, rock.radiusKm * 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = '#451a03';
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 2;
+        ctx.arc(node.x, node.y, 24, 0, Math.PI * 2);
+        ctx.fillStyle = '#0f172a';
         ctx.fill();
+        ctx.strokeStyle = node.color;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
 
-        // Hazard Tag
-        ctx.fillStyle = '#ffedd5';
-        ctx.font = '600 9px monospace';
+        // Node center pip
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = node.color;
+        ctx.fill();
+
+        // Node Text
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '600 11px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`OBSTACLE: ${rock.depthKm} km`, rx, ry - rock.radiusKm * 2.5);
+        ctx.fillText(node.label, node.x, node.y + 38);
+      });
+
+      particleOffset = (particleOffset + 0.8) % 40;
+      animId = requestAnimationFrame(render);
+    };
+
+    render();
+    return () => cancelAnimationFrame(animId);
+  }, [state, selectedSubsystem, habitatColor]);
+
+  // Handle canvas click to select subsystem node
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const nodeCoords: Record<string, { x: number; y: number }> = {
+      melter: { x: width * 0.16, y: height * 0.30 },
+      waterTank: { x: width * 0.38, y: height * 0.30 },
+      electrolyzer: { x: width * 0.60, y: height * 0.30 },
+      propellant: { x: width * 0.84, y: height * 0.30 },
+      habitat: { x: width * 0.50, y: height * 0.70 },
+      sabatier: { x: width * 0.25, y: height * 0.70 },
+      algae: { x: width * 0.75, y: height * 0.70 },
+    };
+
+    for (const [id, coord] of Object.entries(nodeCoords)) {
+      const dist = Math.hypot(clickX - coord.x, clickY - coord.y);
+      if (dist < 32) {
+        setSelectedSubsystem(id);
+        addLog(`Inspected subsystem telemetry: ${id.toUpperCase()}`, 'info');
+        break;
       }
+    }
+  };
+
+  // --- Subsystem Dictionary ---
+  const subsystems: Record<string, SubsystemTelemetry> = {
+    melter: {
+      id: 'melter',
+      name: 'Valhalla Sub-Surface Cryo-Melter',
+      code: 'ISRU-MELT-01',
+      category: 'ISRU',
+      powerKw: melterKw,
+      status: state.siltClogPct > 50 ? 'FAULT' : state.melterPowerPct > 80 ? 'ELEVATED' : 'NOMINAL',
+      primaryMetric: `${iceMeltRateLh} L/h`,
+      metricLabel: 'Cryo-Ice Sublimation Flux',
+      description: 'Heated mechanical melt-head drilling into fractured cryo-regolith at 115 K to extract ice and filter rocky chondritic silt.',
+      chemicalReaction: 'H2O(s, 115K) + ΔH_melt → H2O(l, 277K) [Filtered]',
+    },
+    waterTank: {
+      id: 'waterTank',
+      name: 'Primary Potable & Greywater Reservoir',
+      code: 'ECLSS-H2O-RES',
+      category: 'ECLSS',
+      powerKw: 1.8,
+      status: 'NOMINAL',
+      primaryMetric: `${state.potableWaterL} L`,
+      metricLabel: 'Current Reserve Storage',
+      description: 'Multi-barrier water recovery processor incorporating catalytic oxidation, vacuum distillation, and silver biocide stabilization.',
+    },
+    electrolyzer: {
+      id: 'electrolyzer',
+      name: 'Solid Polymer Electrolyzer Stack',
+      code: 'ISRU-ELEC-44',
+      category: 'ISRU',
+      powerKw: electrolyzerKw,
+      status: state.electrolyzerLoadPct > 85 ? 'ELEVATED' : 'NOMINAL',
+      primaryMetric: `${o2GeneratedKgh} kg/h O2`,
+      metricLabel: 'Electrolytic Oxygen Output',
+      description: 'Proton Exchange Membrane (PEM) cells splitting deionized water at 35 bar to supply crew metabolic air and cryogenic ascent rocket tanks.',
+      chemicalReaction: '2 H2O(l) + 285.8 kJ/mol → 2 H2(g) + O2(g)',
+    },
+    propellant: {
+      id: 'propellant',
+      name: 'Cryogenic LOX / LH2 Propellant Depot',
+      code: 'DEPOT-VAL-03',
+      category: 'ISRU',
+      powerKw: 6.2,
+      status: 'NOMINAL',
+      primaryMetric: `${state.propellantLoxTons} T LOX / ${state.propellantLh2Tons} T LH2`,
+      metricLabel: 'Ascent Stage Fuel Loaded',
+      description: 'Cryo-cooled multi-layer insulation spherical dewars accumulating cryogenic propellant for Earth return trajectory stages.',
+    },
+    habitat: {
+      id: 'habitat',
+      name: 'Primary Crew Habitat Module (ECLSS)',
+      code: 'HAB-CORE-VAL',
+      category: 'ECLSS',
+      powerKw: habitatBaseloadKw,
+      status: habitatCondition === 'OPTIMAL' ? 'NOMINAL' : habitatCondition === 'CRITICAL' ? 'FAULT' : 'STRAINED',
+      primaryMetric: `${state.cabinPressureKpa} kPa (${state.oxygenPartialKpa} kPa pO2)`,
+      metricLabel: 'Atmospheric Envelope',
+      description: 'Pressurized Kevlar-aluminum structural shell housing 6 crew members with active air circulation, HEPA filtration, and temperature regulation.',
+    },
+    sabatier: {
+      id: 'sabatier',
+      name: 'Sabatier Catalytic Methanation Reactor',
+      code: 'ECLSS-SAB-02',
+      category: 'ECLSS',
+      powerKw: sabatierKw,
+      status: state.sabatierState === 'OFFLINE' ? 'STANDBY' : 'NOMINAL',
+      primaryMetric: `${co2ScrubbedKgh} kg/h CO2`,
+      metricLabel: 'Carbon Reduction Rate',
+      description: 'Ruthenium-on-alumina catalyst bed operating at 400°C combining respired CO2 with electrolyzer H2 to recover potable water.',
+      chemicalReaction: 'CO2(g) + 4 H2(g) → CH4(g) + 2 H2O(v) + 165 kJ/mol',
+    },
+    algae: {
+      id: 'algae',
+      name: 'Helical Spirulina Photobioreactor',
+      code: 'BIO-PBR-09',
+      category: 'BIO',
+      powerKw: algaeKw,
+      status: state.algaeIrradiancePct > 90 ? 'ELEVATED' : 'NOMINAL',
+      primaryMetric: `${state.algaeBiomassKg.toFixed(1)} kg`,
+      metricLabel: 'Accumulated Protein Biomass',
+      description: 'High-density micro-algae culture tubes utilizing 660nm LED photon arrays to absorb metabolic CO2 and produce dietary proteins & O2.',
+      chemicalReaction: '6 CO2 + 6 H2O + hν → C6H12O6 + 6 O2',
+    },
+  };
+
+  // --- Tactical Actions (User Controlled) ---
+
+  // 1. Advance Sol (24-hour mission cycle step)
+  const handleAdvanceSol = () => {
+    setState((prev) => {
+      const nextSol = prev.sol + 1;
+      const nextIsDay = (nextSol % 17) < 9; // Callisto 16.7 day cycle: ~8.5 days day, ~8.2 days night
+      const nextTempK = nextIsDay ? 165 : 110;
+
+      // Calculate 24-hr net changes
+      const dailyMeltL = iceMeltRateLh * 24;
+      const dailyElectrolyzedL = waterElectrolyzedLh * 24;
+      const dailyCrewWaterUsed = 15.0; // 2.5 L/day * 6 crew
+      const dailyNetWater = dailyMeltL - dailyElectrolyzedL - dailyCrewWaterUsed;
+
+      const dailyO2Kg = o2GeneratedKgh * 24;
+      const dailyCrewO2Kg = crewO2ConsumptionKgh * 24;
+      const o2SurplusKg = Math.max(0, dailyO2Kg - dailyCrewO2Kg);
+      const loxAddedTons = Number((o2SurplusKg * 0.0008).toFixed(3));
+      const lh2AddedTons = Number((loxAddedTons / 8).toFixed(3));
+
+      // Atmospheric changes based on net fluxes
+      let nextO2Kpa = prev.oxygenPartialKpa + (netO2FluxKgh > 0 ? 0.2 : -0.3);
+      nextO2Kpa = Math.max(14.0, Math.min(26.0, Number(nextO2Kpa.toFixed(1))));
+
+      let nextCo2Kpa = prev.co2PartialKpa + (netCo2FluxKgh > 0 ? 0.04 : -0.05);
+      nextCo2Kpa = Math.max(0.15, Math.min(1.2, Number(nextCo2Kpa.toFixed(2))));
+
+      // Temperature regulation based on radiator bypass and ambient cycle
+      let nextCabinTemp = prev.cabinTempC;
+      if (!nextIsDay && prev.radiatorBypassPct > 70) {
+        nextCabinTemp -= 1.8; // heat leaking during deep night
+      } else if (nextIsDay && prev.radiatorBypassPct < 30) {
+        nextCabinTemp += 1.5; // slight heat buildup
+      } else {
+        nextCabinTemp = 21.4; // regulated
+      }
+      nextCabinTemp = Number(nextCabinTemp.toFixed(1));
+
+      // Silt buildup increases slightly per sol if melter runs
+      const nextSilt = prev.melterPowerPct > 0 ? Math.min(100, prev.siltClogPct + 4) : prev.siltClogPct;
+
+      return {
+        ...prev,
+        sol: nextSol,
+        isJovianDay: nextIsDay,
+        ambientTempK: nextTempK,
+        oxygenPartialKpa: nextO2Kpa,
+        co2PartialKpa: nextCo2Kpa,
+        cabinTempC: nextCabinTemp,
+        potableWaterL: Math.max(200, Math.min(12000, Math.round(prev.potableWaterL + dailyNetWater))),
+        propellantLoxTons: Number((prev.propellantLoxTons + loxAddedTons).toFixed(2)),
+        propellantLh2Tons: Number((prev.propellantLh2Tons + lh2AddedTons).toFixed(2)),
+        algaeBiomassKg: Number((prev.algaeBiomassKg + (prev.algaeIrradiancePct / 100) * 1.8).toFixed(1)),
+        siltClogPct: nextSilt,
+      };
     });
 
-    // Draw Melt Probe
-    const probeX = (probeXPct / 100) * w;
-    const probeY = ((depthKm - viewTopKm) / 45) * h;
+    addLog(`Advanced Sol Cycle to SOL ${state.sol + 1}. Consumables reconciled over 24-hr period.`, 'action');
+  };
 
-    // Thermal Melt Glow beneath cone
-    const meltGlow = ctx.createRadialGradient(probeX, probeY + 16, 2, probeX, probeY + 28, 30);
-    meltGlow.addColorStop(0, 'rgba(239, 68, 68, 0.7)');
-    meltGlow.addColorStop(0.5, 'rgba(251, 191, 36, 0.4)');
-    meltGlow.addColorStop(1, 'rgba(245, 158, 11, 0)');
-    ctx.fillStyle = meltGlow;
-    ctx.beginPath();
-    ctx.arc(probeX, probeY + 22, 28, 0, Math.PI * 2);
-    ctx.fill();
+  // 2. Emergency O2 Cabin Injection
+  const handleEmergencyO2Flush = () => {
+    setState((prev) => ({
+      ...prev,
+      oxygenPartialKpa: 21.4,
+      cabinPressureKpa: 101.4,
+      potableWaterL: Math.max(100, prev.potableWaterL - 12),
+    }));
+    addLog('EMERGENCY O2 INJECTION: High-pressure reserve discharge restored cabin pO2 to 21.4 kPa.', 'warn');
+  };
 
-    // Communications / Power Tether Line going up to surface
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([3, 3]);
-    ctx.beginPath();
-    ctx.moveTo(probeX, 0);
-    ctx.lineTo(probeX, probeY - 14);
-    ctx.stroke();
-    ctx.setLineDash([]);
+  // 3. Filter Backwash (Clean Silt)
+  const handleFilterBackwash = () => {
+    setState((prev) => ({
+      ...prev,
+      siltClogPct: 0,
+      potableWaterL: Math.max(100, prev.potableWaterL - 8),
+    }));
+    addLog('FILTER BACKWASH: High-pressure sonic flush cleared chondritic silt from melter intake.', 'success');
+  };
 
-    // Cylindrical Probe Body
-    ctx.fillStyle = '#0f172a';
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(probeX - 9, probeY - 14, 18, 28, 3);
-    ctx.fill();
-    ctx.stroke();
+  // 4. Purge CO2 Amine Scrubbers
+  const handlePurgeCO2 = () => {
+    setState((prev) => ({
+      ...prev,
+      co2PartialKpa: 0.28,
+    }));
+    addLog('CO2 DESORPTION PURGE: Thermal amine beds flushed. Cabin pCO2 dropped to 0.28 kPa.', 'success');
+  };
 
-    // Heated Tungsten Nose Cone
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.moveTo(probeX - 9, probeY + 14);
-    ctx.lineTo(probeX + 9, probeY + 14);
-    ctx.lineTo(probeX, probeY + 24);
-    ctx.closePath();
-    ctx.fill();
+  // 5. Restore Nominal Equilibrium Setpoints
+  const handleRestoreNominal = () => {
+    setState((prev) => ({
+      ...prev,
+      melterPowerPct: 65,
+      electrolyzerLoadPct: 60,
+      sabatierState: 'BALANCED',
+      algaeIrradiancePct: 75,
+      radiatorBypassPct: 50,
+      oxygenPartialKpa: 21.2,
+      co2PartialKpa: 0.38,
+      cabinPressureKpa: 101.3,
+      cabinTempC: 21.4,
+      activeScenarioId: null,
+      scenarioMessage: null,
+    }));
+    addLog('SETPOINTS BALANCED: All ECLSS and ISRU control loops restored to nominal equilibrium.', 'info');
+  };
 
-    // Optical Sensor Window
-    ctx.fillStyle = '#38bdf8';
-    ctx.beginPath();
-    ctx.arc(probeX, probeY, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Sonar Beam Arc if active
-    if (sonarActive) {
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
-      ctx.lineWidth = 2;
-      [30, 55, 80].forEach((sr) => {
-        ctx.beginPath();
-        ctx.arc(probeX, probeY + 20, sr, 0.25 * Math.PI, 0.75 * Math.PI);
-        ctx.stroke();
-      });
+  // 6. Launch Simulation Scenario Challenges
+  const handleTriggerScenario = (scenarioId: string) => {
+    if (scenarioId === 'cryo_freeze') {
+      setState((prev) => ({
+        ...prev,
+        activeScenarioId: 'cryo_freeze',
+        ambientTempK: 108,
+        isJovianDay: false,
+        cabinTempC: 15.2,
+        radiatorBypassPct: 85,
+        scenarioMessage: 'CRITICAL CHILL: Radiator loop chilling near freeze point! Close bypass valve (<40%) to conserve internal thermal heat.',
+      }));
+      addLog('SIMULATION SCENARIO TRIGGERED: Cryogenic Night Radiator Freeze Hazard.', 'warn');
+    } else if (scenarioId === 'silt_blockage') {
+      setState((prev) => ({
+        ...prev,
+        activeScenarioId: 'silt_blockage',
+        siltClogPct: 85,
+        scenarioMessage: 'INTAKE CLOG: Cryo-melter silt filter at 85% restriction. Execute Filter Backwash to recover water flux.',
+      }));
+      addLog('SIMULATION SCENARIO TRIGGERED: Chondritic Silt Intrusion in Melter Head.', 'warn');
+    } else if (scenarioId === 'radiation_surge') {
+      setState((prev) => ({
+        ...prev,
+        activeScenarioId: 'radiation_surge',
+        radiationFluxMsv: 0.85,
+        scenarioMessage: 'MAGNETOSPHERIC SURGE: Jovian plasma flux wave detected. Divert Kilopower grid to magnetic storm shelter.',
+      }));
+      addLog('SIMULATION SCENARIO TRIGGERED: Jovian Magnetospheric Plasma Shockwave.', 'warn');
     }
+  };
 
-    // Depth Gauge on Left Margin
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
-    ctx.font = '10px monospace';
-    ctx.textAlign = 'right';
-    for (let d = Math.floor(viewTopKm); d <= Math.ceil(viewBottomKm); d += 10) {
-      const dy = ((d - viewTopKm) / 45) * h;
-      ctx.fillText(`${d} km -`, 48, dy + 3);
-    }
-  }, [depthKm, probeXPct, sonarActive]);
+  const currentSubsystem = subsystems[selectedSubsystem] || subsystems.melter;
 
   return (
-    <div
-      style={{
-        backgroundColor: 'var(--deep)',
-        border: '1px solid color-mix(in srgb, var(--orbit) 40%, transparent)',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'var(--space-lg)',
-        boxShadow: '0 16px 44px rgba(0, 0, 0, 0.55)',
-        fontFamily: 'var(--font-mono)',
-        color: 'var(--moon)',
-      }}
-    >
-      {/* Top Avionics Mission Control Bar (Clean Static Telemetry Badges) */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 'var(--space-md)',
-          borderBottom: '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
-          paddingBottom: 'var(--space-md)',
-          marginBottom: 'var(--space-lg)',
-        }}
-      >
-        <div>
-          <div style={{ fontSize: '0.6875rem', color: 'var(--astrophage)', letterSpacing: '0.14em' }}>
-            CALLISTO EXPEDITION // CRYOBOT OCEAN PROBE
+    <div className="outpost-cockpit">
+      {/* Flight Deck Header */}
+      <div className="cockpit-header">
+        <div className="header-left">
+          <div className="tag-row">
+            <span className="station-badge">OUTPOST CALLISTO // ECLSS & ISRU COMMAND</span>
+            <span className="orbit-badge">VALHALLA BASIN • 15.9°N, 55.6°W</span>
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', margin: '0.2rem 0 0 0', color: 'var(--moon)' }}>
-            The Deep Ice Descent // Sub-Surface Ocean Mission
-          </h2>
+          <h2 className="deck-title">Bio-Astronautics Closed-Loop Simulator</h2>
+          <p className="deck-subtitle">
+            Autonomous environmental control and resource synthesis supporting permanent Jovian surface outposts.
+          </p>
         </div>
 
-        {/* Clean Static Telemetry Badges */}
-        <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap' }}>
-          <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>SOL:</span> 1117
-          </div>
-          <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>TARGET:</span> SUB-SURFACE OCEAN
-          </div>
-          <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>DEPTH:</span>{' '}
-            <span style={{ color: '#38bdf8', fontWeight: 700 }}>{depthKm} km / 150 km</span>
-          </div>
-          <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>MELT TEMP:</span> {thermalHeadTempK} K
-          </div>
-          <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>PRESSURE:</span> {currentLayer.pressureMpa} MPa
-          </div>
-          <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>OCEAN:</span>{' '}
-            <span style={{ color: oceanDiscovered ? '#4ade80' : '#f59e0b', fontWeight: 700 }}>
-              {oceanDiscovered ? 'REACHED [148 km]' : 'PENDING'}
-            </span>
-          </div>
+        {/* Action Controls in Header */}
+        <div className="header-actions">
+          <button
+            type="button"
+            className="action-btn cycle-btn"
+            onClick={handleAdvanceSol}
+            title="Advance simulation by 24 hours (1 Sol)"
+          >
+            <span className="btn-icon">⟳</span>
+            <span>ADVANCE SOL (24H)</span>
+          </button>
+          <button
+            type="button"
+            className="action-btn report-btn"
+            onClick={() => setReportModalOpen(true)}
+            title="Open comprehensive telemetry briefing"
+          >
+            <span className="btn-icon">📋</span>
+            <span>MISSION BRIEFING</span>
+          </button>
         </div>
       </div>
 
-      {/* Navigation Subsystem Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 'var(--space-sm)',
-          borderBottom: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-          marginBottom: 'var(--space-md)',
-          overflowX: 'auto',
-        }}
-      >
+      {/* Static Mission Telemetry Badges (NO RESTLESS TICKING / PURE STATIC TELEMETRY) */}
+      <div className="telemetry-bar" aria-label="Static Outpost Telemetry">
+        <div className="telemetry-card status-card" style={{ borderColor: habitatColor }}>
+          <span className="card-label">HABITAT SAFETY INDEX</span>
+          <span className="card-value" style={{ color: habitatColor }}>
+            {habitatCondition} ({state.crewHealthPct.toFixed(1)}%)
+          </span>
+          <span className="card-subtext">All 6 Crew Compartments Pressurized</span>
+        </div>
+
+        <div className="telemetry-card">
+          <span className="card-label">SURFACE ENVIRONMENT</span>
+          <span className="card-value">
+            SOL {state.sol} // {state.isJovianDay ? 'DAY' : 'NIGHT'}
+          </span>
+          <span className="card-subtext">
+            Ext: {state.ambientTempK} K • Grav: {CALLISTO_SURFACE_GRAVITY} m/s²
+          </span>
+        </div>
+
+        <div className="telemetry-card">
+          <span className="card-label">ATMOSPHERIC ENVELOPE</span>
+          <span className="card-value">
+            {state.cabinPressureKpa} kPa • {state.oxygenPartialKpa} kPa pO₂
+          </span>
+          <span className="card-subtext">
+            pCO₂: {state.co2PartialKpa} kPa • Temp: {state.cabinTempC}°C
+          </span>
+        </div>
+
+        <div className="telemetry-card">
+          <span className="card-label">KILOPOWER GRID LOAD</span>
+          <span className="card-value">
+            {totalPowerDrawKw} / {KILOPOWER_BASE_CAPACITY_KW} kW
+          </span>
+          <span className="card-subtext">Reserve: +{powerReserveKw} kW Available</span>
+        </div>
+
+        <div className="telemetry-card">
+          <span className="card-label">ASCENT FUEL ACCUMULATED</span>
+          <span className="card-value">
+            {state.propellantLoxTons} T LOX / {state.propellantLh2Tons} T LH₂
+          </span>
+          <span className="card-subtext">Reserve Target: 25.0 Tons Required</span>
+        </div>
+      </div>
+
+      {/* Active Incident Warning Alert (if any) */}
+      {state.scenarioMessage && (
+        <div className="incident-alert">
+          <div className="alert-content">
+            <span className="alert-badge">PRIORITY ALERT</span>
+            <span className="alert-text">{state.scenarioMessage}</span>
+          </div>
+          <button
+            type="button"
+            className="alert-dismiss-btn"
+            onClick={handleRestoreNominal}
+          >
+            RESOLVE SETPOINTS
+          </button>
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <div className="deck-tabs">
         <button
           type="button"
-          onClick={() => setActiveTab('sonar')}
-          style={tabStyle(activeTab === 'sonar')}
+          className={`tab-btn ${activeTab === 'schematic' ? 'active' : ''}`}
+          onClick={() => setActiveTab('schematic')}
         >
-          1. VERTICAL DESCENT RADAR & CONTROLS
+          <span className="tab-icon">☵</span>
+          <span>CLOSED-LOOP SCHEMATIC</span>
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('stratigraphy')}
-          style={tabStyle(activeTab === 'stratigraphy')}
+          className={`tab-btn ${activeTab === 'controls' ? 'active' : ''}`}
+          onClick={() => setActiveTab('controls')}
         >
-          2. ICE CRUST STRATIGRAPHY (5 LAYERS)
+          <span className="tab-icon">⚙</span>
+          <span>SYSTEM CONTROLS & FLUX</span>
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('samples')}
-          style={tabStyle(activeTab === 'samples')}
+          className={`tab-btn ${activeTab === 'scenarios' ? 'active' : ''}`}
+          onClick={() => setActiveTab('scenarios')}
         >
-          3. ASTROBIOLOGY SAMPLE BAY ({samplesCollected.length}/5)
+          <span className="tab-icon">⚡</span>
+          <span>MISSION SCENARIOS & DRILLS</span>
+        </button>
+        <button
+          type="button"
+          className={`tab-btn ${activeTab === 'log' ? 'active' : ''}`}
+          onClick={() => setActiveTab('log')}
+        >
+          <span className="tab-icon">⌨</span>
+          <span>ENGINEERING LOG ({logEntries.length})</span>
         </button>
       </div>
 
-      {/* Tab 1: Vertical Descent Chamber & Controls */}
-      {activeTab === 'sonar' && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: 'var(--space-lg)',
-            alignItems: 'start',
-          }}
-        >
-          {/* Vertical Stratigraphy Canvas */}
-          <div>
-            <div
-              style={{
-                position: 'relative',
-                borderRadius: 'var(--radius-md)',
-                overflow: 'hidden',
-                border: '2px solid color-mix(in srgb, var(--orbit) 50%, transparent)',
-                backgroundColor: '#060913',
-                boxShadow: '0 0 24px color-mix(in srgb, var(--orbit) 25%, transparent)',
-              }}
-            >
+      {/* Main Workspace Body */}
+      <div className="deck-body">
+        {/* Tab 1: Interactive Flow Schematic */}
+        {activeTab === 'schematic' && (
+          <div className="schematic-layout">
+            <div className="canvas-wrapper">
+              <div className="canvas-header">
+                <span className="canvas-title">MASS & ENERGY CONSERVATION MAPPING</span>
+                <span className="canvas-hint">Click any node to inspect subsystem telemetry</span>
+              </div>
               <canvas
                 ref={canvasRef}
-                width={640}
-                height={420}
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-                title="Cross-section of Callisto ice crust. Use controls below to steer and melt downward."
+                width={860}
+                height={440}
+                className="schematic-canvas"
+                onClick={handleCanvasClick}
               />
-
-              {/* In-Range Stratigraphy Horizon HUD */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '12px',
-                  right: '12px',
-                  backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                  border: `1px solid ${currentLayer.color}`,
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '0.45rem 0.75rem',
-                  fontSize: '0.75rem',
-                  backdropFilter: 'blur(8px)',
-                  maxWidth: '260px',
-                }}
-              >
-                <div style={{ color: currentLayer.color, fontWeight: 700 }}>
-                  CURRENT HORIZON
-                </div>
-                <div style={{ color: 'var(--moon)', fontSize: '0.6875rem' }}>
-                  {currentLayer.name}
-                </div>
-                <div style={{ color: 'var(--steel)', fontSize: '0.625rem', marginTop: '2px' }}>
-                  Ambient: {currentLayer.tempK} K // Hydrostatic: {currentLayer.pressureMpa} MPa
-                </div>
+              <div className="canvas-legend">
+                <span className="legend-item"><span className="legend-dot water"></span> H₂O Water Flow</span>
+                <span className="legend-item"><span className="legend-dot oxygen"></span> O₂ Oxygen Flux</span>
+                <span className="legend-item"><span className="legend-dot co2"></span> CO₂ Absorption</span>
+                <span className="legend-item"><span className="legend-dot fuel"></span> LOX/LH₂ Propellant</span>
+                <span className="legend-item"><span className="legend-dot biomass"></span> Algae Biomass</span>
               </div>
             </div>
 
-            {/* Tactile Mobile & Desktop Steering & Melt Controls */}
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: 'var(--space-md)',
-                padding: 'var(--space-sm) var(--space-md)',
-                backgroundColor: 'color-mix(in srgb, var(--void) 70%, transparent)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid color-mix(in srgb, var(--steel) 25%, transparent)',
-                gap: 'var(--space-md)',
-              }}
-            >
-              {/* Lateral Water Jet Steering */}
-              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.625rem', color: 'var(--steel)', marginRight: '4px' }}>
-                  LATERAL JETS:
+            {/* Subsystem Telemetry Inspector Card */}
+            <div className="inspector-panel">
+              <div className="inspector-header">
+                <span className="subsys-category">{currentSubsystem.category}</span>
+                <span className={`status-pill status-${currentSubsystem.status.toLowerCase()}`}>
+                  {currentSubsystem.status}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => steerProbe('left')}
-                  style={steerBtnStyle}
-                  title="Steer Cryobot Left"
-                  aria-label="Steer Cryobot Left"
-                >
-                  ◀ STEER LEFT
-                </button>
-                <button
-                  type="button"
-                  onClick={() => steerProbe('right')}
-                  style={steerBtnStyle}
-                  title="Steer Cryobot Right"
-                  aria-label="Steer Cryobot Right"
-                >
-                  STEER RIGHT ▶
-                </button>
+              </div>
+              <h3 className="subsys-name">{currentSubsystem.name}</h3>
+              <span className="subsys-code">{currentSubsystem.code}</span>
+
+              <div className="metric-box">
+                <span className="metric-label">{currentSubsystem.metricLabel}</span>
+                <span className="metric-val">{currentSubsystem.primaryMetric}</span>
+                <span className="metric-power">⚡ Power Draw: {currentSubsystem.powerKw} kW</span>
               </div>
 
-              {/* Action Buttons: Pulse Sonar & Melt Step */}
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={pulseAcousticSonar}
-                  style={secondaryActionBtnStyle}
-                  title="Pulse downward acoustic sonar to detect rock obstacles"
-                >
-                  📡 PULSE SONAR
-                </button>
+              <p className="subsys-desc">{currentSubsystem.description}</p>
 
-                <button
-                  type="button"
-                  onClick={stepMeltDescent}
-                  style={{
-                    padding: '0.65rem 1.25rem',
-                    backgroundColor: oceanDiscovered ? '#4ade80' : 'var(--orbit)',
-                    color: 'var(--void)',
-                    border: 'none',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 0 16px color-mix(in srgb, var(--orbit) 40%, transparent)',
-                    transition: 'all 0.2s',
-                  }}
-                  title="Engage thermal melt head to penetrate ice"
-                >
-                  {oceanDiscovered ? 'OCEAN PENETRATED [148 KM]' : '🔥 MELT ICE DESCENT ↓'}
-                </button>
+              {currentSubsystem.chemicalReaction && (
+                <div className="reaction-box">
+                  <span className="reaction-title">STOICHIOMETRIC REACTION:</span>
+                  <code className="reaction-code">{currentSubsystem.chemicalReaction}</code>
+                </div>
+              )}
+
+              <div className="quick-action-row">
+                {currentSubsystem.id === 'melter' && (
+                  <button
+                    type="button"
+                    className="subsys-action-btn"
+                    onClick={handleFilterBackwash}
+                  >
+                    CLEAN SILT FILTERS (BACKWASH)
+                  </button>
+                )}
+                {currentSubsystem.id === 'habitat' && (
+                  <button
+                    type="button"
+                    className="subsys-action-btn"
+                    onClick={handleEmergencyO2Flush}
+                  >
+                    EMERGENCY O2 INJECTION
+                  </button>
+                )}
+                {currentSubsystem.id === 'sabatier' && (
+                  <button
+                    type="button"
+                    className="subsys-action-btn"
+                    onClick={handlePurgeCO2}
+                  >
+                    PURGE AMINE BEDS
+                  </button>
+                )}
               </div>
             </div>
           </div>
+        )}
 
-          {/* Right Column: Instrument Sliders & Layer Data */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-            {/* Thermal Melt Power Control Card */}
-            <div style={toolCardStyle}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--astrophage)', marginBottom: '0.4rem' }}>
-                NUCLEAR-THERMAL MELT-HEAD POWER
-              </div>
-              <p style={{ fontSize: '0.6875rem', color: 'var(--steel)', margin: '0 0 0.8rem 0' }}>
-                Adjust wattage sent to the tungsten heated nose cone to melt through cryogenic ice.
-              </p>
-
-              <div style={{ marginBottom: '0.8rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem', marginBottom: '0.3rem' }}>
-                  <span>Thermal Power Output</span>
-                  <span style={{ color: 'var(--astrophage)', fontWeight: 700 }}>{meltPowerKw} kW</span>
+        {/* Tab 2: System Controls & Dynamic Sliders */}
+        {activeTab === 'controls' && (
+          <div className="controls-layout">
+            <div className="control-group">
+              <div className="slider-card">
+                <div className="slider-header">
+                  <span className="slider-title">1. Cryo-Regolith Melter Power Flux</span>
+                  <span className="slider-badge">{state.melterPowerPct}% ({melterKw} kW)</span>
                 </div>
                 <input
                   type="range"
-                  min="15"
-                  max="80"
-                  value={meltPowerKw}
-                  onChange={(e) => setMeltPowerKw(parseInt(e.target.value))}
-                  style={{ width: '100%', accentColor: 'var(--astrophage)' }}
+                  min="0"
+                  max="100"
+                  value={state.melterPowerPct}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setState((prev) => ({ ...prev, melterPowerPct: val }));
+                    addLog(`Cryo-Melter set to ${val}% (${((val / 100) * 18.0).toFixed(1)} kW)`, 'action');
+                  }}
+                  className="cockpit-slider"
                 />
+                <div className="slider-meta">
+                  <span>Melts Callisto 115 K surface ice</span>
+                  <span>Yield: {iceMeltRateLh} L/h Water</span>
+                </div>
               </div>
 
+              <div className="slider-card">
+                <div className="slider-header">
+                  <span className="slider-title">2. PEM Water Electrolyzer Load</span>
+                  <span className="slider-badge">{state.electrolyzerLoadPct}% ({electrolyzerKw} kW)</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={state.electrolyzerLoadPct}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setState((prev) => ({ ...prev, electrolyzerLoadPct: val }));
+                    addLog(`Electrolyzer load adjusted to ${val}%`, 'action');
+                  }}
+                  className="cockpit-slider"
+                />
+                <div className="slider-meta">
+                  <span>Splits H2O into O2 + H2</span>
+                  <span>Generates: {o2GeneratedKgh} kg/h O2</span>
+                </div>
+              </div>
+
+              <div className="slider-card">
+                <div className="slider-header">
+                  <span className="slider-title">3. Sabatier Methanation Mode</span>
+                  <span className="slider-badge">{state.sabatierState}</span>
+                </div>
+                <div className="mode-toggle-group">
+                  {(['OFFLINE', 'BALANCED', 'MAX_FLUX'] as const).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      className={`mode-btn ${state.sabatierState === m ? 'active' : ''}`}
+                      onClick={() => {
+                        setState((prev) => ({ ...prev, sabatierState: m }));
+                        addLog(`Sabatier reactor mode switched to ${m}`, 'action');
+                      }}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+                <div className="slider-meta">
+                  <span>Recycles CO2 + H2 → CH4 + 2 H2O</span>
+                  <span>Scrubbing: {co2ScrubbedKgh} kg/h CO2</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="control-group">
+              <div className="slider-card">
+                <div className="slider-header">
+                  <span className="slider-title">4. Spirulina Photobioreactor LED Flux</span>
+                  <span className="slider-badge">{state.algaeIrradiancePct}% ({algaeKw} kW)</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={state.algaeIrradiancePct}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setState((prev) => ({ ...prev, algaeIrradiancePct: val }));
+                    addLog(`Algae PBR LED irradiance set to ${val}%`, 'action');
+                  }}
+                  className="cockpit-slider"
+                />
+                <div className="slider-meta">
+                  <span>Biological photosynthetic CO2 fixation</span>
+                  <span>Yield: +0.07 kg/h Protein</span>
+                </div>
+              </div>
+
+              <div className="slider-card">
+                <div className="slider-header">
+                  <span className="slider-title">5. Radiator Heat Rejection Bypass</span>
+                  <span className="slider-badge">{state.radiatorBypassPct}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={state.radiatorBypassPct}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setState((prev) => ({ ...prev, radiatorBypassPct: val }));
+                    addLog(`Radiator thermal bypass adjusted to ${val}%`, 'action');
+                  }}
+                  className="cockpit-slider"
+                />
+                <div className="slider-meta">
+                  <span>Rejects waste reactor heat to space</span>
+                  <span>Cabin Temp: {state.cabinTempC}°C</span>
+                </div>
+              </div>
+
+              <div className="tactical-actions-card">
+                <span className="card-heading">DIRECT CONTINGENCY INTERVENTIONS</span>
+                <div className="tactical-btn-grid">
+                  <button
+                    type="button"
+                    className="contingency-btn"
+                    onClick={handleEmergencyO2Flush}
+                  >
+                    INJECT RESERVE O₂
+                  </button>
+                  <button
+                    type="button"
+                    className="contingency-btn"
+                    onClick={handleFilterBackwash}
+                  >
+                    FLUSH SILT INTAKE
+                  </button>
+                  <button
+                    type="button"
+                    className="contingency-btn"
+                    onClick={handlePurgeCO2}
+                  >
+                    PURGE AMINE BEDS
+                  </button>
+                  <button
+                    type="button"
+                    className="contingency-btn reset-btn"
+                    onClick={handleRestoreNominal}
+                  >
+                    RESTORE NOMINAL
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Mission Scenarios & Training Drills */}
+        {activeTab === 'scenarios' && (
+          <div className="scenarios-layout">
+            <div className="scenarios-grid">
+              <div className="scenario-card">
+                <div className="scenario-tag">DRILL ALPHA</div>
+                <h4 className="scenario-title">Deep Cryogenic Night Freeze (110 K)</h4>
+                <p className="scenario-desc">
+                  Callisto rotates into Jovian shadow. Exterior temperatures plunge to 110 K.
+                  Radiator coolant lines risk freezing solid, while habitat insulation is tested.
+                </p>
+                <div className="scenario-objectives">
+                  <span>• Target: Throttle radiator bypass to prevent fluid stagnation.</span>
+                  <span>• Maintain cabin interior temperature between 18°C and 23°C.</span>
+                </div>
+                <button
+                  type="button"
+                  className="scenario-start-btn"
+                  onClick={() => handleTriggerScenario('cryo_freeze')}
+                >
+                  SIMULATE NIGHT FREEZE
+                </button>
+              </div>
+
+              <div className="scenario-card">
+                <div className="scenario-tag">DRILL BRAVO</div>
+                <h4 className="scenario-title">Chondritic Silt Intrusion in Melter</h4>
+                <p className="scenario-desc">
+                  Dense basaltic impact dust from Valhalla Basin invades the sub-surface melt chamber,
+                  throttling water recovery flow by 85%.
+                </p>
+                <div className="scenario-objectives">
+                  <span>• Target: Execute high-pressure backwash sequence.</span>
+                  <span>• Balance water conservation until flow is restored.</span>
+                </div>
+                <button
+                  type="button"
+                  className="scenario-start-btn"
+                  onClick={() => handleTriggerScenario('silt_blockage')}
+                >
+                  SIMULATE SILT CLOG
+                </button>
+              </div>
+
+              <div className="scenario-card">
+                <div className="scenario-tag">DRILL CHARLIE</div>
+                <h4 className="scenario-title">Jovian Magnetospheric Compression</h4>
+                <p className="scenario-desc">
+                  A solar coronal mass ejection compresses Jupiter’s magnetosphere, causing radiation
+                  flux spikes on Callisto's surface.
+                </p>
+                <div className="scenario-objectives">
+                  <span>• Target: Divert 20 kW power to the subterranean active storm shelter.</span>
+                  <span>• Confirm crew health metrics remain above 95%.</span>
+                </div>
+                <button
+                  type="button"
+                  className="scenario-start-btn"
+                  onClick={() => handleTriggerScenario('radiation_surge')}
+                >
+                  SIMULATE RADIATION SURGE
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Engineering Telemetry Log */}
+        {activeTab === 'log' && (
+          <div className="log-layout">
+            <div className="log-header">
+              <span className="log-title">REAL-TIME SUBSYSTEM TRANSACTION FEED</span>
               <button
                 type="button"
-                onClick={sampleCurrentLayer}
-                style={secondaryActionBtnStyle}
+                className="log-clear-btn"
+                onClick={() => setLogEntries([])}
               >
-                🔬 SAMPLE RAMAN SPECTRA AT CURRENT DEPTH
+                CLEAR LOGS
               </button>
             </div>
-
-            {/* Current Stratigraphy Summary */}
-            <div style={toolCardStyle}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: currentLayer.color, marginBottom: '0.4rem' }}>
-                LOCAL STRATIGRAPHY PROFILE
-              </div>
-              <p style={{ fontSize: '0.6875rem', color: 'var(--moon)', lineHeight: 1.5, margin: '0 0 0.6rem 0' }}>
-                {currentLayer.description}
-              </p>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--steel)' }}>
-                Target Compounds: <strong style={{ color: 'var(--moon)' }}>{currentLayer.spectralTarget}</strong>
-              </div>
-            </div>
-
-            {/* Ocean Conductivity Breakthrough Indicator */}
-            <div style={toolCardStyle}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#22d3ee', marginBottom: '0.4rem' }}>
-                SALINITY & CONDUCTIVITY DETECTOR
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginTop: '0.4rem' }}>
-                <span>Electrolytic Conductivity:</span>
-                <span style={{ color: oceanDiscovered ? '#4ade80' : 'var(--steel)', fontWeight: 700 }}>
-                  {oceanDiscovered ? '3.82 S/m [SALINE WATER]' : '0.00 S/m [SOLID ICE]'}
-                </span>
-              </div>
+            <div className="log-terminal">
+              {logEntries.map((entry) => (
+                <div key={entry.id} className={`log-row log-${entry.type}`}>
+                  <span className="log-time">[{entry.time}]</span>
+                  <span className="log-badge">{entry.type.toUpperCase()}</span>
+                  <span className="log-message">{entry.text}</span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Tab 2: Ice Crust Stratigraphy Overview */}
-      {activeTab === 'stratigraphy' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-          <div style={{ fontSize: '0.8125rem', color: 'var(--astrophage)', fontWeight: 700 }}>
-            CALLISTO CRUSTAL PROFILE // 0 TO 160 KM DEPTH MAPPING
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-md)' }}>
-            {ICE_STRATIGRAPHY.map((layer, idx) => {
-              const isCurrent = currentLayer.name === layer.name;
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: isCurrent
-                      ? 'color-mix(in srgb, var(--navy) 80%, transparent)'
-                      : 'color-mix(in srgb, var(--void) 85%, black)',
-                    border: `1px solid ${isCurrent ? layer.color : 'color-mix(in srgb, var(--steel) 30%, transparent)'}`,
-                    borderRadius: 'var(--radius-md)',
-                    padding: 'var(--space-md)',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: layer.color }}>
-                      {layer.name}
-                    </span>
-                    <span style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>
-                      {layer.depthStartKm} - {layer.depthEndKm} km
-                    </span>
-                  </div>
-
-                  <p style={{ fontSize: '0.6875rem', color: 'var(--moon)', lineHeight: 1.4, margin: '0 0 0.6rem 0' }}>
-                    {layer.description}
-                  </p>
-
-                  <div style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>
-                    <div>• Temperature: {layer.tempK} K (-{Math.round(273.15 - layer.tempK)}°C)</div>
-                    <div>• Hydrostatic Pressure: {layer.pressureMpa} MPa</div>
-                    <div>• Key Analyte: {layer.spectralTarget}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Tab 3: Astrobiology Sample Bay */}
-      {activeTab === 'samples' && (
-        <div style={toolCardStyle}>
-          <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--astrophage)', marginBottom: '0.5rem' }}>
-            CRYO-CORE ASTROBIOLOGY RETRIEVAL BAY
-          </div>
-          <p style={{ fontSize: '0.6875rem', color: 'var(--steel)', lineHeight: 1.4, margin: '0 0 1rem 0' }}>
-            Sample clathrates, ancient trapped noble gases, and ocean electrolytes by clicking &ldquo;Sample Raman Spectra&rdquo; as the probe descends through each ice layer.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            {ICE_STRATIGRAPHY.map((layer, idx) => {
-              const collected = samplesCollected.includes(layer.name);
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: collected
-                      ? 'color-mix(in srgb, #4ade80 12%, var(--void))'
-                      : 'color-mix(in srgb, var(--void) 80%, black)',
-                    border: `1px solid ${
-                      collected ? '#4ade80' : 'color-mix(in srgb, var(--steel) 25%, transparent)'
-                    }`,
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '0.65rem 0.85rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: collected ? '#86efac' : 'var(--moon)' }}>
-                      [{collected ? 'ANALYZED' : 'PENDING'}] {layer.name}
-                    </div>
-                    <div style={{ fontSize: '0.625rem', color: 'var(--steel)', marginTop: '2px' }}>
-                      Depth: {layer.depthStartKm} - {layer.depthEndKm} km // Analyte: {layer.spectralTarget}
-                    </div>
-                  </div>
-                  <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: collected ? '#4ade80' : 'var(--steel)' }}>
-                    {collected ? '✓ CORE SECURED' : 'UNVISITED'}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Real-Time Live Status Feedback Bar */}
-      <div
-        style={{
-          marginTop: 'var(--space-md)',
-          backgroundColor: '#040711',
-          border: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-          borderRadius: 'var(--radius-sm)',
-          padding: '0.75rem',
-          fontSize: '0.6875rem',
-          lineHeight: 1.4,
-        }}
-      >
-        <span style={{ color: 'var(--astrophage)', fontWeight: 700 }}>CRYOBOT TELEMETRY: </span>
-        {missionLog}
+        )}
       </div>
 
-      {/* Mission Victory Banner on Ocean Breakthrough */}
-      {oceanDiscovered && (
-        <div
-          style={{
-            marginTop: 'var(--space-md)',
-            backgroundColor: 'color-mix(in srgb, #22d3ee 16%, transparent)',
-            border: '2px solid #22d3ee',
-            borderRadius: 'var(--radius-md)',
-            padding: 'var(--space-md)',
-            textAlign: 'center',
-            boxShadow: '0 0 24px rgba(34, 211, 238, 0.35)',
-          }}
-        >
-          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#67e8f9', marginBottom: '0.3rem' }}>
-            [BREAKTHROUGH ACHIEVED] CALLISTO SUB-SURFACE OCEAN PENETRATED
+      {/* Mission Briefing Modal */}
+      {reportModalOpen && (
+        <div className="modal-overlay" onClick={() => setReportModalOpen(false)}>
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-tag">EXPEDITION-4 FLIGHT MANUAL // CLASSIFIED BRIEFING</div>
+              <h3 className="modal-title">Outpost Callisto: Closed-Loop Bio-Astronautics</h3>
+            </div>
+            <div className="modal-content">
+              <h4>1. The Strategic Value of Callisto</h4>
+              <p>
+                Unlike Europa or Io which sit inside Jupiter’s lethal radiation belts ($&gt;50\text&#123; Sv/day&#125;$),
+                Callisto is located at 1.88 million kilometers from Jupiter. Radiation exposure on Callisto
+                is only $\approx 0.01\text&#123; mSv/day&#125;$&mdash;comparable to Earth surface levels. This makes it
+                humanity’s primary staging outpost for deep Jovian space exploration.
+              </p>
+              <h4>2. ECLSS Mass Conservation</h4>
+              <p>
+                A 6-person crew requires 5.04 kg of $O_2$ and 15 liters of drinking water per day.
+                The Outpost achieves a 98.4% closure loop by combining high-temperature Sabatier catalytic
+                methanation with Spirulina photobioreactors, converting respired $CO_2$ back into breathable
+                oxygen and edible caloric biomass.
+              </p>
+              <h4>3. In-Situ Resource Utilization (ISRU)</h4>
+              <p>
+                By sublimating the cryo-regolith ice shell with Kilopower Stirling reactors, excess water
+                is electrolyzed into cryogenic liquid oxygen ($LOX$) and liquid hydrogen ($LH_2$), refueling
+                interplanetary transfer craft without requiring propellant launches from Earth.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="action-btn report-btn"
+                onClick={() => setReportModalOpen(false)}
+              >
+                RETURN TO COMMAND DECK
+              </button>
+            </div>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--moon)', margin: 0 }}>
-            Tungsten melt-head penetrated the 148 km basal ice boundary. The nuclear cryobot is now buoyant in the saline liquid Jovian ocean!
-          </p>
         </div>
       )}
+
+      {/* Embedded High-Contrast Stylesheet */}
+      <style>{`
+        .outpost-cockpit {
+          background-color: var(--surface, #0c121e);
+          border: 1px solid color-mix(in srgb, var(--border, #334155) 45%, transparent);
+          border-radius: var(--radius-lg, 12px);
+          overflow: hidden;
+          font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+          color: var(--moon, #f8fafc);
+          box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        .cockpit-header {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+          padding: 1.75rem 2rem;
+          border-bottom: 1px solid color-mix(in srgb, var(--border, #334155) 35%, transparent);
+          background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(12, 18, 30, 0.5) 100%);
+        }
+
+        @media (min-width: 860px) {
+          .cockpit-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+        }
+
+        .tag-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .station-badge {
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: #38bdf8;
+          background: rgba(56, 189, 248, 0.12);
+          border: 1px solid rgba(56, 189, 248, 0.3);
+          padding: 0.2rem 0.6rem;
+          border-radius: 4px;
+        }
+
+        .orbit-badge {
+          font-size: 0.72rem;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          color: #94a3b8;
+          background: rgba(148, 163, 184, 0.08);
+          border: 1px solid rgba(148, 163, 184, 0.2);
+          padding: 0.2rem 0.6rem;
+          border-radius: 4px;
+        }
+
+        .deck-title {
+          font-family: var(--font-display, inherit);
+          font-size: 1.6rem;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: -0.01em;
+          color: #ffffff;
+        }
+
+        .deck-subtitle {
+          font-size: 0.85rem;
+          color: #94a3b8;
+          margin: 0.35rem 0 0 0;
+          font-family: var(--font-body, inherit);
+        }
+
+        .header-actions {
+          display: flex;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+        }
+
+        .action-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.65rem 1.1rem;
+          border-radius: 6px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .cycle-btn {
+          background: #0284c7;
+          color: #ffffff;
+          border: 1px solid #38bdf8;
+        }
+
+        .cycle-btn:hover {
+          background: #0369a1;
+          box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+        }
+
+        .report-btn {
+          background: rgba(30, 41, 59, 0.7);
+          color: #e2e8f0;
+          border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .report-btn:hover {
+          background: rgba(51, 65, 85, 0.9);
+          border-color: #94a3b8;
+        }
+
+        /* Telemetry Cards */
+        .telemetry-bar {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+          gap: 0.85rem;
+          padding: 1.25rem 2rem;
+          background: rgba(8, 13, 22, 0.6);
+          border-bottom: 1px solid color-mix(in srgb, var(--border, #334155) 30%, transparent);
+        }
+
+        .telemetry-card {
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          border-radius: 6px;
+          padding: 0.85rem 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .status-card {
+          border-width: 2px;
+        }
+
+        .card-label {
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          color: #94a3b8;
+        }
+
+        .card-value {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: #f8fafc;
+        }
+
+        .card-subtext {
+          font-size: 0.72rem;
+          color: #64748b;
+        }
+
+        /* Incident Alert */
+        .incident-alert {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          padding: 1rem 2rem;
+          background: rgba(239, 68, 68, 0.15);
+          border-bottom: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        @media (min-width: 768px) {
+          .incident-alert {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+        }
+
+        .alert-content {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+        }
+
+        .alert-badge {
+          background: #ef4444;
+          color: #ffffff;
+          font-size: 0.68rem;
+          font-weight: 800;
+          padding: 0.2rem 0.5rem;
+          border-radius: 4px;
+        }
+
+        .alert-text {
+          font-size: 0.85rem;
+          color: #fca5a5;
+        }
+
+        .alert-dismiss-btn {
+          background: rgba(239, 68, 68, 0.25);
+          color: #fee2e2;
+          border: 1px solid #ef4444;
+          padding: 0.45rem 0.85rem;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .alert-dismiss-btn:hover {
+          background: #ef4444;
+          color: #ffffff;
+        }
+
+        /* Tabs */
+        .deck-tabs {
+          display: flex;
+          overflow-x: auto;
+          background: rgba(10, 16, 26, 0.8);
+          border-bottom: 1px solid color-mix(in srgb, var(--border, #334155) 30%, transparent);
+          padding: 0 1rem;
+        }
+
+        .tab-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.85rem 1.25rem;
+          background: transparent;
+          border: none;
+          border-bottom: 2px solid transparent;
+          color: #94a3b8;
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+          color: #f1f5f9;
+        }
+
+        .tab-btn.active {
+          color: #38bdf8;
+          border-bottom-color: #38bdf8;
+          background: rgba(56, 189, 248, 0.05);
+        }
+
+        /* Deck Body */
+        .deck-body {
+          padding: 1.75rem 2rem;
+          min-height: 480px;
+        }
+
+        /* Tab 1: Schematic Layout */
+        .schematic-layout {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+          .schematic-layout {
+            grid-template-columns: 1fr 340px;
+          }
+        }
+
+        .canvas-wrapper {
+          background: rgba(10, 15, 26, 0.7);
+          border: 1px solid rgba(51, 65, 85, 0.4);
+          border-radius: 8px;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .canvas-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.75rem;
+          font-size: 0.75rem;
+        }
+
+        .canvas-title {
+          font-weight: 700;
+          color: #94a3b8;
+          letter-spacing: 0.04em;
+        }
+
+        .canvas-hint {
+          color: #64748b;
+          font-size: 0.7rem;
+        }
+
+        .schematic-canvas {
+          width: 100%;
+          height: auto;
+          aspect-ratio: 860 / 440;
+          cursor: pointer;
+          border-radius: 4px;
+          background: #070b13;
+        }
+
+        .canvas-legend {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1.25rem;
+          margin-top: 0.85rem;
+          padding-top: 0.75rem;
+          border-top: 1px solid rgba(51, 65, 85, 0.3);
+          font-size: 0.72rem;
+          color: #94a3b8;
+        }
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+        }
+
+        .legend-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+
+        .legend-dot.water { background: #38bdf8; }
+        .legend-dot.oxygen { background: #06b6d4; }
+        .legend-dot.co2 { background: #a855f7; }
+        .legend-dot.fuel { background: #f59e0b; }
+        .legend-dot.biomass { background: #10b981; }
+
+        /* Inspector Panel */
+        .inspector-panel {
+          background: rgba(15, 23, 42, 0.7);
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          border-radius: 8px;
+          padding: 1.25rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .inspector-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .subsys-category {
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #38bdf8;
+          letter-spacing: 0.08em;
+        }
+
+        .status-pill {
+          font-size: 0.65rem;
+          font-weight: 800;
+          padding: 0.15rem 0.5rem;
+          border-radius: 4px;
+        }
+
+        .status-nominal { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .status-elevated { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+        .status-strained { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .status-standby { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+        .status-fault { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .subsys-name {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #ffffff;
+          margin: 0;
+        }
+
+        .subsys-code {
+          font-size: 0.7rem;
+          color: #64748b;
+        }
+
+        .metric-box {
+          background: rgba(7, 11, 19, 0.7);
+          border: 1px solid rgba(51, 65, 85, 0.3);
+          border-radius: 6px;
+          padding: 0.85rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+        }
+
+        .metric-label {
+          font-size: 0.68rem;
+          color: #94a3b8;
+        }
+
+        .metric-val {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #38bdf8;
+        }
+
+        .metric-power {
+          font-size: 0.72rem;
+          color: #e2e8f0;
+          margin-top: 0.25rem;
+        }
+
+        .subsys-desc {
+          font-size: 0.78rem;
+          line-height: 1.5;
+          color: #cbd5e1;
+          margin: 0;
+          font-family: var(--font-body, inherit);
+        }
+
+        .reaction-box {
+          background: rgba(2, 6, 23, 0.6);
+          border-left: 2px solid #a855f7;
+          padding: 0.6rem 0.8rem;
+          border-radius: 0 4px 4px 0;
+        }
+
+        .reaction-title {
+          display: block;
+          font-size: 0.62rem;
+          font-weight: 700;
+          color: #c084fc;
+          margin-bottom: 0.25rem;
+        }
+
+        .reaction-code {
+          font-size: 0.75rem;
+          color: #e2e8f0;
+        }
+
+        .subsys-action-btn {
+          width: 100%;
+          background: rgba(56, 189, 248, 0.15);
+          color: #38bdf8;
+          border: 1px solid rgba(56, 189, 248, 0.4);
+          padding: 0.65rem;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .subsys-action-btn:hover {
+          background: #38bdf8;
+          color: #070b13;
+        }
+
+        /* Tab 2: Controls Layout */
+        .controls-layout {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+
+        @media (min-width: 860px) {
+          .controls-layout {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        .control-group {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .slider-card {
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(51, 65, 85, 0.4);
+          border-radius: 8px;
+          padding: 1.15rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .slider-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .slider-title {
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #f1f5f9;
+        }
+
+        .slider-badge {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #38bdf8;
+          background: rgba(56, 189, 248, 0.12);
+          padding: 0.15rem 0.5rem;
+          border-radius: 4px;
+        }
+
+        .cockpit-slider {
+          width: 100%;
+          accent-color: #38bdf8;
+          cursor: pointer;
+        }
+
+        .slider-meta {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.72rem;
+          color: #94a3b8;
+        }
+
+        .mode-toggle-group {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.5rem;
+        }
+
+        .mode-btn {
+          background: rgba(30, 41, 59, 0.5);
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          color: #94a3b8;
+          padding: 0.5rem;
+          border-radius: 4px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+          background: rgba(251, 146, 60, 0.2);
+          color: #fb923c;
+          border-color: #fb923c;
+        }
+
+        .tactical-actions-card {
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(51, 65, 85, 0.4);
+          border-radius: 8px;
+          padding: 1.15rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .card-heading {
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          color: #94a3b8;
+        }
+
+        .tactical-btn-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.65rem;
+        }
+
+        .contingency-btn {
+          background: rgba(30, 41, 59, 0.6);
+          border: 1px solid rgba(71, 85, 105, 0.5);
+          color: #e2e8f0;
+          padding: 0.65rem 0.5rem;
+          border-radius: 4px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .contingency-btn:hover {
+          background: rgba(56, 189, 248, 0.2);
+          border-color: #38bdf8;
+          color: #ffffff;
+        }
+
+        .contingency-btn.reset-btn {
+          border-color: #10b981;
+          color: #34d399;
+        }
+
+        .contingency-btn.reset-btn:hover {
+          background: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Tab 3: Scenarios Layout */
+        .scenarios-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1.5rem;
+        }
+
+        .scenario-card {
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          border-radius: 8px;
+          padding: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.85rem;
+        }
+
+        .scenario-tag {
+          font-size: 0.68rem;
+          font-weight: 800;
+          color: #f59e0b;
+          letter-spacing: 0.08em;
+        }
+
+        .scenario-title {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #ffffff;
+          margin: 0;
+        }
+
+        .scenario-desc {
+          font-size: 0.8rem;
+          line-height: 1.5;
+          color: #cbd5e1;
+          margin: 0;
+          font-family: var(--font-body, inherit);
+        }
+
+        .scenario-objectives {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+          font-size: 0.74rem;
+          color: #94a3b8;
+          background: rgba(2, 6, 23, 0.5);
+          padding: 0.75rem;
+          border-radius: 4px;
+        }
+
+        .scenario-start-btn {
+          margin-top: auto;
+          background: rgba(245, 158, 11, 0.15);
+          color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.4);
+          padding: 0.75rem;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .scenario-start-btn:hover {
+          background: #f59e0b;
+          color: #070b13;
+        }
+
+        /* Tab 4: Logs Layout */
+        .log-layout {
+          background: rgba(8, 12, 20, 0.8);
+          border: 1px solid rgba(51, 65, 85, 0.4);
+          border-radius: 8px;
+          padding: 1.25rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .log-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .log-title {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #94a3b8;
+          letter-spacing: 0.05em;
+        }
+
+        .log-clear-btn {
+          background: transparent;
+          border: 1px solid rgba(71, 85, 105, 0.5);
+          color: #94a3b8;
+          font-size: 0.68rem;
+          padding: 0.25rem 0.6rem;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .log-clear-btn:hover {
+          color: #f1f5f9;
+          border-color: #94a3b8;
+        }
+
+        .log-terminal {
+          max-height: 380px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+        }
+
+        .log-row {
+          display: flex;
+          align-items: baseline;
+          gap: 0.6rem;
+          font-size: 0.75rem;
+          line-height: 1.4;
+          padding: 0.2rem 0;
+          border-bottom: 1px solid rgba(30, 41, 59, 0.4);
+        }
+
+        .log-time {
+          color: #64748b;
+          font-size: 0.7rem;
+        }
+
+        .log-badge {
+          font-size: 0.62rem;
+          font-weight: 800;
+          padding: 0.1rem 0.35rem;
+          border-radius: 3px;
+        }
+
+        .log-info .log-badge { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+        .log-warn .log-badge { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .log-success .log-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .log-action .log-badge { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+
+        .log-message {
+          color: #e2e8f0;
+        }
+
+        /* Modal */
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.75);
+          backdrop-filter: blur(4px);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          padding: 1.5rem;
+        }
+
+        .modal-dialog {
+          background: #0f172a;
+          border: 1px solid #334155;
+          border-radius: 10px;
+          max-width: 680px;
+          width: 100%;
+          max-height: 85vh;
+          overflow-y: auto;
+          padding: 2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-tag {
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: #38bdf8;
+          letter-spacing: 0.08em;
+          margin-bottom: 0.35rem;
+        }
+
+        .modal-title {
+          font-size: 1.4rem;
+          font-weight: 700;
+          color: #ffffff;
+          margin: 0;
+        }
+
+        .modal-content h4 {
+          font-size: 0.95rem;
+          color: #38bdf8;
+          margin: 1rem 0 0.4rem 0;
+        }
+
+        .modal-content p {
+          font-size: 0.85rem;
+          line-height: 1.6;
+          color: #cbd5e1;
+          margin: 0;
+          font-family: var(--font-body, inherit);
+        }
+
+        .modal-footer {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 1rem;
+        }
+      `}</style>
     </div>
   );
 }
-
-const telemetryBadgeStyle: React.CSSProperties = {
-  backgroundColor: 'color-mix(in srgb, var(--void) 85%, black)',
-  border: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-  borderRadius: 'var(--radius-sm)',
-  padding: '0.3rem 0.6rem',
-  fontSize: '0.6875rem',
-};
-
-const steerBtnStyle: React.CSSProperties = {
-  padding: '0.45rem 0.75rem',
-  backgroundColor: 'color-mix(in srgb, var(--navy) 75%, transparent)',
-  border: '1px solid color-mix(in srgb, var(--steel) 40%, transparent)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--moon)',
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.6875rem',
-  fontWeight: 700,
-  cursor: 'pointer',
-  transition: 'all 0.1s',
-};
-
-const secondaryActionBtnStyle: React.CSSProperties = {
-  padding: '0.65rem 0.85rem',
-  backgroundColor: 'color-mix(in srgb, var(--navy) 80%, transparent)',
-  border: '1px solid var(--orbit)',
-  color: 'var(--moon)',
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.75rem',
-  fontWeight: 700,
-  borderRadius: 'var(--radius-sm)',
-  cursor: 'pointer',
-  transition: 'all 0.15s ease',
-};
-
-const toolCardStyle: React.CSSProperties = {
-  backgroundColor: 'color-mix(in srgb, var(--void) 80%, black)',
-  border: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-  borderRadius: 'var(--radius-md)',
-  padding: 'var(--space-md)',
-};
-
-const tabStyle = (active: boolean): React.CSSProperties => ({
-  background: 'transparent',
-  border: 'none',
-  borderBottom: active ? '2px solid var(--orbit)' : '2px solid transparent',
-  color: active ? 'var(--orbit)' : 'var(--steel)',
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.6875rem',
-  fontWeight: 700,
-  padding: '0.5rem 0.75rem',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-});
