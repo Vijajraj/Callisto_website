@@ -83,11 +83,11 @@ export default function SoundHud(): React.ReactElement {
         <div
           style={{
             marginBottom: '0.5rem',
-            backgroundColor: 'color-mix(in srgb, var(--deep) 94%, black)',
+            backgroundColor: 'var(--deep)',
             border: '1px solid color-mix(in srgb, var(--orbit) 50%, transparent)',
             borderRadius: 'var(--radius-md)',
             padding: '1rem',
-            boxShadow: '0 12px 36px rgba(0, 0, 0, 0.75), 0 0 20px color-mix(in srgb, var(--orbit) 25%, transparent)',
+            boxShadow: '0 12px 36px rgba(0, 0, 0, 0.45), 0 0 20px color-mix(in srgb, var(--orbit) 25%, transparent)',
             backdropFilter: 'blur(16px)',
             width: '270px',
             animation: 'fadeIn 0.2s ease',
@@ -223,10 +223,10 @@ export default function SoundHud(): React.ReactElement {
               onClick={handlePing}
               style={{
                 padding: '0.35rem 0.2rem',
-                backgroundColor: 'color-mix(in srgb, var(--navy) 50%, transparent)',
+                backgroundColor: 'color-mix(in srgb, var(--navy) 80%, transparent)',
                 border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
                 borderRadius: 'var(--radius-sm)',
-                color: 'var(--star)',
+                color: 'var(--moon)',
                 fontSize: '0.625rem',
                 cursor: 'pointer',
               }}
@@ -238,10 +238,10 @@ export default function SoundHud(): React.ReactElement {
               onClick={handleThruster}
               style={{
                 padding: '0.35rem 0.2rem',
-                backgroundColor: 'color-mix(in srgb, var(--navy) 50%, transparent)',
+                backgroundColor: 'color-mix(in srgb, var(--navy) 80%, transparent)',
                 border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
                 borderRadius: 'var(--radius-sm)',
-                color: 'var(--star)',
+                color: 'var(--moon)',
                 fontSize: '0.625rem',
                 cursor: 'pointer',
               }}
@@ -253,10 +253,10 @@ export default function SoundHud(): React.ReactElement {
               onClick={handleWarp}
               style={{
                 padding: '0.35rem 0.2rem',
-                backgroundColor: 'color-mix(in srgb, var(--navy) 50%, transparent)',
+                backgroundColor: 'color-mix(in srgb, var(--navy) 80%, transparent)',
                 border: '1px solid color-mix(in srgb, var(--steel) 35%, transparent)',
                 borderRadius: 'var(--radius-sm)',
-                color: 'var(--star)',
+                color: 'var(--moon)',
                 fontSize: '0.625rem',
                 cursor: 'pointer',
               }}
@@ -288,16 +288,16 @@ export default function SoundHud(): React.ReactElement {
           alignItems: 'center',
           gap: '0.55rem',
           padding: '0.5rem 0.95rem',
-          backgroundColor: 'color-mix(in srgb, var(--void) 92%, black)',
+          backgroundColor: enabled ? 'var(--orbit)' : 'var(--deep)',
           border: `1px solid ${
             enabled ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 45%, transparent)'
           }`,
           borderRadius: 'var(--radius-full)',
           boxShadow: enabled
-            ? '0 0 20px color-mix(in srgb, var(--orbit) 50%, transparent), 0 4px 16px rgba(0,0,0,0.6)'
-            : '0 4px 14px rgba(0,0,0,0.5)',
+            ? '0 0 20px color-mix(in srgb, var(--orbit) 50%, transparent), 0 4px 16px rgba(0,0,0,0.3)'
+            : '0 4px 14px rgba(0,0,0,0.2)',
           cursor: 'pointer',
-          color: enabled ? '#FFFFFF' : 'var(--star)',
+          color: enabled ? '#FFFFFF' : 'var(--moon)',
           fontSize: '0.75rem',
           fontWeight: 600,
           letterSpacing: '0.06em',

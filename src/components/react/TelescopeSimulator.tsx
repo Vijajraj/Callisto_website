@@ -218,7 +218,7 @@ export default function TelescopeSimulator(): React.ReactElement {
                   <defs>
                     <radialGradient id="nebulaGrad" cx="50%" cy="50%" r="50%">
                       <stop offset="0%" stopColor="#ec4899" stopOpacity="0.8" />
-                      <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.6" />
+                      <stop offset="50%" stopColor="#f43f5e" stopOpacity="0.6" />
                       <stop offset="85%" stopColor="#06b6d4" stopOpacity="0.3" />
                       <stop offset="100%" stopColor="#02040a" stopOpacity="0" />
                     </radialGradient>

@@ -212,13 +212,13 @@ const isLinkActive = (href: string): boolean => {
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
-  /* Solar Flare (Light Mode) Navbar */
+  /* Solar Slate (Light Mode) Navbar */
   :global(html[data-theme="solar-flare"]) .nav-bar,
   :global(html.theme-solar-flare) .nav-bar,
   :global(html.light-mode) .nav-bar {
-    background: rgba(255, 245, 242, 0.95);
-    border-bottom: 1px solid rgba(225, 29, 72, 0.2);
-    box-shadow: 0 2px 14px rgba(11, 14, 36, 0.08);
+    background: rgba(248, 250, 252, 0.95);
+    border-bottom: 1px solid rgba(71, 85, 105, 0.15);
+    box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
   }
 
   .nav-content {
@@ -338,24 +338,24 @@ const isLinkActive = (href: string): boolean => {
     box-shadow: 0 0 10px var(--orbit), 0 0 18px #FFFFFF;
   }
 
-  /* Solar Flare mode nav-link overrides */
+  /* Solar Slate mode nav-link overrides */
   :global(html[data-theme="solar-flare"]) .nav-link,
   :global(html.theme-solar-flare) .nav-link,
   :global(html.light-mode) .nav-link {
-    color: #4A1521;
+    color: #1E293B;
   }
 
   :global(html[data-theme="solar-flare"]) .nav-link:hover,
   :global(html.theme-solar-flare) .nav-link:hover,
   :global(html.light-mode) .nav-link:hover {
-    color: #000000;
+    color: var(--orbit);
     text-shadow: none;
   }
 
   :global(html[data-theme="solar-flare"]) .nav-link.active,
   :global(html.theme-solar-flare) .nav-link.active,
   :global(html.light-mode) .nav-link.active {
-    color: #6A4BC9;
+    color: var(--orbit);
     font-weight: 700;
     text-shadow: none;
   }
@@ -549,19 +549,20 @@ const isLinkActive = (href: string): boolean => {
   :global(html[data-theme="solar-flare"]) .mobile-nav-link,
   :global(html.theme-solar-flare) .mobile-nav-link,
   :global(html.light-mode) .mobile-nav-link {
-    color: #2D2057;
+    color: #1E293B;
   }
 
   :global(html[data-theme="solar-flare"]) .mobile-nav-link:hover,
   :global(html.theme-solar-flare) .mobile-nav-link:hover,
   :global(html.light-mode) .mobile-nav-link:hover {
-    color: #000000;
+    color: var(--orbit);
   }
 
   :global(html[data-theme="solar-flare"]) .mobile-nav-link.active,
   :global(html.theme-solar-flare) .mobile-nav-link.active,
   :global(html.light-mode) .mobile-nav-link.active {
-    color: #6A4BC9;
+    color: var(--orbit);
+    background-color: color-mix(in srgb, var(--orbit) 10%, transparent);
   }
 
   .mobile-nav-link.active::after {

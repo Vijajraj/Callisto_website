@@ -43,16 +43,16 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Solar Flare Mode Overrides */
+/* Solar Slate / Light Mode Overrides */
 html[data-theme="solar-flare"] body,
 html[data-theme="light"] body,
 html.theme-solar-flare body,
 html.light-mode body {
   background-color: var(--void);
   background-image:
-    radial-gradient(ellipse 60% 40% at 80% 15%, rgba(251, 207, 232, 0.4) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 50% at 15% 75%, rgba(253, 232, 225, 0.5) 0%, transparent 65%),
-    linear-gradient(160deg, #FFF5F2 0%, #FDE8E1 50%, #FCE0D8 100%);
+    radial-gradient(ellipse 60% 40% at 80% 15%, rgba(254, 205, 211, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 15% 75%, rgba(241, 245, 249, 0.8) 0%, transparent 65%),
+    linear-gradient(160deg, #F8FAFC 0%, #F1F5F9 50%, #FFF1F2 100%);
   color: var(--moon);
 }
 
@@ -60,8 +60,67 @@ html[data-theme="solar-flare"] canvas[aria-hidden="true"],
 html[data-theme="light"] canvas[aria-hidden="true"],
 html.theme-solar-flare canvas[aria-hidden="true"],
 html.light-mode canvas[aria-hidden="true"] {
-  opacity: 0.18;
+  opacity: 0.15;
   filter: invert(1);
+}
+
+/* Primary and Outline Buttons High Contrast Guarantee */
+.btn-primary {
+  color: #FFFFFF !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  color: #FFFFFF !important;
+}
+
+html[data-theme="solar-flare"] .btn-outline,
+html[data-theme="light"] .btn-outline,
+html.theme-solar-flare .btn-outline,
+html.light-mode .btn-outline {
+  background-color: #FFFFFF !important;
+  border-color: rgba(71, 85, 105, 0.35) !important;
+  color: var(--star) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="solar-flare"] .btn-outline:hover,
+html[data-theme="light"] .btn-outline:hover,
+html.theme-solar-flare .btn-outline:hover,
+html.light-mode .btn-outline:hover {
+  background-color: var(--navy) !important;
+  border-color: var(--orbit) !important;
+  color: var(--orbit) !important;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.16) !important;
+}
+
+/* Enhanced Light Mode Card & Panel Shadows for Crisp Depth */
+html[data-theme="solar-flare"] .dept-card,
+html[data-theme="light"] .dept-card,
+html.theme-solar-flare .dept-card,
+html.light-mode .dept-card,
+html[data-theme="solar-flare"] .event-card,
+html[data-theme="light"] .event-card,
+html.theme-solar-flare .event-card,
+html.light-mode .event-card,
+html[data-theme="solar-flare"] .brief-card,
+html[data-theme="light"] .brief-card,
+html.theme-solar-flare .brief-card,
+html.light-mode .brief-card,
+html[data-theme="solar-flare"] .act-card,
+html[data-theme="light"] .act-card,
+html.theme-solar-flare .act-card,
+html.light-mode .act-card,
+html[data-theme="solar-flare"] .story-card,
+html[data-theme="light"] .story-card,
+html.theme-solar-flare .story-card,
+html.light-mode .story-card,
+html[data-theme="solar-flare"] .faculty-card,
+html[data-theme="light"] .faculty-card,
+html.theme-solar-flare .faculty-card,
+html.light-mode .faculty-card {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+  border-color: rgba(71, 85, 105, 0.22);
 }
 
 /* Media Elements */

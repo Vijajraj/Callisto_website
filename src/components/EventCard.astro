@@ -244,6 +244,11 @@ const formattedDate = formatEventDate(date);
   }
 
   .status-open .status-text {
+    color: #16a34a;
+  }
+
+  :global(html[data-theme="deep-space"]) .status-open .status-text,
+  :global(html:not(.theme-solar-flare):not(.light-mode)) .status-open .status-text {
     color: #4ade80;
   }
 
