@@ -7,251 +7,237 @@ import {
 } from '../../lib/audio';
 
 /* =========================================================================
-   CALLISTO ADVANCED SURFACE ROVER EXPEDITION // MISSION SIMULATION
-   Complex multi-subsystem planetary exploration:
-   - Power & Thermal Management (RTG, Battery, RHU Cryo-Heaters)
-   - Terrain Traction, Wheel Slip & Geological Hazards (Penitentes, Crevasses)
-   - Interactive Science Tools (LIBS Laser Spectrometer, GPR Ice Sounder, Cryo-Drill)
-   - Jovian Radiation Spikes & Relativistic Orbital Comm Uplink
+   SUB-SURFACE OCEAN CRYOBOT PROBE // THE DEEP ICE DESCENT
+   Scientific simulation of an autonomous nuclear-thermal melt probe descending
+   through Callisto's 150 km cryogenic ice shell down to the hidden liquid ocean.
    ========================================================================= */
 
-interface TerrainSector {
-  id: number;
+interface IceLayer {
   name: string;
-  code: string;
-  x: number; // 0-100%
-  y: number; // 0-100%
-  hazardType: 'penitentes' | 'fissure' | 'steep_slope' | 'radiation_pocket' | 'safe';
-  hazardLabel: string;
-  icePurityPct: number;
-  subsurfaceDepthKm: number;
-  scienceTarget: {
-    spectralKey: number; // 0-100 target wavelength
-    drillTorqueReq: number; // 40-80 optimal RPM
-    radarFreqMhz: number; // 15-60 optimal MHz
-    sampleTitle: string;
-    sampleLore: string;
-  };
-  surveyed: boolean;
+  depthStartKm: number;
+  depthEndKm: number;
+  tempK: number;
+  pressureMpa: number;
+  color: string;
+  bgGrad: string;
+  description: string;
+  spectralTarget: string;
 }
 
-const SECTORS: TerrainSector[] = [
+const ICE_STRATIGRAPHY: IceLayer[] = [
   {
-    id: 1,
-    name: 'Valhalla Outer Multiring Basin',
-    code: 'SECTOR-ALPHA',
-    x: 20,
-    y: 28,
-    hazardType: 'steep_slope',
-    hazardLabel: '28° Basalt Rim Incline (Slip Risk)',
-    icePurityPct: 88,
-    subsurfaceDepthKm: 146,
-    scienceTarget: {
-      spectralKey: 42,
-      drillTorqueReq: 60,
-      radarFreqMhz: 20,
-      sampleTitle: 'Primordial Impact Glass & Water Ice',
-      sampleLore: 'Crystalline ice laced with amorphous silicates from the 3.8-billion-year-old Valhalla impact.',
-    },
-    surveyed: false,
+    name: 'Layer 1: Cryo-Regolith & Impact Mantle',
+    depthStartKm: 0,
+    depthEndKm: 25,
+    tempK: 115,
+    pressureMpa: 8,
+    color: '#ffb86b',
+    bgGrad: 'linear-gradient(180deg, #181115 0%, #0d1624 100%)',
+    description: 'Fine-grained silicate impact ejecta mixed with amorphous water-ice frost and frozen CO2.',
+    spectralTarget: 'Amorphous H2O Ice (84%) + Silicates (14%)',
   },
   {
-    id: 2,
-    name: 'Catena Crater Chain Corridor',
-    code: 'SECTOR-BETA',
-    x: 78,
-    y: 22,
-    hazardType: 'fissure',
-    hazardLabel: 'Deep Cryogenic Fissure Chasm',
-    icePurityPct: 76,
-    subsurfaceDepthKm: 140,
-    scienceTarget: {
-      spectralKey: 68,
-      drillTorqueReq: 75,
-      radarFreqMhz: 35,
-      sampleTitle: 'Tidal Cometary Impact Core',
-      sampleLore: 'Trapped carbon dioxide ices and volatile noble gases from a fragmented Jovian comet.',
-    },
-    surveyed: false,
+    name: 'Layer 2: Brittle Crystalline Ice Shell',
+    depthStartKm: 25,
+    depthEndKm: 70,
+    tempK: 155,
+    pressureMpa: 42,
+    color: '#38bdf8',
+    bgGrad: 'linear-gradient(180deg, #0d1624 0%, #092338 100%)',
+    description: 'Dense, cold crystalline ice-I lattice laced with extensive extensional thermal stress fractures.',
+    spectralTarget: 'Hexagonal Ice-Ih (92%) + Trace Noble Gases',
   },
   {
-    id: 3,
-    name: 'Utgard Tectonic Fracture Ridge',
-    code: 'SECTOR-GAMMA',
-    x: 52,
-    y: 58,
-    hazardType: 'penitentes',
-    hazardLabel: 'Sublimation Razor-Ice Spires',
-    icePurityPct: 82,
-    subsurfaceDepthKm: 132,
-    scienceTarget: {
-      spectralKey: 55,
-      drillTorqueReq: 50,
-      radarFreqMhz: 18,
-      sampleTitle: 'Deep Crustal Brine Discontinuity',
-      sampleLore: 'Strong dielectric echo verifying liquid conductive ocean layer at 132 km depth!',
-    },
-    surveyed: false,
+    name: 'Layer 3: Ductile Convective Ice & Gas Clathrates',
+    depthStartKm: 70,
+    depthEndKm: 120,
+    tempK: 215,
+    pressureMpa: 110,
+    color: '#a855f7',
+    bgGrad: 'linear-gradient(180deg, #092338 0%, #0f172a 100%)',
+    description: 'Warm flowing plastic ice undergoing slow solid-state thermal convection; cages of methane clathrates.',
+    spectralTarget: 'CH4 Methane Clathrate Hydrates (18%)',
   },
   {
-    id: 4,
-    name: 'Asgard Multi-Ring Seismic Uplift',
-    code: 'SECTOR-DELTA',
-    x: 82,
-    y: 75,
-    hazardType: 'radiation_pocket',
-    hazardLabel: 'Jovian Plasma Sheet Magnetic Lobe',
-    icePurityPct: 71,
-    subsurfaceDepthKm: 154,
-    scienceTarget: {
-      spectralKey: 84,
-      drillTorqueReq: 65,
-      radarFreqMhz: 45,
-      sampleTitle: 'Hydrated Magnesium Sulfate Regolith',
-      sampleLore: 'Salts dissolved by hydrothermal leaching and deposited through crustal stress cracks.',
-    },
-    surveyed: false,
+    name: 'Layer 4: Basal Dielectric Melting Boundary',
+    depthStartKm: 120,
+    depthEndKm: 145,
+    tempK: 265,
+    pressureMpa: 165,
+    color: '#34d399',
+    bgGrad: 'linear-gradient(180deg, #0f172a 0%, #062e33 100%)',
+    description: 'High-pressure slush transition boundary where geothermal heat from Callisto’s core softens the basal crust.',
+    spectralTarget: 'Partially Molten Saline Slush + MgSO4 Salts',
   },
   {
-    id: 5,
-    name: 'Tiamat Cryovolcanic Venting Dome',
-    code: 'SECTOR-EPSILON',
-    x: 22,
-    y: 80,
-    hazardType: 'fissure',
-    hazardLabel: 'Sub-Zero Vapor Outgassing Vents',
-    icePurityPct: 64,
-    subsurfaceDepthKm: 124,
-    scienceTarget: {
-      spectralKey: 30,
-      drillTorqueReq: 80,
-      radarFreqMhz: 15,
-      sampleTitle: 'Prebiotic Organic Tholin Complex',
-      sampleLore: 'Complex carbon molecules synthesized by solar UV radiation interacting with methane ices.',
-    },
-    surveyed: false,
+    name: 'Layer 5: Sub-Surface Saline Ocean Interface',
+    depthStartKm: 145,
+    depthEndKm: 160,
+    tempK: 274,
+    pressureMpa: 195,
+    color: '#22d3ee',
+    bgGrad: 'linear-gradient(180deg, #062e33 0%, #021a24 100%)',
+    description: 'Vast, conductive liquid saltwater ocean sustained by radioactive core decay and ancient Jovian tidal resonance.',
+    spectralTarget: 'Liquid Saline Ocean (3.8 S/m Conductivity)',
   },
+];
+
+interface ObstacleRock {
+  id: number;
+  depthKm: number;
+  xPct: number; // 15 to 85%
+  radiusKm: number;
+  density: string;
+}
+
+const METEORITE_INCLUSIONS: ObstacleRock[] = [
+  { id: 1, depthKm: 18, xPct: 35, radiusKm: 6, density: 'Chondritic Stony Silicate' },
+  { id: 2, depthKm: 42, xPct: 65, radiusKm: 8, density: 'Nickel-Iron Metallic Core Clast' },
+  { id: 3, depthKm: 62, xPct: 25, radiusKm: 7, density: 'Basaltic Impact Fragment' },
+  { id: 4, depthKm: 92, xPct: 70, radiusKm: 9, density: 'High-Density Carbonaceous Chondrite' },
+  { id: 5, depthKm: 115, xPct: 40, radiusKm: 7, density: 'Deep Crustal Olivine Inclusion' },
+  { id: 6, depthKm: 135, xPct: 60, radiusKm: 6, density: 'Hydrothermal Sulfide Nodules' },
 ];
 
 export default function ExpeditionSimulator(): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Tab View
-  const [activeTab, setActiveTab] = useState<'nav' | 'power' | 'science' | 'uplink'>('nav');
-
-  // Rover Position & Dynamics
-  const [roverX, setRoverX] = useState<number>(50);
-  const [roverY, setRoverY] = useState<number>(50);
-  const [roverHeading, setRoverHeading] = useState<number>(0); // radians
-  const [driveSpeed, setDriveSpeed] = useState<number>(0); // km/h
-  const [driveMode, setDriveMode] = useState<'crawler' | 'standard' | 'overdrive'>('standard');
-  const [odometerKm, setOdometerKm] = useState<number>(0);
-
-  // Rover Subsystems Health & Resources (Static Baseline Telemetry)
+  // Probe Telemetry State
+  const [depthKm, setDepthKm] = useState<number>(0);
+  const [probeXPct, setProbeXPct] = useState<number>(50); // 15% to 85% horizontal position
+  const [meltPowerKw, setMeltPowerKw] = useState<number>(45); // 10 to 80 kW thermal melt power
+  const [thermalHeadTempK, setThermalHeadTempK] = useState<number>(340); // Heated tungsten cone
   const [batteryPct, setBatteryPct] = useState<number>(100);
-  const rtgWatts = 140; // Base RTG output
-  const [coreTempK, setCoreTempK] = useState<number>(278); // Kelvin (~5°C nominal internal)
-  const [heaterActive, setHeaterActive] = useState<boolean>(true);
-  const [wheelIntegrity, setWheelIntegrity] = useState<number>(100); // 0-100%
-
-  // Sectors & Missions
-  const [sectors, setSectors] = useState<TerrainSector[]>(SECTORS);
-  const [targetSector, setTargetSector] = useState<TerrainSector | null>(null);
-  const [scienceDataBuffer, setScienceDataBuffer] = useState<number>(0); // MB of buffered data
-  const [uplinkedDataMb, setUplinkedDataMb] = useState<number>(0);
-  const solNumber = 1117; // Static mission Sol
-
-  // Science Minigame Interactive Tools
-  const [laserTuner, setLaserTuner] = useState<number>(50); // 0-100 slider
-  const [drillRpm, setDrillRpm] = useState<number>(50); // 0-100 slider
-  const [radarFreq, setRadarFreq] = useState<number>(25); // 10-60 MHz slider
-  const [toolStatus, setToolStatus] = useState<string>('Select an instrument to calibrate for the target sector.');
-  const [isDrilling, setIsDrilling] = useState<boolean>(false);
-  const [isRadaring, setIsRadaring] = useState<boolean>(false);
-  const [missionComplete, setMissionComplete] = useState<boolean>(false);
-
-  // Steer & Move Rover
-  const moveRover = useCallback(
-    (dx: number, dy: number) => {
-      if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
-      if (batteryPct <= 10) {
-        setToolStatus('[WARNING] Battery critically depleted! Switch to Low-Torque Crawler mode.');
-        return;
-      }
-
-      // Drive mode speed multipliers
-      const speedMult = driveMode === 'crawler' ? 0.5 : driveMode === 'overdrive' ? 1.6 : 1.0;
-      const batteryDraw = driveMode === 'crawler' ? 0.2 : driveMode === 'overdrive' ? 0.8 : 0.4;
-
-      setRoverX((prevX) => {
-        const nextX = Math.max(6, Math.min(94, prevX + dx * speedMult));
-        return parseFloat(nextX.toFixed(2));
-      });
-
-      setRoverY((prevY) => {
-        const nextY = Math.max(6, Math.min(94, prevY + dy * speedMult));
-        return parseFloat(nextY.toFixed(2));
-      });
-
-      const dist = Math.hypot(dx * speedMult, dy * speedMult);
-      if (dist > 0.05) {
-        setRoverHeading(Math.atan2(dy, dx));
-        setDriveSpeed(parseFloat((dist * 3.8).toFixed(1)));
-        setOdometerKm((o) => parseFloat((o + dist * 0.08).toFixed(2)));
-        setBatteryPct((b) => Math.max(8, parseFloat((b - batteryDraw).toFixed(1))));
-
-        // Wheel wear on rugged ice terrain
-        if (driveMode === 'overdrive' && Math.random() < 0.25) {
-          setWheelIntegrity((w) => Math.max(30, w - 1));
-        }
-      }
-
-      // Reset speed after burst
-      setTimeout(() => setDriveSpeed(0), 400);
-    },
-    [batteryPct, driveMode]
+  const [isMelting, setIsMelting] = useState<boolean>(false);
+  const [sonarActive, setSonarActive] = useState<boolean>(false);
+  const [samplesCollected, setSamplesCollected] = useState<string[]>([]);
+  const [missionLog, setMissionLog] = useState<string>(
+    'Nuclear-thermal cryobot anchored at Valhalla Ice Shelf. Ready for deep ice descent.'
   );
+  const [oceanDiscovered, setOceanDiscovered] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'sonar' | 'stratigraphy' | 'samples'>('sonar');
 
-  // Keyboard navigation
+  // Identify current layer based on depth
+  const currentLayer =
+    ICE_STRATIGRAPHY.find(
+      (l) => depthKm >= l.depthStartKm && depthKm < l.depthEndKm
+    ) || ICE_STRATIGRAPHY[ICE_STRATIGRAPHY.length - 1];
+
+  // Manual Descent Step
+  const stepMeltDescent = useCallback(() => {
+    if (depthKm >= 148) {
+      if (!oceanDiscovered) {
+        setOceanDiscovered(true);
+        playWarpSurge();
+        setMissionLog(
+          '[BREAKTHROUGH CONFIRMED] Basal ice penetrated at 148 km! Cryobot deployed into Callisto Subsurface Ocean!'
+        );
+      }
+      return;
+    }
+
+    // Descent rate proportional to melt thermal power (kW)
+    const deltaKm = parseFloat((meltPowerKw * 0.08).toFixed(1));
+    const nextDepth = Math.min(150, parseFloat((depthKm + deltaKm).toFixed(1)));
+
+    // Check collision with meteorite inclusions
+    const collidedRock = METEORITE_INCLUSIONS.find(
+      (rock) =>
+        Math.abs(rock.depthKm - nextDepth) < 3.5 &&
+        Math.abs(rock.xPct - probeXPct) < 12
+    );
+
+    if (collidedRock) {
+      playTelemetryBeep(320, 0.25);
+      setMissionLog(
+        `[IMPEDANCE WARNING] Probe deflected by ${collidedRock.density}. Use Lateral Water-Jets [◀ / ▶] to steer around inclusion.`
+      );
+      setBatteryPct((b) => Math.max(15, b - 4));
+      return;
+    }
+
+    setDepthKm(nextDepth);
+    setBatteryPct((b) => Math.max(12, Math.round(b - meltPowerKw * 0.02)));
+    setThermalHeadTempK(300 + Math.round(meltPowerKw * 1.5));
+    playTelemetryBeep(900 + Math.round(nextDepth * 4), 0.06);
+
+    if (nextDepth >= 148 && !oceanDiscovered) {
+      setOceanDiscovered(true);
+      playWarpSurge();
+      setMissionLog(
+        '[BREAKTHROUGH CONFIRMED] Saline liquid ocean detected at 148 km depth! Conductivity: 3.8 S/m. Mission complete!'
+      );
+    }
+  }, [depthKm, meltPowerKw, probeXPct, oceanDiscovered]);
+
+  // Steer Lateral Water Jets (Left / Right)
+  const steerProbe = useCallback((direction: 'left' | 'right') => {
+    playThrusterBurst();
+    setProbeXPct((prev) => {
+      const step = direction === 'left' ? -8 : 8;
+      const next = Math.max(18, Math.min(82, prev + step));
+      return next;
+    });
+  }, []);
+
+  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (['ArrowUp', 'KeyW'].includes(e.code)) {
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) {
         e.preventDefault();
-        moveRover(0, -3.2);
-      } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
-        e.preventDefault();
-        moveRover(0, 3.2);
-      } else if (['ArrowLeft', 'KeyA'].includes(e.code)) {
-        e.preventDefault();
-        moveRover(-3.2, 0);
+        steerProbe('left');
       } else if (['ArrowRight', 'KeyD'].includes(e.code)) {
         e.preventDefault();
-        moveRover(3.2, 0);
+        steerProbe('right');
+      } else if (['ArrowDown', 'KeyS', 'Space'].includes(e.code)) {
+        e.preventDefault();
+        stepMeltDescent();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [moveRover]);
+  }, [steerProbe, stepMeltDescent]);
 
-  // Sector proximity check
-  useEffect(() => {
-    const PROXIMITY_PCT = 9.5;
-    let closest: TerrainSector | null = null;
-    let minDist = Infinity;
+  // Trigger Acoustic Sonar Scan
+  const pulseAcousticSonar = () => {
+    setSonarActive(true);
+    playBeaconPing(1450, 0.35);
 
-    sectors.forEach((sec) => {
-      const d = Math.hypot(sec.x - roverX, sec.y - roverY);
-      if (d < PROXIMITY_PCT && d < minDist) {
-        minDist = d;
-        closest = sec;
+    setTimeout(() => {
+      setSonarActive(false);
+      // Find nearest upcoming obstacle
+      const ahead = METEORITE_INCLUSIONS.filter((r) => r.depthKm > depthKm).sort(
+        (a, b) => a.depthKm - b.depthKm
+      )[0];
+
+      if (ahead) {
+        setMissionLog(
+          `[SONAR ECHO] Detected ${ahead.density} at depth ${ahead.depthKm} km (Lateral Pos: ${ahead.xPct}%). Align probe trajectory.`
+        );
+      } else {
+        setMissionLog(
+          '[SONAR CLEAR] Acoustic reflection indicates clear cryogenic ice column. Downward path unobstructed.'
+        );
       }
-    });
+    }, 900);
+  };
 
-    setTargetSector(closest);
-  }, [roverX, roverY, sectors]);
+  // Collect Raman Laser Spectrometry Sample
+  const sampleCurrentLayer = () => {
+    if (samplesCollected.includes(currentLayer.name)) {
+      setMissionLog(`[LOGGED] Scientific core data for ${currentLayer.name} already recorded in sample bay.`);
+      return;
+    }
 
-  // Canvas Radar Rendering
+    playBeaconPing(1200, 0.25);
+    setSamplesCollected((prev) => [...prev, currentLayer.name]);
+    setMissionLog(
+      `[RAMAN SPECTROMETRY] Core sampled at ${depthKm} km depth: ${currentLayer.spectralTarget}.`
+    );
+  };
+
+  // Render Tactical Vertical Stratigraphy Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -261,229 +247,157 @@ export default function ExpeditionSimulator(): React.ReactElement {
     const w = canvas.width;
     const h = canvas.height;
 
-    // Deep Space Basalt Regolith Background
+    // Background: Deep Ice Chamber
     ctx.fillStyle = '#060913';
     ctx.fillRect(0, 0, w, h);
 
-    // Geological Elevation Radar Contours
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.07)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < w; x += 36) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-    for (let y = 0; y < h; y += 36) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
+    // Calculate Viewport window around probe depth
+    // Canvas displays a 40 km window centered on current depth
+    const viewTopKm = Math.max(0, depthKm - 15);
+    const viewBottomKm = viewTopKm + 45;
 
-    // Impact Basin Ring Ridges
-    [80, 150, 220, 290, 360].forEach((r) => {
-      ctx.strokeStyle = 'rgba(255, 184, 107, 0.1)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(w * 0.48, h * 0.54, r, 0, Math.PI * 2);
-      ctx.stroke();
-    });
+    // Draw Strata Bands within view
+    ICE_STRATIGRAPHY.forEach((layer) => {
+      if (layer.depthEndKm >= viewTopKm && layer.depthStartKm <= viewBottomKm) {
+        const topY = ((layer.depthStartKm - viewTopKm) / 45) * h;
+        const btmY = ((layer.depthEndKm - viewTopKm) / 45) * h;
 
-    // Draw Geological Sectors
-    sectors.forEach((sec) => {
-      const sx = (sec.x / 100) * w;
-      const sy = (sec.y / 100) * h;
+        ctx.fillStyle = layer.color + '18'; // faint tint
+        ctx.fillRect(0, Math.max(0, topY), w, btmY - topY);
 
-      // Hazard Zone Ring
-      if (sec.hazardType !== 'safe') {
+        // Boundary Line
+        ctx.strokeStyle = layer.color + '60';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(sx, sy, 24, 0, Math.PI * 2);
-        ctx.strokeStyle = sec.surveyed
-          ? 'rgba(74, 222, 128, 0.3)'
-          : sec.hazardType === 'radiation_pocket'
-          ? 'rgba(239, 68, 68, 0.4)'
-          : 'rgba(245, 158, 11, 0.35)';
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([4, 4]);
+        ctx.moveTo(0, topY);
+        ctx.lineTo(w, topY);
         ctx.stroke();
-        ctx.setLineDash([]);
+
+        // Boundary Label
+        ctx.fillStyle = layer.color;
+        ctx.font = '700 10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${layer.name.toUpperCase()} [${layer.depthStartKm} km]`, 12, topY + 14);
       }
-
-      // Sector Core Beacon
-      ctx.beginPath();
-      ctx.arc(sx, sy, 7, 0, Math.PI * 2);
-      ctx.fillStyle = sec.surveyed ? '#4ade80' : '#ffb86b';
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Sector Label
-      ctx.fillStyle = sec.surveyed ? '#86efac' : '#ffedd5';
-      ctx.font = '700 10px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(sec.code, sx, sy - 13);
     });
 
-    // Draw Rover Rig
-    const rx = (roverX / 100) * w;
-    const ry = (roverY / 100) * h;
+    // Draw Ocean Water Floor at 145+ km
+    if (viewBottomKm >= 145) {
+      const oceanY = ((145 - viewTopKm) / 45) * h;
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.35)';
+      ctx.fillRect(0, Math.max(0, oceanY), w, h - oceanY);
 
-    ctx.save();
-    ctx.translate(rx, ry);
-    ctx.rotate(roverHeading);
+      // Water Waves
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 20) {
+        const wy = oceanY + Math.sin(x * 0.05 + Date.now() * 0.003) * 4;
+        if (x === 0) ctx.moveTo(x, wy);
+        else ctx.lineTo(x, wy);
+      }
+      ctx.stroke();
+    }
 
-    // Forward Sensor Scanning Cone
-    const scanGrad = ctx.createRadialGradient(0, 0, 4, 45, 0, 60);
-    scanGrad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
-    scanGrad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
-    ctx.fillStyle = scanGrad;
+    // Draw Meteorite Inclusions within viewport
+    METEORITE_INCLUSIONS.forEach((rock) => {
+      if (rock.depthKm >= viewTopKm - 5 && rock.depthKm <= viewBottomKm + 5) {
+        const rx = (rock.xPct / 100) * w;
+        const ry = ((rock.depthKm - viewTopKm) / 45) * h;
+
+        // Sonar glow if sonar active
+        if (sonarActive) {
+          ctx.beginPath();
+          ctx.arc(rx, ry, rock.radiusKm * 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
+          ctx.fill();
+        }
+
+        // Rock Ingot Body
+        ctx.beginPath();
+        ctx.arc(rx, ry, rock.radiusKm * 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = '#451a03';
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+
+        // Hazard Tag
+        ctx.fillStyle = '#ffedd5';
+        ctx.font = '600 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`OBSTACLE: ${rock.depthKm} km`, rx, ry - rock.radiusKm * 2.5);
+      }
+    });
+
+    // Draw Melt Probe
+    const probeX = (probeXPct / 100) * w;
+    const probeY = ((depthKm - viewTopKm) / 45) * h;
+
+    // Thermal Melt Glow beneath cone
+    const meltGlow = ctx.createRadialGradient(probeX, probeY + 16, 2, probeX, probeY + 28, 30);
+    meltGlow.addColorStop(0, 'rgba(239, 68, 68, 0.7)');
+    meltGlow.addColorStop(0.5, 'rgba(251, 191, 36, 0.4)');
+    meltGlow.addColorStop(1, 'rgba(245, 158, 11, 0)');
+    ctx.fillStyle = meltGlow;
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, 60, -0.4, 0.4);
-    ctx.closePath();
+    ctx.arc(probeX, probeY + 22, 28, 0, Math.PI * 2);
     ctx.fill();
 
-    // Rover Chassis Box
+    // Communications / Power Tether Line going up to surface
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(probeX, 0);
+    ctx.lineTo(probeX, probeY - 14);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Cylindrical Probe Body
     ctx.fillStyle = '#0f172a';
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(-15, -11, 30, 22, 4);
+    ctx.roundRect(probeX - 9, probeY - 14, 18, 28, 3);
     ctx.fill();
     ctx.stroke();
 
-    // 6 Rocker-Bogie All-Terrain Wheels
-    ctx.fillStyle = wheelIntegrity > 50 ? '#ffb86b' : '#ef4444';
-    [-13, 0, 13].forEach((wx) => {
-      ctx.fillRect(wx - 2.5, -14, 5, 3.5);
-      ctx.fillRect(wx - 2.5, 11, 5, 3.5);
-    });
+    // Heated Tungsten Nose Cone
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.moveTo(probeX - 9, probeY + 14);
+    ctx.lineTo(probeX + 9, probeY + 14);
+    ctx.lineTo(probeX, probeY + 24);
+    ctx.closePath();
+    ctx.fill();
 
-    // Masthead Sensor Turret & Pointer
+    // Optical Sensor Window
     ctx.fillStyle = '#38bdf8';
     ctx.beginPath();
-    ctx.arc(5, 0, 4, 0, Math.PI * 2);
+    ctx.arc(probeX, probeY, 3, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(5, 0);
-    ctx.lineTo(18, 0);
-    ctx.stroke();
+    // Sonar Beam Arc if active
+    if (sonarActive) {
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+      ctx.lineWidth = 2;
+      [30, 55, 80].forEach((sr) => {
+        ctx.beginPath();
+        ctx.arc(probeX, probeY + 20, sr, 0.25 * Math.PI, 0.75 * Math.PI);
+        ctx.stroke();
+      });
+    }
 
-    ctx.restore();
-
-    // Real-Time Telemetry HUD Overlay in Canvas
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+    // Depth Gauge on Left Margin
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
     ctx.font = '10px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(`GRAV: 0.126g  //  SPEED: ${driveSpeed} km/h  //  TEMP: ${coreTempK}K`, 12, h - 12);
-  }, [roverX, roverY, roverHeading, driveSpeed, sectors, wheelIntegrity, coreTempK]);
-
-  // LIBS Laser Spectrometry Mini-Game
-  const executeLaserScan = () => {
-    if (!targetSector) {
-      setToolStatus('Drive within range of a designated sector (Alpha-Epsilon) to fire spectrometer.');
-      return;
+    ctx.textAlign = 'right';
+    for (let d = Math.floor(viewTopKm); d <= Math.ceil(viewBottomKm); d += 10) {
+      const dy = ((d - viewTopKm) / 45) * h;
+      ctx.fillText(`${d} km -`, 48, dy + 3);
     }
-    const targetWl = targetSector.scienceTarget.spectralKey;
-    const diff = Math.abs(laserTuner - targetWl);
-
-    if (diff <= 8) {
-      playBeaconPing(1400, 0.25);
-      setToolStatus(`[SPECTRA MATCHED] Peak absorption lines resolved! ${targetSector.scienceTarget.sampleTitle}.`);
-      setScienceDataBuffer((prev) => prev + 45);
-    } else {
-      playTelemetryBeep(450, 0.2);
-      setToolStatus(`[SPECTRAL DRIFT] Tuned to ${laserTuner}nm. Target resonance is ${diff > 0 ? (laserTuner > targetWl ? 'lower' : 'higher') : 'exact'}. Align slider.`);
-    }
-  };
-
-  // Cryogenic Percussive Core Drill Mini-Game
-  const executeDrill = () => {
-    if (!targetSector) {
-      setToolStatus('No solid geological target in range. Position rover on sector bedrock.');
-      return;
-    }
-    const targetRpm = targetSector.scienceTarget.drillTorqueReq;
-    const diff = Math.abs(drillRpm - targetRpm);
-
-    setIsDrilling(true);
-    playThrusterBurst();
-
-    setTimeout(() => {
-      setIsDrilling(false);
-      if (diff <= 10) {
-        playBeaconPing(1200, 0.3);
-        setToolStatus(`[CORE EXTRACTION SUCCESS] Retained pristine ice sample at ${targetSector.icePurityPct}% purity!`);
-        setScienceDataBuffer((prev) => prev + 60);
-
-        // Mark sector surveyed
-        setSectors((prev) =>
-          prev.map((s) => (s.id === targetSector.id ? { ...s, surveyed: true } : s))
-        );
-      } else {
-        playTelemetryBeep(320, 0.25);
-        setToolStatus(`[DRILL JAM] RPM deviation too high (${drillRpm} vs optimum ${targetRpm}). Frictional thermal sublimation detected. Recalibrate torque.`);
-      }
-    }, 1200);
-  };
-
-  // Ground-Penetrating Radar Sounding
-  const executeRadar = () => {
-    if (!targetSector) {
-      setToolStatus('Drive over ice fracture or ridge to sound sub-surface strata.');
-      return;
-    }
-
-    setIsRadaring(true);
-    playTelemetryBeep(880, 0.3);
-
-    setTimeout(() => {
-      setIsRadaring(false);
-      playBeaconPing(1550, 0.35);
-      setToolStatus(`[GPR RADAR SOUNDING COMPLETE] Ice shell measured: ${targetSector.subsurfaceDepthKm} km. Conductive liquid ocean reflector verified!`);
-      setScienceDataBuffer((prev) => prev + 50);
-
-      setSectors((prev) =>
-        prev.map((s) => (s.id === targetSector.id ? { ...s, surveyed: true } : s))
-      );
-    }, 1100);
-  };
-
-  // Earth Relativistic Comm Uplink
-  const transmitDataToOrbit = () => {
-    if (scienceDataBuffer <= 0) {
-      setToolStatus('No new scientific telemetry in onboard buffer to uplink.');
-      return;
-    }
-
-    playWarpSurge();
-    setUplinkedDataMb((prev) => prev + scienceDataBuffer);
-    setToolStatus(`[UPLINK VERIFIED] Transmitted ${scienceDataBuffer} MB of deep-space science data to Earth via CIT Ground Station!`);
-    setScienceDataBuffer(0);
-
-    // Check complete
-    const remaining = sectors.filter((s) => !s.surveyed).length;
-    if (remaining === 0) {
-      setMissionComplete(true);
-    }
-  };
-
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    const clickX = ((e.clientX - rect.left) / rect.width) * 100;
-    const clickY = ((e.clientY - rect.top) / rect.height) * 100;
-    if (!Number.isFinite(clickX) || !Number.isFinite(clickY)) return;
-
-    moveRover((clickX - roverX) * 0.35, (clickY - roverY) * 0.35);
-  };
+  }, [depthKm, probeXPct, sonarActive]);
 
   return (
     <div
@@ -497,7 +411,7 @@ export default function ExpeditionSimulator(): React.ReactElement {
         color: 'var(--moon)',
       }}
     >
-      {/* Top Avionics Mission Control Bar */}
+      {/* Top Avionics Mission Control Bar (Clean Static Telemetry Badges) */}
       <div
         style={{
           display: 'flex',
@@ -512,36 +426,41 @@ export default function ExpeditionSimulator(): React.ReactElement {
       >
         <div>
           <div style={{ fontSize: '0.6875rem', color: 'var(--astrophage)', letterSpacing: '0.14em' }}>
-            CALLISTO SURFACE ROVER EXPEDITION // ACT IV DEEP-SPACE SIMULATION
+            CALLISTO EXPEDITION // CRYOBOT OCEAN PROBE
           </div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', margin: '0.2rem 0 0 0', color: 'var(--moon)' }}>
-            Valhalla Basin Autonomous Science Rig
+            The Deep Ice Descent // Sub-Surface Ocean Mission
           </h2>
         </div>
 
-        {/* Telemetry Badges (Static Baseline) */}
+        {/* Clean Static Telemetry Badges */}
         <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap' }}>
           <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>SOL:</span> {solNumber}
+            <span style={{ color: 'var(--steel)' }}>SOL:</span> 1117
           </div>
           <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>POWER:</span>{' '}
-            <span style={{ color: '#4ade80' }}>{batteryPct}% RTG</span>
+            <span style={{ color: 'var(--steel)' }}>TARGET:</span> SUB-SURFACE OCEAN
           </div>
           <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>TEMP:</span>{' '}
-            <span style={{ color: '#38bdf8' }}>{coreTempK} K</span>
+            <span style={{ color: 'var(--steel)' }}>DEPTH:</span>{' '}
+            <span style={{ color: '#38bdf8', fontWeight: 700 }}>{depthKm} km / 150 km</span>
           </div>
           <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>WHEELS:</span> {wheelIntegrity}%
+            <span style={{ color: 'var(--steel)' }}>MELT TEMP:</span> {thermalHeadTempK} K
           </div>
           <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>BUFFER:</span> {scienceDataBuffer} MB
+            <span style={{ color: 'var(--steel)' }}>PRESSURE:</span> {currentLayer.pressureMpa} MPa
+          </div>
+          <div style={telemetryBadgeStyle}>
+            <span style={{ color: 'var(--steel)' }}>OCEAN:</span>{' '}
+            <span style={{ color: oceanDiscovered ? '#4ade80' : '#f59e0b', fontWeight: 700 }}>
+              {oceanDiscovered ? 'REACHED [148 km]' : 'PENDING'}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Subsystem Navigation Tabs */}
+      {/* Navigation Subsystem Tabs */}
       <div
         style={{
           display: 'flex',
@@ -553,36 +472,29 @@ export default function ExpeditionSimulator(): React.ReactElement {
       >
         <button
           type="button"
-          onClick={() => setActiveTab('nav')}
-          style={tabStyle(activeTab === 'nav')}
+          onClick={() => setActiveTab('sonar')}
+          style={tabStyle(activeTab === 'sonar')}
         >
-          1. SURFACE RADAR & CONTROLS
+          1. VERTICAL DESCENT RADAR & CONTROLS
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('science')}
-          style={tabStyle(activeTab === 'science')}
+          onClick={() => setActiveTab('stratigraphy')}
+          style={tabStyle(activeTab === 'stratigraphy')}
         >
-          2. SCIENCE INSTRUMENT SUITE
+          2. ICE CRUST STRATIGRAPHY (5 LAYERS)
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('power')}
-          style={tabStyle(activeTab === 'power')}
+          onClick={() => setActiveTab('samples')}
+          style={tabStyle(activeTab === 'samples')}
         >
-          3. POWER & THERMAL AVIONICS
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('uplink')}
-          style={tabStyle(activeTab === 'uplink')}
-        >
-          4. RELAY UPLINK ({uplinkedDataMb} MB SENT)
+          3. ASTROBIOLOGY SAMPLE BAY ({samplesCollected.length}/5)
         </button>
       </div>
 
-      {/* Tab 1: Navigation Radar & Tactile Mobile D-Pad */}
-      {activeTab === 'nav' && (
+      {/* Tab 1: Vertical Descent Chamber & Controls */}
+      {activeTab === 'sonar' && (
         <div
           style={{
             display: 'grid',
@@ -591,7 +503,7 @@ export default function ExpeditionSimulator(): React.ReactElement {
             alignItems: 'start',
           }}
         >
-          {/* Radar Screen */}
+          {/* Vertical Stratigraphy Canvas */}
           <div>
             <div
               style={{
@@ -606,41 +518,39 @@ export default function ExpeditionSimulator(): React.ReactElement {
               <canvas
                 ref={canvasRef}
                 width={640}
-                height={430}
-                onClick={handleCanvasClick}
-                style={{ width: '100%', height: 'auto', display: 'block', cursor: 'crosshair' }}
-                title="Tap or click on terrain to steer rover"
+                height={420}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+                title="Cross-section of Callisto ice crust. Use controls below to steer and melt downward."
               />
 
-              {/* In-Range Sector Overlay */}
-              {targetSector && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '12px',
-                    left: '12px',
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    border: `1px solid ${targetSector.surveyed ? '#4ade80' : 'var(--orbit)'}`,
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '0.5rem 0.8rem',
-                    fontSize: '0.75rem',
-                    backdropFilter: 'blur(8px)',
-                  }}
-                >
-                  <div style={{ color: targetSector.surveyed ? '#4ade80' : 'var(--orbit)', fontWeight: 700 }}>
-                    IN RANGE: {targetSector.name} ({targetSector.code})
-                  </div>
-                  <div style={{ color: '#f59e0b', fontSize: '0.6875rem' }}>
-                    HAZARD: {targetSector.hazardLabel}
-                  </div>
-                  <div style={{ color: 'var(--steel)', fontSize: '0.625rem' }}>
-                    ICE PURITY: {targetSector.icePurityPct}% // DEPTH: {targetSector.subsurfaceDepthKm} km
-                  </div>
+              {/* In-Range Stratigraphy Horizon HUD */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                  border: `1px solid ${currentLayer.color}`,
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.45rem 0.75rem',
+                  fontSize: '0.75rem',
+                  backdropFilter: 'blur(8px)',
+                  maxWidth: '260px',
+                }}
+              >
+                <div style={{ color: currentLayer.color, fontWeight: 700 }}>
+                  CURRENT HORIZON
                 </div>
-              )}
+                <div style={{ color: 'var(--moon)', fontSize: '0.6875rem' }}>
+                  {currentLayer.name}
+                </div>
+                <div style={{ color: 'var(--steel)', fontSize: '0.625rem', marginTop: '2px' }}>
+                  Ambient: {currentLayer.tempK} K // Hydrostatic: {currentLayer.pressureMpa} MPa
+                </div>
+              </div>
             </div>
 
-            {/* Tactile Mobile / Desktop Steering Console */}
+            {/* Tactile Mobile & Desktop Steering & Melt Controls */}
             <div
               style={{
                 display: 'flex',
@@ -655,329 +565,221 @@ export default function ExpeditionSimulator(): React.ReactElement {
                 gap: 'var(--space-md)',
               }}
             >
-              {/* Responsive D-Pad */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 40px)', gap: '4px' }}>
-                <div />
-                <button type="button" onClick={() => moveRover(0, -4.5)} style={dpadBtnStyle} title="Drive North">▲</button>
-                <div />
-                <button type="button" onClick={() => moveRover(-4.5, 0)} style={dpadBtnStyle} title="Drive West">◀</button>
-                <button type="button" onClick={() => moveRover(0, 4.5)} style={dpadBtnStyle} title="Drive South">▼</button>
-                <button type="button" onClick={() => moveRover(4.5, 0)} style={dpadBtnStyle} title="Drive East">▶</button>
+              {/* Lateral Water Jet Steering */}
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.625rem', color: 'var(--steel)', marginRight: '4px' }}>
+                  LATERAL JETS:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => steerProbe('left')}
+                  style={steerBtnStyle}
+                  title="Steer Cryobot Left"
+                  aria-label="Steer Cryobot Left"
+                >
+                  ◀ STEER LEFT
+                </button>
+                <button
+                  type="button"
+                  onClick={() => steerProbe('right')}
+                  style={steerBtnStyle}
+                  title="Steer Cryobot Right"
+                  aria-label="Steer Cryobot Right"
+                >
+                  STEER RIGHT ▶
+                </button>
               </div>
 
-              {/* Drive Mode Selector */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                <span style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>TRACTION DRIVE GEAR</span>
-                <div style={{ display: 'flex', gap: '0.3rem' }}>
-                  {(['crawler', 'standard', 'overdrive'] as const).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setDriveMode(m)}
-                      style={{
-                        padding: '0.4rem 0.65rem',
-                        backgroundColor:
-                          driveMode === m
-                            ? 'var(--orbit)'
-                            : 'color-mix(in srgb, var(--navy) 60%, transparent)',
-                        color: driveMode === m ? 'var(--void)' : 'var(--moon)',
-                        border: 'none',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.6875rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {m}
-                    </button>
-                  ))}
+              {/* Action Buttons: Pulse Sonar & Melt Step */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={pulseAcousticSonar}
+                  style={secondaryActionBtnStyle}
+                  title="Pulse downward acoustic sonar to detect rock obstacles"
+                >
+                  📡 PULSE SONAR
+                </button>
+
+                <button
+                  type="button"
+                  onClick={stepMeltDescent}
+                  style={{
+                    padding: '0.65rem 1.25rem',
+                    backgroundColor: oceanDiscovered ? '#4ade80' : 'var(--orbit)',
+                    color: 'var(--void)',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 0 16px color-mix(in srgb, var(--orbit) 40%, transparent)',
+                    transition: 'all 0.2s',
+                  }}
+                  title="Engage thermal melt head to penetrate ice"
+                >
+                  {oceanDiscovered ? 'OCEAN PENETRATED [148 KM]' : '🔥 MELT ICE DESCENT ↓'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Instrument Sliders & Layer Data */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+            {/* Thermal Melt Power Control Card */}
+            <div style={toolCardStyle}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--astrophage)', marginBottom: '0.4rem' }}>
+                NUCLEAR-THERMAL MELT-HEAD POWER
+              </div>
+              <p style={{ fontSize: '0.6875rem', color: 'var(--steel)', margin: '0 0 0.8rem 0' }}>
+                Adjust wattage sent to the tungsten heated nose cone to melt through cryogenic ice.
+              </p>
+
+              <div style={{ marginBottom: '0.8rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem', marginBottom: '0.3rem' }}>
+                  <span>Thermal Power Output</span>
+                  <span style={{ color: 'var(--astrophage)', fontWeight: 700 }}>{meltPowerKw} kW</span>
                 </div>
+                <input
+                  type="range"
+                  min="15"
+                  max="80"
+                  value={meltPowerKw}
+                  onChange={(e) => setMeltPowerKw(parseInt(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--astrophage)' }}
+                />
               </div>
 
-              {/* Quick Science Trigger */}
               <button
                 type="button"
-                onClick={() => setActiveTab('science')}
-                style={{
-                  padding: '0.65rem 1.1rem',
-                  backgroundColor: targetSector && !targetSector.surveyed ? 'var(--astrophage)' : 'color-mix(in srgb, var(--navy) 80%, transparent)',
-                  color: 'var(--moon)',
-                  border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
+                onClick={sampleCurrentLayer}
+                style={secondaryActionBtnStyle}
               >
-                🔬 DEPLOY SCIENCE SUITE →
+                🔬 SAMPLE RAMAN SPECTRA AT CURRENT DEPTH
               </button>
             </div>
-          </div>
 
-          {/* Geological Sector Manifest & Status */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--orbit)', fontWeight: 700 }}>
-              EXPEDITION SECTORS // VALHALLA MULTI-RING MAP
-            </div>
-
-            {sectors.map((sec) => (
-              <div
-                key={sec.id}
-                style={{
-                  backgroundColor: sec.surveyed
-                    ? 'color-mix(in srgb, var(--navy) 65%, transparent)'
-                    : 'color-mix(in srgb, var(--void) 80%, transparent)',
-                  border: `1px solid ${
-                    sec.surveyed ? '#4ade80' : 'color-mix(in srgb, var(--steel) 30%, transparent)'
-                  }`,
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '0.65rem 0.85rem',
-                  fontSize: '0.6875rem',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 700, color: sec.surveyed ? '#86efac' : 'var(--moon)' }}>
-                    [{sec.code}] {sec.name}
-                  </span>
-                  <span style={{ color: sec.surveyed ? '#4ade80' : 'var(--steel)', fontWeight: 600 }}>
-                    {sec.surveyed ? 'SURVEYED' : 'PENDING'}
-                  </span>
-                </div>
-                <div style={{ color: 'var(--steel)', fontSize: '0.625rem', marginTop: '0.2rem' }}>
-                  Hazard: <span style={{ color: '#f59e0b' }}>{sec.hazardLabel}</span>
-                </div>
-                <div style={{ color: 'var(--astrophage)', fontSize: '0.625rem', marginTop: '0.2rem' }}>
-                  Target: {sec.scienceTarget.sampleTitle}
-                </div>
+            {/* Current Stratigraphy Summary */}
+            <div style={toolCardStyle}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: currentLayer.color, marginBottom: '0.4rem' }}>
+                LOCAL STRATIGRAPHY PROFILE
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tab 2: Interactive Science Instrument Minigames */}
-      {activeTab === 'science' && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: 'var(--space-lg)',
-          }}
-        >
-          {/* Tool 1: LIBS Laser Spectrometer */}
-          <div style={toolCardStyle}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#38bdf8', marginBottom: '0.4rem' }}>
-              1. LIBS LASER SPECTROMETER
-            </div>
-            <p style={{ fontSize: '0.6875rem', color: 'var(--steel)', margin: '0 0 0.8rem 0' }}>
-              Tune the laser wavelength to vaporize regolith and match chemical emission lines.
-            </p>
-
-            <div style={{ marginBottom: '0.8rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem', marginBottom: '0.3rem' }}>
-                <span>Laser Resonance Tuner</span>
-                <span style={{ color: 'var(--orbit)' }}>{laserTuner} nm</span>
-              </div>
-              <input
-                type="range"
-                min="10"
-                max="90"
-                value={laserTuner}
-                onChange={(e) => setLaserTuner(parseInt(e.target.value))}
-                style={{ width: '100%', accentColor: 'var(--orbit)' }}
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={executeLaserScan}
-              style={actionBtnStyle}
-            >
-              FIRE LASER SPECTROMETER
-            </button>
-          </div>
-
-          {/* Tool 2: Percussive Cryo-Drill */}
-          <div style={toolCardStyle}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ffb86b', marginBottom: '0.4rem' }}>
-              2. ROTARY PERCUSSION CRYO-DRILL
-            </div>
-            <p style={{ fontSize: '0.6875rem', color: 'var(--steel)', margin: '0 0 0.8rem 0' }}>
-              Calibrate RPM torque against 150K ice hardness to extract core samples without thermal sublimation.
-            </p>
-
-            <div style={{ marginBottom: '0.8rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem', marginBottom: '0.3rem' }}>
-                <span>Drill Torque RPM</span>
-                <span style={{ color: 'var(--astrophage)' }}>{drillRpm} RPM</span>
-              </div>
-              <input
-                type="range"
-                min="30"
-                max="90"
-                value={drillRpm}
-                onChange={(e) => setDrillRpm(parseInt(e.target.value))}
-                style={{ width: '100%', accentColor: 'var(--astrophage)' }}
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={executeDrill}
-              disabled={isDrilling}
-              style={actionBtnStyle}
-            >
-              {isDrilling ? 'DRILLING CORING ICE...' : 'COMMENCE CRYO DRILLING'}
-            </button>
-          </div>
-
-          {/* Tool 3: Ground-Penetrating Radar (GPR) */}
-          <div style={toolCardStyle}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4ade80', marginBottom: '0.4rem' }}>
-              3. GROUND-PENETRATING RADAR (GPR)
-            </div>
-            <p style={{ fontSize: '0.6875rem', color: 'var(--steel)', margin: '0 0 0.8rem 0' }}>
-              Pulse high-frequency electromagnetic radar through the 140 km cryogenic ice crust to echo the ocean.
-            </p>
-
-            <div style={{ marginBottom: '0.8rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem', marginBottom: '0.3rem' }}>
-                <span>Radar Sounding Frequency</span>
-                <span style={{ color: '#4ade80' }}>{radarFreq} MHz</span>
-              </div>
-              <input
-                type="range"
-                min="15"
-                max="55"
-                value={radarFreq}
-                onChange={(e) => setRadarFreq(parseInt(e.target.value))}
-                style={{ width: '100%', accentColor: '#4ade80' }}
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={executeRadar}
-              disabled={isRadaring}
-              style={actionBtnStyle}
-            >
-              {isRadaring ? 'PULSING RADAR WAVE...' : 'FIRE GPR ICE SOUNDER'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 3: Power & Thermal Avionics */}
-      {activeTab === 'power' && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 'var(--space-md)',
-          }}
-        >
-          {/* RTG & Battery Grid */}
-          <div style={toolCardStyle}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--orbit)', marginBottom: '0.5rem' }}>
-              ELECTRICAL POWER DISTRIBUTION
-            </div>
-            <div style={{ fontSize: '0.6875rem', color: 'var(--steel)', lineHeight: 1.5 }}>
-              <div>• Power Source: Plutonium-238 MMRTG (Radioisotope Generator)</div>
-              <div>• Steady RTG Power Output: {rtgWatts} W continuous</div>
-              <div>• Lithium-Ion Main Storage: {batteryPct}%</div>
-              <div>• Current Draw Rate: {heaterActive ? '185 W' : '95 W'}</div>
-            </div>
-
-            <div style={{ marginTop: '0.8rem' }}>
-              <div style={barTrackStyle}>
-                <div style={{ ...barFillStyle, width: `${batteryPct}%`, backgroundColor: batteryPct > 35 ? '#4ade80' : '#f87171' }} />
+              <p style={{ fontSize: '0.6875rem', color: 'var(--moon)', lineHeight: 1.5, margin: '0 0 0.6rem 0' }}>
+                {currentLayer.description}
+              </p>
+              <div style={{ fontSize: '0.6875rem', color: 'var(--steel)' }}>
+                Target Compounds: <strong style={{ color: 'var(--moon)' }}>{currentLayer.spectralTarget}</strong>
               </div>
             </div>
-          </div>
 
-          {/* Cryo Thermal Loop */}
-          <div style={toolCardStyle}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b', marginBottom: '0.5rem' }}>
-              THERMAL REGULATION // RHU HEATERS
-            </div>
-            <div style={{ fontSize: '0.6875rem', color: 'var(--steel)', lineHeight: 1.5, marginBottom: '0.8rem' }}>
-              <div>• Callisto Surface Ambient: 120 K (-153°C)</div>
-              <div>• Internal Core Avionics Temp: {coreTempK} K (Nominal: 278 K)</div>
-              <div>• RHU Cryo-Heater Status: <span style={{ color: heaterActive ? '#4ade80' : '#f87171' }}>{heaterActive ? 'ACTIVE' : 'OFF'}</span></div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setHeaterActive(!heaterActive)}
-              style={actionBtnStyle}
-            >
-              {heaterActive ? 'DISABLE HEATERS (SAVE BATTERY)' : 'ENGAGE RHU CRYO HEATERS'}
-            </button>
-          </div>
-
-          {/* Mechanical Wheel Health */}
-          <div style={toolCardStyle}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ec4899', marginBottom: '0.5rem' }}>
-              MOBILITY CHASSIS // WHEEL STATUS
-            </div>
-            <div style={{ fontSize: '0.6875rem', color: 'var(--steel)', lineHeight: 1.5 }}>
-              <div>• Wheel Drive Mechanism: 6-Wheel Rocker Bogie</div>
-              <div>• Titanium Grouser Tread Wear: {wheelIntegrity}%</div>
-              <div>• Drive Gear Mode: <span style={{ textTransform: 'uppercase', color: 'var(--orbit)' }}>{driveMode}</span></div>
-              <div>• Surface Odometer: {odometerKm} km traversed</div>
+            {/* Ocean Conductivity Breakthrough Indicator */}
+            <div style={toolCardStyle}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#22d3ee', marginBottom: '0.4rem' }}>
+                SALINITY & CONDUCTIVITY DETECTOR
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginTop: '0.4rem' }}>
+                <span>Electrolytic Conductivity:</span>
+                <span style={{ color: oceanDiscovered ? '#4ade80' : 'var(--steel)', fontWeight: 700 }}>
+                  {oceanDiscovered ? '3.82 S/m [SALINE WATER]' : '0.00 S/m [SOLID ICE]'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Tab 4: Earth Relativistic Comm Uplink */}
-      {activeTab === 'uplink' && (
+      {/* Tab 2: Ice Crust Stratigraphy Overview */}
+      {activeTab === 'stratigraphy' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--astrophage)', fontWeight: 700 }}>
+            CALLISTO CRUSTAL PROFILE // 0 TO 160 KM DEPTH MAPPING
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-md)' }}>
+            {ICE_STRATIGRAPHY.map((layer, idx) => {
+              const isCurrent = currentLayer.name === layer.name;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: isCurrent
+                      ? 'color-mix(in srgb, var(--navy) 80%, transparent)'
+                      : 'color-mix(in srgb, var(--void) 85%, black)',
+                    border: `1px solid ${isCurrent ? layer.color : 'color-mix(in srgb, var(--steel) 30%, transparent)'}`,
+                    borderRadius: 'var(--radius-md)',
+                    padding: 'var(--space-md)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: layer.color }}>
+                      {layer.name}
+                    </span>
+                    <span style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>
+                      {layer.depthStartKm} - {layer.depthEndKm} km
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: '0.6875rem', color: 'var(--moon)', lineHeight: 1.4, margin: '0 0 0.6rem 0' }}>
+                    {layer.description}
+                  </p>
+
+                  <div style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>
+                    <div>• Temperature: {layer.tempK} K (-{Math.round(273.15 - layer.tempK)}°C)</div>
+                    <div>• Hydrostatic Pressure: {layer.pressureMpa} MPa</div>
+                    <div>• Key Analyte: {layer.spectralTarget}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: Astrobiology Sample Bay */}
+      {activeTab === 'samples' && (
         <div style={toolCardStyle}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--astrophage)', marginBottom: '0.5rem' }}>
-            JOVIAN POLAR ORBITER RELAY // EARTH DSN UPLINK
+          <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--astrophage)', marginBottom: '0.5rem' }}>
+            CRYO-CORE ASTROBIOLOGY RETRIEVAL BAY
           </div>
-          <p style={{ fontSize: '0.6875rem', color: 'var(--steel)', lineHeight: 1.4, margin: '0 0 0.8rem 0' }}>
-            Scientific datasets collected on Callisto must be transmitted during orbital satellite alignment passes.
-            Speed-of-light radio delay to Earth CIT ground control: <strong>41.8 minutes</strong>.
+          <p style={{ fontSize: '0.6875rem', color: 'var(--steel)', lineHeight: 1.4, margin: '0 0 1rem 0' }}>
+            Sample clathrates, ancient trapped noble gases, and ocean electrolytes by clicking &ldquo;Sample Raman Spectra&rdquo; as the probe descends through each ice layer.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', marginBottom: '1rem' }}>
-            <div style={{ backgroundColor: '#040711', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
-              <div style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>ORBITER RELAY STATUS</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#4ade80' }}>
-                READY // SATELLITE LOCKED
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#040711', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
-              <div style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>BUFFERED TELEMETRY</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--orbit)' }}>
-                {scienceDataBuffer} MB READY
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#040711', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
-              <div style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>TOTAL TRANSMITTED</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#86efac' }}>
-                {uplinkedDataMb} MB SENT
-              </div>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+            {ICE_STRATIGRAPHY.map((layer, idx) => {
+              const collected = samplesCollected.includes(layer.name);
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: collected
+                      ? 'color-mix(in srgb, #4ade80 12%, var(--void))'
+                      : 'color-mix(in srgb, var(--void) 80%, black)',
+                    border: `1px solid ${
+                      collected ? '#4ade80' : 'color-mix(in srgb, var(--steel) 25%, transparent)'
+                    }`,
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.65rem 0.85rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: collected ? '#86efac' : 'var(--moon)' }}>
+                      [{collected ? 'ANALYZED' : 'PENDING'}] {layer.name}
+                    </div>
+                    <div style={{ fontSize: '0.625rem', color: 'var(--steel)', marginTop: '2px' }}>
+                      Depth: {layer.depthStartKm} - {layer.depthEndKm} km // Analyte: {layer.spectralTarget}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: collected ? '#4ade80' : 'var(--steel)' }}>
+                    {collected ? '✓ CORE SECURED' : 'UNVISITED'}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-
-          <button
-            type="button"
-            onClick={transmitDataToOrbit}
-            disabled={scienceDataBuffer <= 0}
-            style={{
-              ...actionBtnStyle,
-              backgroundColor: scienceDataBuffer > 0 ? '#4ade80' : 'color-mix(in srgb, var(--navy) 60%, transparent)',
-              color: scienceDataBuffer > 0 ? 'var(--void)' : 'var(--steel)',
-              cursor: scienceDataBuffer > 0 ? 'pointer' : 'not-allowed',
-            }}
-          >
-            TRANSMIT BUFFER TO JOVIAN ORBITER
-          </button>
         </div>
       )}
 
@@ -993,28 +795,28 @@ export default function ExpeditionSimulator(): React.ReactElement {
           lineHeight: 1.4,
         }}
       >
-        <span style={{ color: 'var(--astrophage)', fontWeight: 700 }}>TELEMETRY STATUS: </span>
-        {toolStatus}
+        <span style={{ color: 'var(--astrophage)', fontWeight: 700 }}>CRYOBOT TELEMETRY: </span>
+        {missionLog}
       </div>
 
-      {/* Mission Victory Banner */}
-      {missionComplete && (
+      {/* Mission Victory Banner on Ocean Breakthrough */}
+      {oceanDiscovered && (
         <div
           style={{
             marginTop: 'var(--space-md)',
-            backgroundColor: 'color-mix(in srgb, #4ade80 18%, transparent)',
-            border: '2px solid #4ade80',
+            backgroundColor: 'color-mix(in srgb, #22d3ee 16%, transparent)',
+            border: '2px solid #22d3ee',
             borderRadius: 'var(--radius-md)',
             padding: 'var(--space-md)',
             textAlign: 'center',
-            boxShadow: '0 0 24px rgba(74, 222, 128, 0.35)',
+            boxShadow: '0 0 24px rgba(34, 211, 238, 0.35)',
           }}
         >
-          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#86efac', marginBottom: '0.3rem' }}>
-            [MISSION CERTIFIED] CALLISTO SURFACE EXPLORATION TRIUMPH
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#67e8f9', marginBottom: '0.3rem' }}>
+            [BREAKTHROUGH ACHIEVED] CALLISTO SUB-SURFACE OCEAN PENETRATED
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--moon)', margin: 0 }}>
-            All 5 sectors mapped. Saline subsurface ocean confirmed at 132 km. High-frequency GPR & LIBS datasets transmitted to Earth.
+            Tungsten melt-head penetrated the 148 km basal ice boundary. The nuclear cryobot is now buoyant in the saline liquid Jovian ocean!
           </p>
         </div>
       )}
@@ -1030,20 +832,30 @@ const telemetryBadgeStyle: React.CSSProperties = {
   fontSize: '0.6875rem',
 };
 
-const dpadBtnStyle: React.CSSProperties = {
-  width: '40px',
-  height: '40px',
+const steerBtnStyle: React.CSSProperties = {
+  padding: '0.45rem 0.75rem',
   backgroundColor: 'color-mix(in srgb, var(--navy) 75%, transparent)',
   border: '1px solid color-mix(in srgb, var(--steel) 40%, transparent)',
   borderRadius: 'var(--radius-sm)',
   color: 'var(--moon)',
-  fontSize: '0.875rem',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.6875rem',
   fontWeight: 700,
   cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
   transition: 'all 0.1s',
+};
+
+const secondaryActionBtnStyle: React.CSSProperties = {
+  padding: '0.65rem 0.85rem',
+  backgroundColor: 'color-mix(in srgb, var(--navy) 80%, transparent)',
+  border: '1px solid var(--orbit)',
+  color: 'var(--moon)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.75rem',
+  fontWeight: 700,
+  borderRadius: 'var(--radius-sm)',
+  cursor: 'pointer',
+  transition: 'all 0.15s ease',
 };
 
 const toolCardStyle: React.CSSProperties = {
@@ -1051,20 +863,6 @@ const toolCardStyle: React.CSSProperties = {
   border: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
   borderRadius: 'var(--radius-md)',
   padding: 'var(--space-md)',
-};
-
-const actionBtnStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.65rem',
-  backgroundColor: 'var(--orbit)',
-  color: 'var(--void)',
-  border: 'none',
-  borderRadius: 'var(--radius-sm)',
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.75rem',
-  fontWeight: 700,
-  cursor: 'pointer',
-  transition: 'all 0.2s',
 };
 
 const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -1079,16 +877,3 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
   cursor: 'pointer',
   whiteSpace: 'nowrap',
 });
-
-const barTrackStyle: React.CSSProperties = {
-  height: '8px',
-  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  borderRadius: '4px',
-  overflow: 'hidden',
-};
-
-const barFillStyle: React.CSSProperties = {
-  height: '100%',
-  borderRadius: '4px',
-  transition: 'width 0.3s ease',
-};
