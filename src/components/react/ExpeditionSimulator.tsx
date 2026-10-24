@@ -210,6 +210,7 @@ export default function ExpeditionSimulator(): React.ReactElement {
   // Steer & Move Rover
   const moveRover = useCallback(
     (dx: number, dy: number) => {
+      if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
       if (batteryPct <= 10) {
         setToolStatus('[WARNING] Battery critically depleted! Switch to Low-Torque Crawler mode.');
         return;
@@ -518,8 +519,10 @@ export default function ExpeditionSimulator(): React.ReactElement {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
     const clickX = ((e.clientX - rect.left) / rect.width) * 100;
     const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+    if (!Number.isFinite(clickX) || !Number.isFinite(clickY)) return;
 
     moveRover((clickX - roverX) * 0.35, (clickY - roverY) * 0.35);
   };

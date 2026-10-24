@@ -238,11 +238,11 @@ export default function AvatarBuilder(): React.ReactElement {
     ctx.textAlign = 'left';
     ctx.fillStyle = '#f8fafc';
     ctx.font = '700 28px sans-serif';
-    ctx.fillText(explorerName || 'CADET EXPLORER', 80, cardY + 45);
+    ctx.fillText((explorerName || 'CADET EXPLORER').slice(0, 28), 80, cardY + 45);
 
     ctx.fillStyle = '#38bdf8';
     ctx.font = '700 15px "JetBrains Mono", monospace';
-    ctx.fillText(`CALLSIGN: ${callsign || 'ORBIT-01'}`, 80, cardY + 75);
+    ctx.fillText(`CALLSIGN: ${(callsign || 'ORBIT-01').slice(0, 20)}`, 80, cardY + 75);
 
     // Specification Grid
     const specs = [

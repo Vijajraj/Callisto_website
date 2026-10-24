@@ -162,8 +162,9 @@ export default function MissionsConsole(): React.ReactElement {
   );
 
   const baseDeltaV = selectedTarget.id === 'moon' ? 3.9 : selectedTarget.id === 'mars' ? 5.8 : selectedTarget.id === 'titan' ? 16.4 : 14.2;
-  const totalDeltaV = (baseDeltaV + (payloadMassKg / 500) * 0.8).toFixed(1);
-  const totalSpacecraftMass = selectedCraft.baseMassKg + payloadMassKg;
+  const safePayload = Number.isFinite(payloadMassKg) && payloadMassKg >= 0 ? payloadMassKg : 0;
+  const totalDeltaV = (baseDeltaV + (safePayload / 500) * 0.8).toFixed(1);
+  const totalSpacecraftMass = selectedCraft.baseMassKg + safePayload;
   const telemetryBandwidth = selectedTarget.id === 'moon' ? '250 Mbps' : selectedTarget.id === 'mars' ? '12.4 Mbps' : '1.8 Mbps';
 
   const handleCalculateTrajectory = () => {

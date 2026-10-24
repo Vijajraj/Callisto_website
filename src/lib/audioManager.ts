@@ -1,28 +1,23 @@
 /**
  * Callisto Cinematic Audio Manager
  *
- * Implements two strictly independent audio channels:
- * - Channel A: Cinematic Background Music (multi-rank cathedral pipe organ, soft celestial piano,
- *   subtle chronometer ticking, rising string ensemble, and distant cosmic textures).
- * - Channel B: Interface Sound Effects (subtle, unique page sounds, telemetry tones, and interaction SFX).
+ * Dedicated to the immersive Cinematic Background Music:
+ * - Multi-rank Cathedral Pipe Organ (32' sub contra pedal, 16' bourdon, 8' diapason, 4' flue)
+ * - Soft Celestial Piano Melodies & Repeating Motifs
+ * - Subtle Chronometer Ticking (passage of time across light-years)
+ * - Slowly Rising Strings Ensemble & Rich Orchestral Swells
+ * - Distant Cosmic Textures & Synthetic Cathedral Convolution Reverb
+ * - 72-Second Seamless Deep-Space Symphony Cycle
  *
- * Both controls operate independently and persist preferences in browser storage.
- * Initial default: Both OFF (silent until user explicitly engages).
+ * Volume slider, smooth fade in/out, and persistent state across navigation.
+ * Channel B (Sound Effects) removed per user requirement.
  */
-
-export interface AudioPreferences {
-  musicEnabled: boolean;
-  musicVolume: number; // 0.0 to 1.0
-  sfxEnabled: boolean;
-}
 
 const STORAGE_KEYS = {
   MUSIC_ENABLED: 'callisto_audio_music_enabled',
   MUSIC_VOLUME: 'callisto_audio_music_volume',
-  SFX_ENABLED: 'callisto_audio_sfx_enabled',
 };
 
-// Safe storage access
 function getStorageItem(key: string, fallback: string): string {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -45,13 +40,11 @@ let audioCtx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 let musicMasterGain: GainNode | null = null;
 let musicFaderGain: GainNode | null = null;
-let sfxGain: GainNode | null = null;
 let reverbNode: ConvolverNode | null = null;
 
-// Audio States (Strictly independent)
+// Audio States
 let musicEnabled: boolean = false;
 let musicVolume: number = 0.8;
-let sfxEnabled: boolean = false;
 
 // Conductor / Score State
 let isPlayingScore: boolean = false;
@@ -59,13 +52,6 @@ let scoreLoopTimeout: number | null = null;
 let chronometerInterval: number | null = null;
 let currentPhaseIndex: number = 0;
 let chronometerStep: number = 0;
-
-// SFX Throttle to prevent overlapping cacophony on rapid clicks
-let lastSfxTimestamp: number = 0;
-const SFX_THROTTLE_MS = 90;
-
-// Initial page load flag — prevents ANY audio from playing on initial load
-let isInitialPageLoaded: boolean = false;
 
 /**
  * Lazy initialization of the Web Audio Context and Node Graph
@@ -90,7 +76,7 @@ function getAudioContext(): AudioContext | null {
       // Synthetic cathedral impulse response for spatial depth
       reverbNode = createCathedralReverb(audioCtx);
 
-      // Music Channel: musicFaderGain (for fade-in/out) -> musicMasterGain (for volume slider) -> reverb & master
+      // Music Channel: musicFaderGain (fade in/out) -> musicMasterGain (volume slider) -> reverb & master
       musicMasterGain = audioCtx.createGain();
       musicMasterGain.gain.setValueAtTime(musicVolume, audioCtx.currentTime);
 
@@ -107,11 +93,6 @@ function getAudioContext(): AudioContext | null {
 
       musicMasterGain.connect(masterGain);
       reverbNode.connect(masterGain);
-
-      // SFX Channel: completely separate bus
-      sfxGain = audioCtx.createGain();
-      sfxGain.gain.setValueAtTime(0.75, audioCtx.currentTime);
-      sfxGain.connect(masterGain);
 
       masterGain.connect(audioCtx.destination);
     }
@@ -215,7 +196,6 @@ function playOrganLayer(ctx: AudioContext, phase: MovementPhase, duration: numbe
 
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(320, now);
-  // Expression swell: breathing open filter
   filter.frequency.exponentialRampToValueAtTime(1450, now + duration * 0.45);
   filter.frequency.exponentialRampToValueAtTime(380, now + duration);
 
@@ -224,7 +204,7 @@ function playOrganLayer(ctx: AudioContext, phase: MovementPhase, duration: numbe
   organGain.gain.setValueAtTime(0.28, now + duration - 2.0);
   organGain.gain.linearRampToValueAtTime(0.001, now + duration);
 
-  // 1. 32' Sub-bass contra pedal (chest resonance)
+  // 1. 32' Sub-bass contra pedal
   const subSine = ctx.createOscillator();
   subSine.type = 'sine';
   subSine.frequency.setValueAtTime(phase.subPedalBass, now);
@@ -246,7 +226,7 @@ function playOrganLayer(ctx: AudioContext, phase: MovementPhase, duration: numbe
   pedalTri.start(now);
   pedalTri.stop(now + duration);
 
-  // 3. Multi-rank manuals (Flue + Diapason + Octave detuned ranks)
+  // 3. Multi-rank manuals
   phase.organNotes.forEach((freq, idx) => {
     const oscFlue = ctx.createOscillator();
     oscFlue.type = 'sine';
@@ -254,7 +234,7 @@ function playOrganLayer(ctx: AudioContext, phase: MovementPhase, duration: numbe
 
     const oscPrincipal = ctx.createOscillator();
     oscPrincipal.type = 'triangle';
-    oscPrincipal.frequency.setValueAtTime(freq * 1.002, now); // Natural pipe acoustic chorus
+    oscPrincipal.frequency.setValueAtTime(freq * 1.002, now);
 
     const pipeGain = ctx.createGain();
     const amp = 0.10 / Math.sqrt(idx + 1);
@@ -290,12 +270,11 @@ function playStringEnsemble(ctx: AudioContext, phase: MovementPhase, duration: n
   stringFilter.frequency.exponentialRampToValueAtTime(320, now + duration);
 
   stringGain.gain.setValueAtTime(0.001, now);
-  stringGain.gain.linearRampToValueAtTime(0.18, now + 3.5); // Slow orchestral string bow attack
+  stringGain.gain.linearRampToValueAtTime(0.18, now + 3.5);
   stringGain.gain.setValueAtTime(0.18, now + duration - 2.5);
   stringGain.gain.linearRampToValueAtTime(0.001, now + duration);
 
   phase.stringNotes.forEach((freq) => {
-    // 3 detuned unison voices for rich analog string section warmth
     [-1.0025, 1.0, 1.0025].forEach((detuneMult) => {
       const osc = ctx.createOscillator();
       osc.type = 'sawtooth';
@@ -336,7 +315,6 @@ function playPianoNote(ctx: AudioContext, freq: number, time: number) {
   bodyFilter.frequency.setValueAtTime(freq * 3.5, time);
   bodyFilter.frequency.exponentialRampToValueAtTime(freq * 1.2, time + 2.8);
 
-  // Soft piano envelope: crisp hammer strike with long, warm natural resonance
   noteGain.gain.setValueAtTime(0.001, time);
   noteGain.gain.linearRampToValueAtTime(0.095, time + 0.015);
   noteGain.gain.exponentialRampToValueAtTime(0.0001, time + 3.2);
@@ -353,7 +331,7 @@ function playPianoNote(ctx: AudioContext, freq: number, time: number) {
 }
 
 /**
- * Subtle Chronometer Clock Tick (irreversible slip of deep time)
+ * Subtle Chronometer Clock Tick
  */
 function playChronometerTick(ctx: AudioContext, time: number) {
   if (!musicFaderGain) return;
@@ -376,7 +354,7 @@ function playChronometerTick(ctx: AudioContext, time: number) {
 }
 
 /**
- * Atmospheric Cosmic Texture (distant stellar breath)
+ * Atmospheric Cosmic Texture
  */
 function playCosmicTexture(ctx: AudioContext, time: number, duration: number) {
   if (!musicFaderGain) return;
@@ -421,27 +399,20 @@ function runSymphonyConductor() {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  const phaseDuration = 18.0; // 18s per phase * 4 phases = 72s seamless loop
+  const phaseDuration = 18.0;
   const phase = SCORE_MOVEMENTS[currentPhaseIndex];
   const now = ctx.currentTime;
 
-  // 1. Organ Manual & Pedals
-  playOrganLayer(ctx, phase, phaseDuration + 2.0); // 2.0s crossfade overlap
-
-  // 2. Rising Strings Ensemble
+  playOrganLayer(ctx, phase, phaseDuration + 2.0);
   playStringEnsemble(ctx, phase, phaseDuration + 1.8);
-
-  // 3. Cosmic Texture
   playCosmicTexture(ctx, now, phaseDuration);
 
-  // 4. Schedule Piano Motif notes across the 18 seconds
   const pianoSpacing = phaseDuration / (phase.pianoMotif.length + 1);
   phase.pianoMotif.forEach((note, idx) => {
     const noteTime = now + 1.2 + idx * pianoSpacing;
     playPianoNote(ctx, note, noteTime);
   });
 
-  // Schedule next movement
   scoreLoopTimeout = window.setTimeout(() => {
     if (!isPlayingScore) return;
     currentPhaseIndex = (currentPhaseIndex + 1) % SCORE_MOVEMENTS.length;
@@ -450,12 +421,9 @@ function runSymphonyConductor() {
   }, phaseDuration * 1000);
 }
 
-/**
- * Start chronometer pulses (subtle quarter-note clock ticking)
- */
 function startChronometer(ctx: AudioContext) {
   if (chronometerInterval) return;
-  const tickIntervalMs = 750; // 80 BPM quarter-note timekeeping
+  const tickIntervalMs = 750;
 
   chronometerInterval = window.setInterval(() => {
     if (!isPlayingScore || !musicFaderGain) return;
@@ -478,7 +446,6 @@ function dispatchAudioStateEvent() {
       detail: {
         musicEnabled,
         musicVolume,
-        sfxEnabled,
         movementName: isPlayingScore ? SCORE_MOVEMENTS[currentPhaseIndex]?.name : 'SILENT',
         movementTheme: isPlayingScore ? SCORE_MOVEMENTS[currentPhaseIndex]?.theme : 'STANDBY',
       },
@@ -487,7 +454,7 @@ function dispatchAudioStateEvent() {
 }
 
 /* =========================================================================
-   PUBLIC API — CONTROL A: BACKGROUND MUSIC
+   PUBLIC API: BACKGROUND MUSIC
    ========================================================================= */
 
 export function setMusicEnabled(enable: boolean): boolean {
@@ -502,7 +469,7 @@ export function setMusicEnabled(enable: boolean): boolean {
       isPlayingScore = true;
       if (musicFaderGain) {
         musicFaderGain.gain.setValueAtTime(0.001, ctx.currentTime);
-        musicFaderGain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 1.8); // Short fade-in
+        musicFaderGain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 1.8);
       }
       currentPhaseIndex = 0;
       chronometerStep = 0;
@@ -517,7 +484,7 @@ export function setMusicEnabled(enable: boolean): boolean {
       stopChronometer();
       if (musicFaderGain) {
         musicFaderGain.gain.setValueAtTime(musicFaderGain.gain.value, ctx.currentTime);
-        musicFaderGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 1.2); // Short fade-out
+        musicFaderGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 1.2);
       }
     }
 
@@ -563,454 +530,30 @@ export function getCurrentMovementInfo(): { name: string; theme: string } {
 }
 
 /* =========================================================================
-   PUBLIC API — CONTROL B: SOUND EFFECTS (SFX)
+   SAFE NO-OP STUBS (Clean backward compatibility for simulators)
    ========================================================================= */
 
-export function setSfxEnabled(enable: boolean): boolean {
-  sfxEnabled = enable;
-  setStorageItem(STORAGE_KEYS.SFX_ENABLED, enable ? 'true' : 'false');
-  dispatchAudioStateEvent();
-  return sfxEnabled;
-}
-
-export function toggleSfx(): boolean {
-  return setSfxEnabled(!sfxEnabled);
-}
-
-export function isSfxEnabled(): boolean {
-  return sfxEnabled;
-}
-
-/**
- * Throttle check helper: prevents overlapping cacophony on rapid clicks
- */
-function shouldThrottleSfx(): boolean {
-  if (!sfxEnabled) return true;
-  const now = Date.now();
-  if (now - lastSfxTimestamp < SFX_THROTTLE_MS) {
-    return true;
-  }
-  lastSfxTimestamp = now;
-  return false;
-}
+export function playTelemetryBeep(_freq?: number, _duration?: number): void {}
+export function playBeaconPing(_freq?: number, _duration?: number): void {}
+export function playThrusterBurst(): void {}
+export function playWarpSurge(): void {}
+export function playLaserFire(): void {}
+export function playAsteroidBlast(): void {}
 
 /* =========================================================================
-   PAGE-SPECIFIC UNIQUE SOUND EFFECTS
-   ========================================================================= */
-
-/**
- * 1. Home: Soft celestial chime (pentatonic harmonic resonance)
- */
-export function playCelestialChime(): void {
-  try {
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-    const startTime = ctx.currentTime;
-
-    notes.forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const noteTime = startTime + idx * 0.045;
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, noteTime);
-
-      gain.gain.setValueAtTime(0.045 / (idx + 1), noteTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.42);
-
-      osc.connect(gain);
-      gain.connect(sfxGain);
-
-      osc.start(noteTime);
-      osc.stop(noteTime + 0.45);
-    });
-  } catch {}
-}
-
-/**
- * 2. Missions: Short spacecraft-console sound (dual-tone telemetry chirp)
- */
-export function playConsoleChirp(): void {
-  try {
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(880, now);
-    osc.frequency.setValueAtTime(1320, now + 0.05);
-
-    gain.gain.setValueAtTime(0.055, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-
-    osc.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + 0.13);
-  } catch {}
-}
-
-/**
- * 3. Observatory: Delicate glass-like ping (crystalline resonance)
- */
-export function playGlassPing(): void {
-  try {
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const filter = ctx.createBiquadFilter();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1760, now); // A6 high glass harmonic
-
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1760, now);
-    filter.Q.value = 8.5;
-
-    gain.gain.setValueAtTime(0.065, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + 0.4);
-  } catch {}
-}
-
-/**
- * 4. Expedition: Subtle electronic confirmation tone (clean two-step handshake)
- */
-export function playConfirmationTone(): void {
-  try {
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, now);
-    osc.frequency.setValueAtTime(660, now + 0.07);
-
-    gain.gain.setValueAtTime(0.055, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-
-    osc.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + 0.19);
-  } catch {}
-}
-
-/**
- * 5. Events: Short radio-inspired signal (pulsed microwave radio frequency chirp)
- */
-export function playRadioSignal(): void {
-  try {
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const filter = ctx.createBiquadFilter();
-    const gain = ctx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(740, now);
-    osc.frequency.exponentialRampToValueAtTime(1120, now + 0.08);
-
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(950, now);
-    filter.Q.value = 5.0;
-
-    gain.gain.setValueAtTime(0.045, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.20);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + 0.21);
-  } catch {}
-}
-
-/**
- * 6. About / Crew / Join / Avatar: Warm low synthetic tactile click
- */
-export function playSyntheticClick(): void {
-  try {
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(260, now);
-    osc.frequency.exponentialRampToValueAtTime(90, now + 0.05);
-
-    gain.gain.setValueAtTime(0.05, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
-
-    osc.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + 0.06);
-  } catch {}
-}
-
-/**
- * Route-specific Sound Dispatcher
- * Plays the corresponding sound for the target path upon user navigation.
- */
-export function playSoundForRoute(path: string): void {
-  if (!sfxEnabled) return;
-
-  const normalized = path.replace(/\/$/, '') || '/';
-
-  if (normalized === '/') {
-    playCelestialChime();
-  } else if (normalized.startsWith('/missions')) {
-    playConsoleChirp();
-  } else if (normalized.startsWith('/observatory')) {
-    playGlassPing();
-  } else if (normalized.startsWith('/expedition')) {
-    playConfirmationTone();
-  } else if (normalized.startsWith('/events')) {
-    playRadioSignal();
-  } else {
-    playSyntheticClick();
-  }
-}
-
-/* =========================================================================
-   INTERACTION SOUND EFFECTS (Backward-compatible with existing components)
-   ========================================================================= */
-
-export function playTelemetryBeep(freq: number = 880, duration: number = 0.08): void {
-  try {
-    if (!sfxEnabled) return;
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, now);
-    osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + duration);
-
-    gain.gain.setValueAtTime(0.04, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-    osc.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + duration);
-  } catch {}
-}
-
-export function playBeaconPing(freq: number = 1046.5, duration: number = 0.35): void {
-  try {
-    if (!sfxEnabled) return;
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, now);
-    osc.frequency.setValueAtTime(freq * 1.25, now + 0.08);
-
-    gain.gain.setValueAtTime(0.06, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-    osc.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + duration);
-  } catch {}
-}
-
-export function playThrusterBurst(): void {
-  try {
-    if (!sfxEnabled) return;
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const bufferSize = ctx.sampleRate * 0.4;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(140, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(420, ctx.currentTime + 0.18);
-    filter.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.4);
-
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(sfxGain);
-
-    noise.start();
-  } catch {}
-}
-
-export function playWarpSurge(): void {
-  try {
-    if (!sfxEnabled) return;
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(120, now);
-    osc.frequency.exponentialRampToValueAtTime(880, now + 0.35);
-    osc.frequency.exponentialRampToValueAtTime(60, now + 0.85);
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(300, now);
-    filter.frequency.exponentialRampToValueAtTime(1600, now + 0.35);
-    filter.frequency.exponentialRampToValueAtTime(200, now + 0.85);
-
-    gain.gain.setValueAtTime(0.05, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + 0.85);
-  } catch {}
-}
-
-export function playLaserFire(): void {
-  try {
-    if (!sfxEnabled) return;
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(880, now);
-    osc.frequency.exponentialRampToValueAtTime(110, now + 0.15);
-
-    gain.gain.setValueAtTime(0.05, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-
-    osc.connect(gain);
-    gain.connect(sfxGain);
-
-    osc.start(now);
-    osc.stop(now + 0.15);
-  } catch {}
-}
-
-export function playAsteroidBlast(): void {
-  try {
-    if (!sfxEnabled) return;
-    if (shouldThrottleSfx()) return;
-    const ctx = getAudioContext();
-    if (!ctx || !sfxGain) return;
-
-    const bufferSize = ctx.sampleRate * 0.35;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(220, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.35);
-    filter.Q.setValueAtTime(2.5, ctx.currentTime);
-
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(sfxGain);
-
-    noise.start();
-  } catch {}
-}
-
-/* =========================================================================
-   INITIALIZATION & NAVIGATION LISTENERS
+   INITIALIZATION
    ========================================================================= */
 
 export function initAudioManager(): void {
   if (typeof window === 'undefined') return;
 
-  // Restore saved preferences
   const savedMusic = getStorageItem(STORAGE_KEYS.MUSIC_ENABLED, 'false') === 'true';
   const savedVolumeStr = getStorageItem(STORAGE_KEYS.MUSIC_VOLUME, '0.8');
-  const savedSfx = getStorageItem(STORAGE_KEYS.SFX_ENABLED, 'false') === 'true';
 
   const parsedVol = parseFloat(savedVolumeStr);
   musicVolume = isNaN(parsedVol) ? 0.8 : Math.max(0, Math.min(1, parsedVol));
 
-  // Default: BOTH ARE FALSE unless user has previously explicitly saved true
-  sfxEnabled = savedSfx;
-
   if (savedMusic) {
-    // If user previously turned music ON, attach gesture listener to resume audio context
     const resumeOnGesture = () => {
       setMusicEnabled(true);
       ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'click'].forEach((evt) => {
@@ -1022,15 +565,9 @@ export function initAudioManager(): void {
     });
   }
 
-  // Flag initial load complete so sounds NEVER play automatically on initial load
-  setTimeout(() => {
-    isInitialPageLoaded = true;
-  }, 300);
-
   dispatchAudioStateEvent();
 }
 
-// Auto-bind on client load
 if (typeof window !== 'undefined') {
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     initAudioManager();

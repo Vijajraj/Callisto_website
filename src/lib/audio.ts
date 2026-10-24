@@ -1,6 +1,6 @@
 /**
  * Callisto Audio API - Backward Compatibility Adapter
- * Proxies all requests to the central audioManager module.
+ * Proxies all calls to audioManager.
  */
 
 export * from './audioManager';
@@ -12,7 +12,6 @@ import {
   getCurrentMovementInfo,
 } from './audioManager';
 
-// Backward-compatible alias functions
 export function toggleAmbientSound(enable?: boolean): boolean {
   if (enable !== undefined) {
     return setMusicEnabled(enable);
@@ -29,6 +28,4 @@ export function getCurrentChordName(): string {
   return `${info.name} (${info.theme})`;
 }
 
-export function initAutoAudio(): void {
-  // Silent initialization respecting user preference
-}
+export function initAutoAudio(): void {}

@@ -1,52 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import {
   isMusicEnabled,
-  setMusicEnabled,
   toggleMusic,
   getMusicVolume,
   setMusicVolume,
-  isSfxEnabled,
-  setSfxEnabled,
-  toggleSfx,
   getCurrentMovementInfo,
-  playCelestialChime,
-  playConsoleChirp,
-  playGlassPing,
-  playConfirmationTone,
-  playRadioSignal,
-  playSyntheticClick,
 } from '../../lib/audioManager';
 
 export default function SoundHud(): React.ReactElement {
   const [musicOn, setMusicOn] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(0.8);
-  const [sfxOn, setSfxOn] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean>(false);
   const [movement, setMovement] = useState<{ name: string; theme: string }>({
     name: 'SILENT',
     theme: 'STANDBY',
   });
-  const [previewFeedback, setPreviewFeedback] = useState<string | null>(null);
 
-  // Sync state from audioManager and listen to custom state changes
   useEffect(() => {
     setMusicOn(isMusicEnabled());
     setVolume(getMusicVolume());
-    setSfxOn(isSfxEnabled());
     setMovement(getCurrentMovementInfo());
 
     const handleStateUpdate = (e: Event) => {
       const customEvent = e as CustomEvent<{
         musicEnabled: boolean;
         musicVolume: number;
-        sfxEnabled: boolean;
         movementName: string;
         movementTheme: string;
       }>;
       if (customEvent.detail) {
         setMusicOn(customEvent.detail.musicEnabled);
         setVolume(customEvent.detail.musicVolume);
-        setSfxOn(customEvent.detail.sfxEnabled);
         setMovement({
           name: customEvent.detail.movementName,
           theme: customEvent.detail.movementTheme,
@@ -56,7 +40,6 @@ export default function SoundHud(): React.ReactElement {
 
     window.addEventListener('callisto-audio-manager-state', handleStateUpdate);
 
-    // Periodically poll movement info if music is active
     const pollInterval = window.setInterval(() => {
       if (isMusicEnabled()) {
         setMovement(getCurrentMovementInfo());
@@ -80,22 +63,6 @@ export default function SoundHud(): React.ReactElement {
     setMusicVolume(newVol);
   };
 
-  const handleToggleSfx = () => {
-    const next = toggleSfx();
-    setSfxOn(next);
-  };
-
-  const triggerPreview = (name: string, fn: () => void) => {
-    if (!sfxOn) {
-      setPreviewFeedback('Enable Sound Effects to preview sounds');
-      setTimeout(() => setPreviewFeedback(null), 2500);
-      return;
-    }
-    fn();
-    setPreviewFeedback(`Previewed: ${name}`);
-    setTimeout(() => setPreviewFeedback(null), 2000);
-  };
-
   return (
     <div
       style={{
@@ -106,9 +73,9 @@ export default function SoundHud(): React.ReactElement {
         fontFamily: 'var(--font-mono)',
       }}
       role="region"
-      aria-label="Cinematic Audio & Sound Controls"
+      aria-label="Expedition Background Music Audio Console"
     >
-      {/* Expanded Master Drawer */}
+      {/* Expanded Master Music Console */}
       {expanded && (
         <div
           style={{
@@ -120,7 +87,7 @@ export default function SoundHud(): React.ReactElement {
             boxShadow:
               '0 16px 40px rgba(0, 0, 0, 0.5), 0 0 24px color-mix(in srgb, var(--orbit) 25%, transparent)',
             backdropFilter: 'blur(20px)',
-            width: '320px',
+            width: '300px',
             maxWidth: 'calc(100vw - 2.5rem)',
             boxSizing: 'border-box',
             animation: 'fadeIn 0.2s ease',
@@ -134,7 +101,7 @@ export default function SoundHud(): React.ReactElement {
               alignItems: 'center',
               borderBottom: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
               paddingBottom: '0.6rem',
-              marginBottom: '1rem',
+              marginBottom: '0.85rem',
             }}
           >
             <div>
@@ -146,7 +113,7 @@ export default function SoundHud(): React.ReactElement {
                   letterSpacing: '0.1em',
                 }}
               >
-                EXPEDITION AUDIO CONSOLE
+                EXPEDITION CATHEDRAL SCORE
               </div>
               <div
                 style={{
@@ -155,7 +122,7 @@ export default function SoundHud(): React.ReactElement {
                   letterSpacing: '0.06em',
                 }}
               >
-                TWO INDEPENDENT CHANNELS
+                CINEMATIC INSTRUMENTAL SUITE
               </div>
             </div>
             <button
@@ -170,13 +137,13 @@ export default function SoundHud(): React.ReactElement {
                 lineHeight: 1,
                 padding: '0 0.25rem',
               }}
-              aria-label="Close Audio Console"
+              aria-label="Close Music Console"
             >
               &times;
             </button>
           </div>
 
-          {/* CHANNEL A: CINEMATIC BACKGROUND MUSIC */}
+          {/* Active Movement Status */}
           <div
             style={{
               backgroundColor: 'color-mix(in srgb, var(--void) 75%, transparent)',
@@ -195,18 +162,11 @@ export default function SoundHud(): React.ReactElement {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '0.45rem',
+                marginBottom: '0.35rem',
               }}
             >
-              <span
-                style={{
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  color: 'var(--moon)',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                CHANNEL A: BACKGROUND MUSIC
+              <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--moon)' }}>
+                ACTIVE MOVEMENT
               </span>
               <span
                 style={{
@@ -228,267 +188,87 @@ export default function SoundHud(): React.ReactElement {
                     boxShadow: musicOn ? '0 0 6px #4ade80' : 'none',
                   }}
                 />
-                {musicOn ? 'ENGAGED' : 'OFF'}
+                {musicOn ? 'PLAYING' : 'MUTED'}
               </span>
             </div>
 
-            {/* Live Movement / Motif Status */}
             <div
               style={{
-                fontSize: '0.625rem',
+                fontSize: '0.6875rem',
                 color: musicOn ? 'var(--orbit)' : 'var(--steel)',
-                marginBottom: '0.65rem',
+                fontWeight: 600,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
               }}
             >
               {musicOn
-                ? `Active: ${movement.name} // ${movement.theme}`
-                : 'Score in standby (click button to engage)'}
-            </div>
-
-            {/* Toggle Button */}
-            <button
-              type="button"
-              onClick={handleToggleMusic}
-              style={{
-                width: '100%',
-                padding: '0.55rem',
-                backgroundColor: musicOn
-                  ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
-                  : 'color-mix(in srgb, var(--navy) 60%, transparent)',
-                border: `1px solid ${
-                  musicOn ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 40%, transparent)'
-                }`,
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--moon)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                marginBottom: '0.65rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-                transition: 'all 0.2s',
-              }}
-              aria-pressed={musicOn}
-            >
-              <span>{musicOn ? 'Pause Background Music' : 'Start Background Music'}</span>
-            </button>
-
-            {/* Volume Slider */}
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '0.625rem',
-                  color: 'var(--steel)',
-                  marginBottom: '0.25rem',
-                }}
-              >
-                <span>Music Volume</span>
-                <span>{Math.round(volume * 100)}%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.02"
-                value={volume}
-                onChange={handleVolumeChange}
-                disabled={!musicOn}
-                aria-label="Background Music Volume"
-                style={{
-                  width: '100%',
-                  accentColor: 'var(--orbit)',
-                  cursor: musicOn ? 'pointer' : 'not-allowed',
-                  opacity: musicOn ? 1 : 0.45,
-                }}
-              />
+                ? `${movement.name} // ${movement.theme}`
+                : 'Score in standby (click to engage)'}
             </div>
           </div>
 
-          {/* CHANNEL B: INTERACTION SOUND EFFECTS */}
-          <div
+          {/* Master Music Toggle */}
+          <button
+            type="button"
+            onClick={handleToggleMusic}
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--void) 75%, transparent)',
+              width: '100%',
+              padding: '0.65rem',
+              backgroundColor: musicOn
+                ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
+                : 'color-mix(in srgb, var(--navy) 60%, transparent)',
               border: `1px solid ${
-                sfxOn
-                  ? 'color-mix(in srgb, var(--astrophage) 60%, transparent)'
-                  : 'color-mix(in srgb, var(--steel) 25%, transparent)'
+                musicOn ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 40%, transparent)'
               }`,
               borderRadius: 'var(--radius-sm)',
-              padding: '0.75rem',
+              color: 'var(--moon)',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              marginBottom: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
+              transition: 'all 0.2s',
             }}
+            aria-pressed={musicOn}
           >
+            <span>{musicOn ? 'Pause Background Music' : 'Start Background Music'}</span>
+          </button>
+
+          {/* Volume Slider */}
+          <div style={{ marginBottom: '0.5rem' }}>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.45rem',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  color: 'var(--moon)',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                CHANNEL B: SOUND EFFECTS
-              </span>
-              <span
-                style={{
-                  fontSize: '0.625rem',
-                  fontWeight: 700,
-                  color: sfxOn ? '#4ade80' : 'var(--steel)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: sfxOn ? '#4ade80' : 'var(--steel)',
-                    boxShadow: sfxOn ? '0 0 6px #4ade80' : 'none',
-                  }}
-                />
-                {sfxOn ? 'ENABLED' : 'MUTED'}
-              </span>
-            </div>
-
-            <p
-              style={{
                 fontSize: '0.625rem',
                 color: 'var(--steel)',
-                margin: '0 0 0.55rem 0',
-                lineHeight: 1.35,
-              }}
-            >
-              Controls navigation chimes, telemetry clicks, and interface audio.
-            </p>
-
-            {/* Toggle Button */}
-            <button
-              type="button"
-              onClick={handleToggleSfx}
-              style={{
-                width: '100%',
-                padding: '0.55rem',
-                backgroundColor: sfxOn
-                  ? 'color-mix(in srgb, var(--astrophage) 25%, var(--void))'
-                  : 'color-mix(in srgb, var(--navy) 60%, transparent)',
-                border: `1px solid ${
-                  sfxOn ? 'var(--astrophage)' : 'color-mix(in srgb, var(--steel) 40%, transparent)'
-                }`,
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--moon)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                marginBottom: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-                transition: 'all 0.2s',
-              }}
-              aria-pressed={sfxOn}
-            >
-              <span>{sfxOn ? 'Mute Sound Effects' : 'Enable Sound Effects'}</span>
-            </button>
-
-            {/* Page Sound Profile Audition Grid */}
-            <div
-              style={{
-                fontSize: '0.5625rem',
-                color: 'var(--steel)',
-                letterSpacing: '0.06em',
                 marginBottom: '0.35rem',
               }}
             >
-              AUDITION PAGE AUDIO PROFILES:
+              <span>Score Volume</span>
+              <span>{Math.round(volume * 100)}%</span>
             </div>
-            <div
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.02"
+              value={volume}
+              onChange={handleVolumeChange}
+              disabled={!musicOn}
+              aria-label="Background Music Volume"
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '0.3rem',
+                width: '100%',
+                accentColor: 'var(--orbit)',
+                cursor: musicOn ? 'pointer' : 'not-allowed',
+                opacity: musicOn ? 1 : 0.45,
               }}
-            >
-              <button
-                type="button"
-                onClick={() => triggerPreview('Home Chime', playCelestialChime)}
-                style={previewBtnStyle}
-                title="Home: Soft celestial chime"
-              >
-                Home
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerPreview('Missions Console', playConsoleChirp)}
-                style={previewBtnStyle}
-                title="Missions: Spacecraft console telemetry"
-              >
-                Missions
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerPreview('Observatory Glass', playGlassPing)}
-                style={previewBtnStyle}
-                title="Observatory: Delicate glass ping"
-              >
-                Observatory
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerPreview('Expedition Confirm', playConfirmationTone)}
-                style={previewBtnStyle}
-                title="Expedition: Electronic confirmation tone"
-              >
-                Expedition
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerPreview('Events Radio', playRadioSignal)}
-                style={previewBtnStyle}
-                title="Events: Radio signal chirp"
-              >
-                Events
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerPreview('About Click', playSyntheticClick)}
-                style={previewBtnStyle}
-                title="About/Crew/Join: Warm synthetic click"
-              >
-                About
-              </button>
-            </div>
+            />
           </div>
-
-          {/* Feedback notice */}
-          {previewFeedback && (
-            <div
-              style={{
-                marginTop: '0.55rem',
-                fontSize: '0.625rem',
-                color: 'var(--astrophage)',
-                textAlign: 'center',
-              }}
-            >
-              {previewFeedback}
-            </div>
-          )}
 
           <div
             style={{
@@ -504,7 +284,7 @@ export default function SoundHud(): React.ReactElement {
         </div>
       )}
 
-      {/* Floating HUD Bar with Two Independent Controls */}
+      {/* Floating HUD Pill Button */}
       <div
         style={{
           display: 'flex',
@@ -518,15 +298,14 @@ export default function SoundHud(): React.ReactElement {
           gap: '0.2rem',
         }}
       >
-        {/* Control A: Music Pill */}
         <button
           type="button"
           onClick={handleToggleMusic}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.45rem',
-            padding: '0.45rem 0.75rem',
+            gap: '0.5rem',
+            padding: '0.45rem 0.85rem',
             backgroundColor: musicOn
               ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
               : 'transparent',
@@ -540,11 +319,11 @@ export default function SoundHud(): React.ReactElement {
             fontWeight: 600,
             transition: 'all 0.2s',
           }}
-          title={musicOn ? 'Background Music: ON (Click to turn off)' : 'Background Music: OFF (Click to turn on)'}
+          title={musicOn ? 'Background Music: ON (Click to pause)' : 'Background Music: OFF (Click to play)'}
           aria-pressed={musicOn}
           aria-label="Background Music Toggle"
         >
-          {/* Animated audio bar visualizer */}
+          {/* Animated Waveform Visualizer */}
           <span
             style={{
               display: 'inline-flex',
@@ -582,50 +361,10 @@ export default function SoundHud(): React.ReactElement {
               }}
             />
           </span>
-          <span>{musicOn ? 'MUSIC ON' : 'MUSIC OFF'}</span>
+          <span>{musicOn ? 'EXPEDITION SCORE' : 'SCORE OFF'}</span>
         </button>
 
-        {/* Control B: Sound Effects Pill */}
-        <button
-          type="button"
-          onClick={handleToggleSfx}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            padding: '0.45rem 0.75rem',
-            backgroundColor: sfxOn
-              ? 'color-mix(in srgb, var(--astrophage) 25%, var(--void))'
-              : 'transparent',
-            border: `1px solid ${
-              sfxOn ? 'var(--astrophage)' : 'transparent'
-            }`,
-            borderRadius: 'var(--radius-full)',
-            color: sfxOn ? 'var(--moon)' : 'var(--steel)',
-            cursor: 'pointer',
-            fontSize: '0.6875rem',
-            fontWeight: 600,
-            transition: 'all 0.2s',
-          }}
-          title={sfxOn ? 'Sound Effects: ON (Click to mute)' : 'Sound Effects: OFF (Click to enable)'}
-          aria-pressed={sfxOn}
-          aria-label="Interface Sound Effects Toggle"
-        >
-          <span
-            style={{
-              display: 'inline-block',
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              backgroundColor: sfxOn ? '#4ade80' : 'var(--steel)',
-              boxShadow: sfxOn ? '0 0 6px #4ade80' : 'none',
-            }}
-            aria-hidden="true"
-          />
-          <span>{sfxOn ? 'SFX ON' : 'SFX OFF'}</span>
-        </button>
-
-        {/* Options / Drawer Toggle */}
+        {/* Expand / Collapse Drawer Toggle */}
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
@@ -640,9 +379,9 @@ export default function SoundHud(): React.ReactElement {
             display: 'flex',
             alignItems: 'center',
           }}
-          title={expanded ? 'Collapse audio panel' : 'Open audio console & volume controls'}
+          title={expanded ? 'Collapse score console' : 'Open score console & volume controls'}
           aria-expanded={expanded}
-          aria-label="Open detailed audio settings"
+          aria-label="Open detailed music volume settings"
         >
           {expanded ? '▾' : '▴'}
         </button>
@@ -650,16 +389,3 @@ export default function SoundHud(): React.ReactElement {
     </div>
   );
 }
-
-const previewBtnStyle: React.CSSProperties = {
-  padding: '0.35rem 0.2rem',
-  backgroundColor: 'color-mix(in srgb, var(--navy) 75%, transparent)',
-  border: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--moon)',
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.625rem',
-  cursor: 'pointer',
-  textAlign: 'center',
-  transition: 'all 0.15s ease',
-};
