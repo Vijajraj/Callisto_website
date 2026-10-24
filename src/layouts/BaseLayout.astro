@@ -60,23 +60,27 @@ const ogImageUrl = ogImage
     <!-- Prevent flash of unstyled theme / Space Theme preference script -->
     <script is:inline>
       (function () {
-        try {
-          var savedTheme = localStorage.getItem('callisto-theme');
-          var isSolar = savedTheme === 'solar-flare' || savedTheme === 'light';
-          if (isSolar) {
-            document.documentElement.classList.add('theme-solar-flare');
-            document.documentElement.classList.add('light-mode');
-            document.documentElement.classList.remove('theme-deep-space');
-            document.documentElement.setAttribute('data-theme', 'solar-flare');
-          } else {
-            document.documentElement.classList.add('theme-deep-space');
-            document.documentElement.classList.remove('theme-solar-flare');
-            document.documentElement.classList.remove('light-mode');
-            document.documentElement.setAttribute('data-theme', 'deep-space');
+        function applyTheme() {
+          try {
+            var savedTheme = localStorage.getItem('callisto-theme');
+            var isSolar = savedTheme === 'solar-flare' || savedTheme === 'light';
+            if (isSolar) {
+              document.documentElement.classList.add('theme-solar-flare');
+              document.documentElement.classList.add('light-mode');
+              document.documentElement.classList.remove('theme-deep-space');
+              document.documentElement.setAttribute('data-theme', 'solar-flare');
+            } else {
+              document.documentElement.classList.add('theme-deep-space');
+              document.documentElement.classList.remove('theme-solar-flare');
+              document.documentElement.classList.remove('light-mode');
+              document.documentElement.setAttribute('data-theme', 'deep-space');
+            }
+          } catch (e) {
+            /* LocalStorage fallback */
           }
-        } catch (e) {
-          /* LocalStorage fallback */
         }
+        applyTheme();
+        document.addEventListener('astro:after-swap', applyTheme);
       })();
     </script>
   </head>

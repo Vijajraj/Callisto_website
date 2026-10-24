@@ -631,88 +631,92 @@ const isLinkActive = (href: string): boolean => {
 </style>
 
 <script>
-  function initializeNav() {
+  // Global single-listener event delegation for theme toggle (Deep Space <-> Solar Flare)
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const btn = target?.closest('[data-flat-toggle]');
+    if (!btn) return;
+
+    const isCurrentlySolar =
+      document.documentElement.classList.contains('theme-solar-flare') ||
+      document.documentElement.classList.contains('light-mode') ||
+      document.documentElement.getAttribute('data-theme') === 'solar-flare';
+    const nextIsSolar = !isCurrentlySolar;
+
+    if (nextIsSolar) {
+      document.documentElement.classList.add('theme-solar-flare');
+      document.documentElement.classList.add('light-mode');
+      document.documentElement.classList.remove('theme-deep-space');
+      document.documentElement.setAttribute('data-theme', 'solar-flare');
+    } else {
+      document.documentElement.classList.add('theme-deep-space');
+      document.documentElement.classList.remove('theme-solar-flare');
+      document.documentElement.classList.remove('light-mode');
+      document.documentElement.setAttribute('data-theme', 'deep-space');
+    }
+
+    try {
+      localStorage.setItem('callisto-theme', nextIsSolar ? 'solar-flare' : 'deep-space');
+    } catch (e) {
+      /* LocalStorage fallback */
+    }
+
+    // Sync all toggle buttons on the page
+    document.querySelectorAll('[data-flat-toggle]').forEach((b) => {
+      b.setAttribute('aria-label', nextIsSolar ? 'Switch to Deep Space mode' : 'Switch to Solar mode');
+      b.setAttribute('title', nextIsSolar ? 'Switch to Deep Space mode' : 'Switch to Solar mode');
+    });
+  });
+
+  // Mobile menu open / close handling
+  function closeMobileNav() {
     const nav = document.getElementById('site-nav');
     const menuBtn = document.getElementById('mobile-menu-btn');
-    const flatButtons = document.querySelectorAll('[data-flat-toggle]');
-    const mobileLinks = document.querySelectorAll('.mobile-nav-link');
     const mobilePanel = document.getElementById('mobile-nav-panel');
-
-    if (!nav || !menuBtn) return;
-
-    function openMobileMenu() {
-      nav.setAttribute('data-open', 'true');
-      menuBtn.setAttribute('aria-expanded', 'true');
-      if (mobilePanel) mobilePanel.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeMobileMenu() {
-      nav.removeAttribute('data-open');
-      menuBtn.setAttribute('aria-expanded', 'false');
-      if (mobilePanel) mobilePanel.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-    }
-
-    menuBtn.addEventListener('click', () => {
-      const isOpen = nav.getAttribute('data-open') === 'true';
-      if (isOpen) {
-        closeMobileMenu();
-      } else {
-        openMobileMenu();
-      }
-    });
-
-    // Close on Escape key press
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && nav.getAttribute('data-open') === 'true') {
-        closeMobileMenu();
-        menuBtn.focus();
-      }
-    });
-
-    // Close when mobile navigation links are clicked
-    mobileLinks.forEach((link) => {
-      link.addEventListener('click', () => {
-        closeMobileMenu();
-      });
-    });
-
-    // Deep Space / Solar Flare Mode Toggle handler
-    flatButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const isCurrentlySolar =
-          document.documentElement.classList.contains('theme-solar-flare') ||
-          document.documentElement.classList.contains('light-mode') ||
-          document.documentElement.getAttribute('data-theme') === 'solar-flare';
-        const nextIsSolar = !isCurrentlySolar;
-
-        if (nextIsSolar) {
-          document.documentElement.classList.add('theme-solar-flare');
-          document.documentElement.classList.add('light-mode');
-          document.documentElement.classList.remove('theme-deep-space');
-          document.documentElement.setAttribute('data-theme', 'solar-flare');
-          btn.setAttribute('aria-label', 'Switch to Deep Space mode');
-          btn.setAttribute('title', 'Switch to Deep Space mode');
-        } else {
-          document.documentElement.classList.add('theme-deep-space');
-          document.documentElement.classList.remove('theme-solar-flare');
-          document.documentElement.classList.remove('light-mode');
-          document.documentElement.setAttribute('data-theme', 'deep-space');
-          btn.setAttribute('aria-label', 'Switch to Solar Flare mode');
-          btn.setAttribute('title', 'Switch to Solar Flare mode');
-        }
-
-        try {
-          localStorage.setItem('callisto-theme', nextIsSolar ? 'solar-flare' : 'deep-space');
-        } catch (e) {
-          /* LocalStorage fallback */
-        }
-      });
-    });
+    if (nav) nav.removeAttribute('data-open');
+    if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false');
+    if (mobilePanel) mobilePanel.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
   }
 
-  // Run on initial page load and on Astro view transition updates
-  initializeNav();
-  document.addEventListener('astro:page-load', initializeNav);
+  function openMobileNav() {
+    const nav = document.getElementById('site-nav');
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const mobilePanel = document.getElementById('mobile-nav-panel');
+    if (nav) nav.setAttribute('data-open', 'true');
+    if (menuBtn) menuBtn.setAttribute('aria-expanded', 'true');
+    if (mobilePanel) mobilePanel.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const menuBtn = target?.closest('#mobile-menu-btn');
+    if (menuBtn) {
+      const nav = document.getElementById('site-nav');
+      const isOpen = nav?.getAttribute('data-open') === 'true';
+      if (isOpen) {
+        closeMobileNav();
+      } else {
+        openMobileNav();
+      }
+      return;
+    }
+
+    // Close when a mobile nav link is clicked
+    if (target?.closest('.mobile-nav-link')) {
+      closeMobileNav();
+    }
+  });
+
+  // Close on Escape key press
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      const nav = document.getElementById('site-nav');
+      if (nav?.getAttribute('data-open') === 'true') {
+        closeMobileNav();
+        document.getElementById('mobile-menu-btn')?.focus();
+      }
+    }
+  });
 </script>
