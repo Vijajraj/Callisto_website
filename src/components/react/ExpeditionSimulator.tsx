@@ -147,20 +147,19 @@ export default function ExpeditionSimulator(): React.ReactElement {
   const [driveMode, setDriveMode] = useState<'crawler' | 'standard' | 'overdrive'>('standard');
   const [odometerKm, setOdometerKm] = useState<number>(0);
 
-  // Rover Subsystems Health & Resources
-  const [batteryPct, setBatteryPct] = useState<number>(94);
-  const [rtgWatts, setRtgWatts] = useState<number>(140); // Base RTG output
+  // Rover Subsystems Health & Resources (Static Baseline Telemetry)
+  const [batteryPct, setBatteryPct] = useState<number>(100);
+  const rtgWatts = 140; // Base RTG output
   const [coreTempK, setCoreTempK] = useState<number>(278); // Kelvin (~5°C nominal internal)
   const [heaterActive, setHeaterActive] = useState<boolean>(true);
   const [wheelIntegrity, setWheelIntegrity] = useState<number>(100); // 0-100%
-  const [radiationMsv, setRadiationMsv] = useState<number>(0.02);
 
   // Sectors & Missions
   const [sectors, setSectors] = useState<TerrainSector[]>(SECTORS);
   const [targetSector, setTargetSector] = useState<TerrainSector | null>(null);
   const [scienceDataBuffer, setScienceDataBuffer] = useState<number>(0); // MB of buffered data
   const [uplinkedDataMb, setUplinkedDataMb] = useState<number>(0);
-  const [solClock, setSolClock] = useState<number>(1117.42);
+  const solNumber = 1117; // Static mission Sol
 
   // Science Minigame Interactive Tools
   const [laserTuner, setLaserTuner] = useState<number>(50); // 0-100 slider
@@ -169,43 +168,7 @@ export default function ExpeditionSimulator(): React.ReactElement {
   const [toolStatus, setToolStatus] = useState<string>('Select an instrument to calibrate for the target sector.');
   const [isDrilling, setIsDrilling] = useState<boolean>(false);
   const [isRadaring, setIsRadaring] = useState<boolean>(false);
-
-  // Comm Relay Pass (Orbiter overhead window in seconds)
-  const [orbiterWindowSec, setOrbiterWindowSec] = useState<number>(45);
   const [missionComplete, setMissionComplete] = useState<boolean>(false);
-
-  // Environmental Loop: Battery, Thermal, Radiation, Orbiter Pass
-  useEffect(() => {
-    const loop = window.setInterval(() => {
-      setSolClock((s) => parseFloat((s + 0.001).toFixed(3)));
-
-      // Orbiter pass countdown
-      setOrbiterWindowSec((sec) => {
-        if (sec <= 1) return 60; // loops every 60s
-        return sec - 1;
-      });
-
-      // Passive RTG trickle charge vs base avionics draw
-      setBatteryPct((b) => {
-        const drain = (heaterActive ? 0.35 : 0.15) + (driveSpeed > 0 ? 0.45 : 0);
-        const gain = 0.28; // RTG trickle
-        const next = Math.max(8, Math.min(100, b - drain + gain));
-        return parseFloat(next.toFixed(1));
-      });
-
-      // Internal temperature simulation (Callisto ambient 120 K vs RTG + RHU heater)
-      setCoreTempK((temp) => {
-        let target = heaterActive ? 278 : 230; // 5°C vs -43°C freezing
-        const diff = (target - temp) * 0.05;
-        return Math.round(temp + diff);
-      });
-
-      // Low Jovian radiation fluctuates naturally
-      setRadiationMsv(parseFloat((0.015 + Math.random() * 0.01).toFixed(3)));
-    }, 1000);
-
-    return () => clearInterval(loop);
-  }, [heaterActive, driveSpeed]);
 
   // Steer & Move Rover
   const moveRover = useCallback(
@@ -498,11 +461,6 @@ export default function ExpeditionSimulator(): React.ReactElement {
       return;
     }
 
-    if (orbiterWindowSec > 20) {
-      setToolStatus(`[UPLINK DELAY] Jovian Polar Orbiter not in direct line-of-sight. Window opens in ${orbiterWindowSec - 20}s.`);
-      return;
-    }
-
     playWarpSurge();
     setUplinkedDataMb((prev) => prev + scienceDataBuffer);
     setToolStatus(`[UPLINK VERIFIED] Transmitted ${scienceDataBuffer} MB of deep-space science data to Earth via CIT Ground Station!`);
@@ -561,18 +519,18 @@ export default function ExpeditionSimulator(): React.ReactElement {
           </h2>
         </div>
 
-        {/* Telemetry Badges */}
+        {/* Telemetry Badges (Static Baseline) */}
         <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap' }}>
           <div style={telemetryBadgeStyle}>
-            <span style={{ color: 'var(--steel)' }}>SOL:</span> {solClock}
+            <span style={{ color: 'var(--steel)' }}>SOL:</span> {solNumber}
           </div>
           <div style={telemetryBadgeStyle}>
             <span style={{ color: 'var(--steel)' }}>POWER:</span>{' '}
-            <span style={{ color: batteryPct > 35 ? '#4ade80' : '#f87171' }}>{batteryPct}% RTG</span>
+            <span style={{ color: '#4ade80' }}>{batteryPct}% RTG</span>
           </div>
           <div style={telemetryBadgeStyle}>
             <span style={{ color: 'var(--steel)' }}>TEMP:</span>{' '}
-            <span style={{ color: coreTempK > 260 ? '#38bdf8' : '#f87171' }}>{coreTempK} K</span>
+            <span style={{ color: '#38bdf8' }}>{coreTempK} K</span>
           </div>
           <div style={telemetryBadgeStyle}>
             <span style={{ color: 'var(--steel)' }}>WHEELS:</span> {wheelIntegrity}%
@@ -986,9 +944,9 @@ export default function ExpeditionSimulator(): React.ReactElement {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', marginBottom: '1rem' }}>
             <div style={{ backgroundColor: '#040711', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
-              <div style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>ORBITER PASS WINDOW</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: orbiterWindowSec <= 20 ? '#4ade80' : '#f59e0b' }}>
-                {orbiterWindowSec <= 20 ? `OPEN // ${orbiterWindowSec}s remaining` : `INBOUND // in ${orbiterWindowSec - 20}s`}
+              <div style={{ fontSize: '0.625rem', color: 'var(--steel)' }}>ORBITER RELAY STATUS</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#4ade80' }}>
+                READY // SATELLITE LOCKED
               </div>
             </div>
 
@@ -1010,12 +968,12 @@ export default function ExpeditionSimulator(): React.ReactElement {
           <button
             type="button"
             onClick={transmitDataToOrbit}
-            disabled={scienceDataBuffer <= 0 || orbiterWindowSec > 20}
+            disabled={scienceDataBuffer <= 0}
             style={{
               ...actionBtnStyle,
-              backgroundColor: orbiterWindowSec <= 20 && scienceDataBuffer > 0 ? '#4ade80' : 'color-mix(in srgb, var(--navy) 60%, transparent)',
-              color: orbiterWindowSec <= 20 && scienceDataBuffer > 0 ? 'var(--void)' : 'var(--steel)',
-              cursor: orbiterWindowSec <= 20 && scienceDataBuffer > 0 ? 'pointer' : 'not-allowed',
+              backgroundColor: scienceDataBuffer > 0 ? '#4ade80' : 'color-mix(in srgb, var(--navy) 60%, transparent)',
+              color: scienceDataBuffer > 0 ? 'var(--void)' : 'var(--steel)',
+              cursor: scienceDataBuffer > 0 ? 'pointer' : 'not-allowed',
             }}
           >
             TRANSMIT BUFFER TO JOVIAN ORBITER
