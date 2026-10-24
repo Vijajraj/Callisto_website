@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
+  <defs>
+    <!-- Background Space Gradient -->
+    <radialGradient id="nebulaBg" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#0a1226" />
+      <stop offset="50%" stop-color="#040714" />
+      <stop offset="100%" stop-color="#010206" />
+    </radialGradient>
+
+    <!-- Pillar 1 Dust Gradient -->
+    <linearGradient id="pillarGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b85d19" />
+      <stop offset="40%" stop-color="#693010" />
+      <stop offset="80%" stop-color="#2d1305" />
+      <stop offset="100%" stop-color="#120601" />
+    </linearGradient>
+
+    <!-- Pillar 2 Dust Gradient -->
+    <linearGradient id="pillarGrad2" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#c9712a" />
+      <stop offset="50%" stop-color="#7a3713" />
+      <stop offset="90%" stop-color="#361707" />
+      <stop offset="100%" stop-color="#0e0400" />
+    </linearGradient>
+
+    <!-- Emission Ionization Gas Glow -->
+    <linearGradient id="gasGlow" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#1f5fb3" stop-opacity="0.35" />
+      <stop offset="50%" stop-color="#58a6ff" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#d2a8ff" stop-opacity="0.05" />
+    </linearGradient>
+
+    <!-- Protostar Sparkle Glow -->
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="30%" stop-color="#ffa657" stop-opacity="0.8" />
+      <stop offset="70%" stop-color="#ff7b72" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="blurFilter" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="15" result="blur" />
+    </filter>
+  </defs>
+
+  <!-- Deep Cosmic Infrared Sky -->
+  <rect width="1200" height="800" fill="url(#nebulaBg)" />
+
+  <!-- Ambient Interstellar Ionization Cloud -->
+  <path d="M 0 0 C 400 100 800 50 1200 180 L 1200 800 L 0 800 Z" fill="url(#gasGlow)" />
+  <circle cx="650" cy="300" r="320" fill="#388bfd" opacity="0.12" filter="url(#blurFilter)" />
+  <circle cx="450" cy="450" r="280" fill="#f0883e" opacity="0.1" filter="url(#blurFilter)" />
+
+  <!-- Dense Background Star Field (JWST 8-point Diffraction Spikes) -->
+  <g fill="#ffffff" opacity="0.75">
+    <circle cx="120" cy="110" r="1.5" />
+    <circle cx="280" cy="190" r="1.1" />
+    <circle cx="890" cy="140" r="1.8" />
+    <circle cx="1020" cy="80" r="2.2" />
+    <circle cx="1110" cy="240" r="1.4" />
+    <circle cx="950" cy="420" r="1.2" />
+    <circle cx="1080" cy="620" r="1.6" />
+    <circle cx="150" cy="520" r="1.0" />
+    <circle cx="70" cy="710" r="1.4" />
+  </g>
+
+  <!-- Giant Foreground Star with 8-Point Diffraction Spikes -->
+  <g transform="translate(1040, 160)">
+    <circle cx="0" cy="0" r="40" fill="url(#starGlow)" />
+    <!-- Horizontal & Vertical Spikes -->
+    <line x1="-90" y1="0" x2="90" y2="0" stroke="#ffffff" stroke-width="1.8" opacity="0.9" />
+    <line x1="0" y1="-90" x2="0" y2="90" stroke="#ffffff" stroke-width="1.8" opacity="0.9" />
+    <!-- Diagonal Spikes -->
+    <line x1="-60" y1="-60" x2="60" y2="60" stroke="#ffa657" stroke-width="1.2" opacity="0.8" />
+    <line x1="-60" y1="60" x2="60" y2="-60" stroke="#ffa657" stroke-width="1.2" opacity="0.8" />
+    <circle cx="0" cy="0" r="5" fill="#ffffff" />
+  </g>
+
+  <g transform="translate(220, 290)">
+    <circle cx="0" cy="0" r="30" fill="url(#starGlow)" />
+    <line x1="-60" y1="0" x2="60" y2="0" stroke="#ffffff" stroke-width="1.5" opacity="0.85" />
+    <line x1="0" y1="-60" x2="0" y2="60" stroke="#ffffff" stroke-width="1.5" opacity="0.85" />
+    <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+  </g>
+
+  <!-- TOWERING PILLARS OF CREATION DUST COLUMNS -->
+  <!-- Pillar 3 (Right, Shorter Column) -->
+  <path d="M 740 800 L 730 460 Q 750 420 780 430 Q 820 440 810 500 L 840 800 Z" fill="url(#pillarGrad2)" />
+  <circle cx="780" cy="430" r="18" fill="#e37930" opacity="0.85" />
+  <!-- Embedded protostar in Pillar 3 tip -->
+  <circle cx="780" cy="430" r="4" fill="#ffffff" />
+
+  <!-- Pillar 2 (Center Column) -->
+  <path d="M 520 800 L 530 330 Q 560 280 610 290 Q 640 310 630 370 Q 660 410 640 470 L 670 800 Z" fill="url(#pillarGrad1)" />
+  <circle cx="610" cy="290" r="24" fill="#d97227" opacity="0.9" />
+  <circle cx="610" cy="290" r="5" fill="#ffffff" />
+  <!-- Center Pillar Evaporating Gaseous Globules (EGGs) -->
+  <ellipse cx="570" cy="350" rx="14" ry="8" fill="#f0883e" opacity="0.8" />
+  <ellipse cx="610" cy="410" rx="16" ry="10" fill="#f0883e" opacity="0.75" />
+
+  <!-- Pillar 1 (Left, Largest Magnificent Column) -->
+  <path d="M 280 800 L 310 220 Q 330 140 380 150 Q 430 170 420 250 Q 450 280 440 360 Q 480 420 460 520 L 510 800 Z" fill="url(#pillarGrad1)" />
+  <circle cx="380" cy="150" r="30" fill="#e67e22" opacity="0.95" />
+  <circle cx="380" cy="150" r="6" fill="#ffffff" />
+  <!-- Evaporating Finger Protrusions -->
+  <path d="M 370 140 Q 360 110 375 90 Q 390 110 385 140 Z" fill="#f39c12" />
+  <circle cx="375" cy="90" r="3" fill="#ffffff" />
+
+  <!-- Nebular Edge Ionization Rim Light (Stellar Winds from NGC 6611 Cluster) -->
+  <path d="M 310 220 Q 330 140 380 150 Q 430 170 420 250" fill="none" stroke="#58a6ff" stroke-width="3" opacity="0.7" filter="url(#blurFilter)" />
+  <path d="M 530 330 Q 560 280 610 290" fill="none" stroke="#58a6ff" stroke-width="2.5" opacity="0.65" filter="url(#blurFilter)" />
+
+  <!-- Scientific HUD Overlays -->
+  <g font-family="'Courier New', monospace" font-size="11" fill="#79c0ff" letter-spacing="1.5">
+    <text x="40" y="50">MISSION: JAMES WEBB SPACE TELESCOPE (JWST) // NIRCam + MIRI</text>
+    <text x="40" y="70">OBJECT: PILLARS OF CREATION // EAGLE NEBULA (MESSIER 16 / NGC 6611)</text>
+    <text x="40" y="760">WAVELENGTH: 0.9–4.4 µm (NEAR-INFRARED COMPOSITE) // DISTANCE: ~6,500 LY</text>
+    <text x="890" y="760">CIT ASTRONOMICAL LOG #JWST-M16</text>
+  </g>
+</svg>

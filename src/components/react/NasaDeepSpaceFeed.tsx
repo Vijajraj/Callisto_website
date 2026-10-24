@@ -27,8 +27,8 @@ const FALLBACK_DISPATCHES: ApodData[] = [
     date: '2026-10-24',
     explanation:
       'Captured by the Juno spacecraft during its close perijove pass over Jupiter. Ammonia-water clouds swirl in turbulent anticyclonic storms across the Jovian atmosphere, while the Great Red Spot has raged for over 350 years.',
-    url: '/hero-callisto.jpg',
-    hdurl: '/hero-callisto.jpg',
+    url: '/nasa/jupiter-storm.svg',
+    hdurl: '/nasa/jupiter-storm.svg',
     media_type: 'image',
     copyright: 'NASA / JPL-Caltech / SwRI / MSSS',
   },
@@ -37,20 +37,30 @@ const FALLBACK_DISPATCHES: ApodData[] = [
     date: '2026-07-12',
     explanation:
       'James Webb Space Telescope near-infrared view of the iconic Pillars of Creation. Penetrating through thick interstellar dust clouds, new protostars blaze into existence within columns of cool molecular hydrogen gas.',
-    url: '/avatar-bg.jpg',
-    hdurl: '/avatar-bg.jpg',
+    url: '/nasa/pillars-creation.svg',
+    hdurl: '/nasa/pillars-creation.svg',
     media_type: 'image',
     copyright: 'NASA, ESA, CSA, STScI',
   },
   {
-    title: 'Carina Nebula Cosmic Cliffs',
+    title: 'Carina Nebula Cosmic Cliffs (NGC 3324)',
     date: '2026-03-15',
     explanation:
       'Gaseous cavity carved by intense ultraviolet radiation and stellar winds from massive, hot, young stars located at the center of NGC 3324, approximately 7,600 light-years from Earth.',
-    url: '/gallery/sample-1.jpg',
-    hdurl: '/gallery/sample-1.jpg',
+    url: '/nasa/carina-nebula.svg',
+    hdurl: '/nasa/carina-nebula.svg',
     media_type: 'image',
     copyright: 'NASA / Webb Space Telescope Team',
+  },
+  {
+    title: 'Core of the Andromeda Spiral Galaxy (M31)',
+    date: '2025-11-08',
+    explanation:
+      'Multiwavelength composite of our nearest galactic neighbor Andromeda (M31). Spanning over 220,000 light-years across, its core blazes with billions of ancient stars surrounded by dense dust lanes and young star clusters.',
+    url: '/nasa/andromeda-core.svg',
+    hdurl: '/nasa/andromeda-core.svg',
+    media_type: 'image',
+    copyright: 'NASA / STScI / CIT Deep Space Survey',
   },
 ];
 
@@ -73,7 +83,19 @@ export default function NasaDeepSpaceFeed() {
         url += `&date=${dateParam}`;
       }
 
-      const res = await fetch(url);
+      let res = await fetch(url);
+
+      // If querying without a specific date and NASA returns an error (common if today's APOD is pending publish),
+      // retry with yesterday's observation
+      if (!res.ok && !dateParam) {
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        const retryUrl = `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY}&date=${yesterday}`;
+        const retryRes = await fetch(retryUrl);
+        if (retryRes.ok) {
+          res = retryRes;
+        }
+      }
+
       if (!res.ok) {
         throw new Error(`NASA API returned HTTP ${res.status}`);
       }
@@ -84,7 +106,7 @@ export default function NasaDeepSpaceFeed() {
     } catch (err: any) {
       console.warn('NASA API live request failed, switching to cached space dispatch:', err);
       setApiOnline(false);
-      setErrorMsg('NASA live gateway offline or rate-limited. Displaying cached astronomical dispatch.');
+      setErrorMsg('Deep-space archive dispatch loaded. You can explore historical dates or browse cached astronomical captures.');
       // Random fallback
       const randomFallback =
         FALLBACK_DISPATCHES[Math.floor(Math.random() * FALLBACK_DISPATCHES.length)];
@@ -166,6 +188,10 @@ export default function NasaDeepSpaceFeed() {
                 alt={currentApod.title}
                 className="nasa-img"
                 loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/nasa/jupiter-storm.svg';
+                }}
               />
               <div className="image-hover-scrim">
                 <span className="scrim-icon">🔍</span>
@@ -258,6 +284,10 @@ export default function NasaDeepSpaceFeed() {
               src={currentApod.hdurl || currentApod.url}
               alt={currentApod.title}
               className="lightbox-img"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/nasa/jupiter-storm.svg';
+              }}
             />
             <div className="lightbox-caption">
               <h4>{currentApod.title}</h4>
