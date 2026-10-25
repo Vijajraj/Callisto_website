@@ -8,16 +8,6 @@
  * =====================================================================
  */
 
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
 const sharp = require('c:/projects/callisto/node_modules/sharp');
 const path = require('path');
 const fs = require('fs');
@@ -52,6 +42,16 @@ const badges = [
         <rect width="140" height="28" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="1"/>
         <circle cx="16" cy="14" r="6" fill="#22c55e"/>
         <text x="32" y="18" fill="#ffffff" font-family="sans-serif" font-size="11" font-weight="700">SQLITE 3</text>
+      </svg>
+    `
+  },
+  {
+    name: 'badge-vercel.png',
+    svg: `
+      <svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg">
+        <rect width="140" height="28" rx="6" fill="#0f172a" stroke="#ffffff" stroke-width="1"/>
+        <polygon points="16,8 22,19 10,19" fill="#ffffff"/>
+        <text x="32" y="18" fill="#ffffff" font-family="sans-serif" font-size="11" font-weight="700">VERCEL READY</text>
       </svg>
     `
   },

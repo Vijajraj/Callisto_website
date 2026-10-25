@@ -9,6 +9,7 @@
     <img src="public/icons/badge-astro.png" alt="Astro 5 SSG" height="26" />
     <img src="public/icons/badge-react.png" alt="React 19" height="26" />
     <img src="public/icons/badge-sqlite.png" alt="SQLite 3" height="26" />
+    <img src="public/icons/badge-vercel.png" alt="Vercel Ready" height="26" />
     <img src="public/icons/badge-audit.png" alt="5-Pillar Tested" height="26" />
   </p>
 </div>
@@ -18,6 +19,8 @@
 ## Overview
 
 The **Callisto Exploration Engine** is a high-performance, space-grade web portal and observational astrophysics hub engineered with Astro 5 and interactive React 19 client islands. Designed around the architectural metaphor of a deep-space science expedition vessel, each club division operates as a specialized ship module leading stargazing expeditions, telescope clinics, exoplanet transit research, and space robotics missions.
+
+The platform is built for modern edge deployment (optimized for Vercel, Cloudflare, and GitHub Pages), combines static site compilation with hydration-isolated interactive components, and integrates an offline-capable SQLite database with an extensible REST API backend.
 
 ---
 
@@ -32,12 +35,12 @@ The **Callisto Exploration Engine** is a high-performance, space-grade web porta
 ### 2. Callisto Deep Space Observatory & Cosmic Discovery Engine
 - **100% Offline-Ready**: Completely decoupled from third-party APIs. Renders 8 curated high-resolution vector SVG assets located in `public/nasa/`:
   - Pillars of Creation in Eagle Nebula (M16)
-  - Great Red Spot & Swirling Jovian Storm Belts
+  - Great Red Spot and Swirling Jovian Storm Belts
   - Webb First Deep Field (SMACS 0723)
   - Saturn Rings in Infrared with Titan Transit
   - Cosmic Cliffs of Carina Nebula (NGC 3324)
   - Core Bulge of Andromeda Galaxy (M31)
-  - Io Volcanic Calderas & Loki Patera Plumes
+  - Io Volcanic Calderas and Loki Patera Plumes
   - Event Horizon of Sagittarius A* (Milky Way Supermassive Core)
 - **Spectral Filters**: 4 real-time visual modes (VIS Optical, NIR Infrared, H-Alpha Narrowband, High-Contrast Solar Flare).
 - **Interactive Optical Loupe**: 2.5x magnification viewport reticle with full touch and mouse tracking.
@@ -64,7 +67,7 @@ The **Callisto Exploration Engine** is a high-performance, space-grade web porta
 | **Backend API** | Node.js HTTP Server | Microservice REST API (`scripts/start-backend.cjs`) on port 4322 |
 | **Styling** | Scoped CSS | Custom Properties Design Tokens (`--void`, `--deep`, `--orbit`, `--moon`) |
 | **Typography** | Fontsource | Cormorant Garamond, Inter, JetBrains Mono |
-| **Deployment** | Cloudflare Pages | Global Edge CDN & Automated Git CI/CD |
+| **Deployment** | Vercel Edge / Cloudflare | Global Edge CDN, Zero-Config Git CI/CD |
 
 ---
 
@@ -79,7 +82,7 @@ Callisto includes a dedicated backend and database layer configured for local de
 - `contact_inquiries`: Ground station comms messages (id, name, email, subject, message, priority, status).
 - `events_rsvp`: Launch reservations (id, event_slug, attendee_name, attendee_email, status).
 
-### 2. Available Commands
+### 2. Available Backend Commands
 ```bash
 # Seed initial database records
 npm run db:seed
@@ -98,7 +101,7 @@ npm run watermark
 
 ---
 
-## Quickstart & Setup Guide
+## Quickstart & Local Setup
 
 ### 1. Prerequisites
 - **Node.js**: `>= v20.0.0` (LTS recommended)
@@ -115,7 +118,7 @@ cd Callisto_website
 ```bash
 npm install
 ```
-*(Triggers the automated `postinstall` watermark check)*
+*(Automatically triggers the `postinstall` watermark check)*
 
 ### 4. Start Development Server
 ```bash
@@ -128,6 +131,46 @@ Open your browser and navigate to `http://localhost:4321/`
 npm run build
 ```
 Production output is generated inside `dist/`.
+
+---
+
+## Deployment Guide
+
+### Option 1: Deploying to Vercel (Recommended)
+
+Vercel provides zero-configuration hosting for Astro 5 static sites on its global Edge Network with free tier benefits including custom domains, automated SSL, preview deployments, and seamless project transfer.
+
+1. **Connect Repository**:
+   - Go to [vercel.com](https://vercel.com) and log in with your GitHub account.
+   - Click **Add New...** -> **Project**.
+   - Select `Vijajraj/Callisto_website` from your GitHub repository list.
+2. **Auto-Detected Settings**:
+   - **Framework Preset**: `Astro`
+   - **Root Directory**: `./`
+   - **Build Command**: `astro build` (or `npm run build`)
+   - **Output Directory**: `dist`
+3. **Deploy**:
+   - Click **Deploy**. Vercel will build the project and output your live production URL (e.g., `https://callisto-website.vercel.app`).
+4. **Project Transfer**:
+   - To transfer ownership to another team member or account in the future, navigate to **Project Settings** -> **General** -> scroll to **Transfer Project**, enter the recipient's Vercel username or team slug, and confirm. All DNS configurations, domains, and deployment history transfer smoothly.
+
+---
+
+### Option 2: Deploying to Cloudflare
+
+Cloudflare hosts the static assets through Wrangler or Cloudflare Pages.
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Configuration**: Uses modern `wrangler.toml` assets configuration (`[assets] directory = "./dist"`).
+
+---
+
+### Option 3: Deploying to GitHub Pages
+
+An automated GitHub Actions workflow is provided in `.github/workflows/deploy.yml`:
+1. In your GitHub repository, navigate to **Settings** -> **Pages**.
+2. Under **Build and deployment** -> **Source**, select **GitHub Actions**.
+3. Every push to the `main` branch automatically builds and deploys to `https://vijajraj.github.io/Callisto_website/`.
 
 ---
 
@@ -179,7 +222,7 @@ This codebase features automated watermark enforcement across all lifecycle scri
 - **GitHub**: [@Vijajraj](https://github.com/Vijajraj)
 - **Repository**: [https://github.com/Vijajraj/Callisto_website](https://github.com/Vijajraj/Callisto_website)
 
-Every source file (`.ts`, `.tsx`, `.astro`, `.css`, `.cjs`, `.mjs`) automatically includes the official code watermark header on clone, install, dev, and build via `scripts/inject-watermarks.cjs`.
+Every source file (`.ts`, `.tsx`, `.astro`, `.css`, `.cjs`, `.mjs`) automatically receives the official code watermark header on clone, install, dev, and build via `scripts/inject-watermarks.cjs`.
 
 ---
 
