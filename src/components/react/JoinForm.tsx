@@ -18,6 +18,16 @@
  * =====================================================================
  */
 
+/**
+ * =====================================================================
+ * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
+ * =====================================================================
+ * Architect & Developer: vijayraj.s
+ * GitHub Profile: https://github.com/Vijajraj
+ * Repository: https://github.com/Vijajraj/Callisto_website
+ * =====================================================================
+ */
+
 import React, { useState } from 'react';
 
 export interface JoinFormData {
