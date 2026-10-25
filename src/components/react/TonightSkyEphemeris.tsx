@@ -295,7 +295,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
       {/* Top Telemetry Command Bar */}
       <div className="ephemeris-header">
         <div className="header-meta">
-          <span className="ephemeris-badge">OBSERVATIONAL RADAR // AUTOMATIC EPHEMERIS</span>
+          <span className="ephemeris-badge">CIT OBSERVATORY // REAL-TIME CELESTIAL EPHEMERIS</span>
           <h2 className="ephemeris-title">Tonight's Sky & Planetary Ephemeris</h2>
           <p className="ephemeris-lead">
             Computed automatically for CIT Campus Observation Deck (12.9716° N, 80.0431° E).
