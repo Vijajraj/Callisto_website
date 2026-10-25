@@ -9,12 +9,16 @@
   },
   "private": true,
   "scripts": {
+    "postinstall": "node scripts/inject-watermarks.cjs",
+    "predev": "node scripts/inject-watermarks.cjs",
     "dev": "astro dev",
+    "prebuild": "node scripts/inject-watermarks.cjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "backend": "node scripts/start-backend.cjs",
-    "db:seed": "node scripts/db-seed.cjs"
+    "db:seed": "node scripts/db-seed.cjs",
+    "watermark": "node scripts/inject-watermarks.cjs"
   },
   "dependencies": {
     "astro": "^5.7.0",

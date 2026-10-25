@@ -11,8 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('=== WATERMARK INJECTION SUITE ===');
-console.log('Target Author: vijayraj.s | GitHub: @Vijajraj\n');
+const rootDir = path.resolve(__dirname, '..');
 
 const WATERMARK_COMMENT = `/**
  * =====================================================================
@@ -26,12 +25,13 @@ const WATERMARK_COMMENT = `/**
 
 function walkDir(dir, exts) {
   let results = [];
+  if (!fs.existsSync(dir)) return results;
   const list = fs.readdirSync(dir);
   for (const item of list) {
     const full = path.join(dir, item);
     const stat = fs.statSync(full);
     if (stat.isDirectory()) {
-      if (item !== 'node_modules' && item !== '.git' && item !== '.astro' && item !== 'dist') {
+      if (item !== 'node_modules' && item !== '.git' && item !== '.astro' && item !== 'dist' && item !== '.vercel') {
         results = results.concat(walkDir(full, exts));
       }
     } else {
@@ -43,42 +43,54 @@ function walkDir(dir, exts) {
   return results;
 }
 
-const files = [
-  ...walkDir('c:/projects/callisto/src', ['.ts', '.tsx', '.astro', '.css']),
-  ...walkDir('c:/projects/callisto/scripts', ['.cjs', '.js']),
-  'c:/projects/callisto/astro.config.mjs',
-];
+function processFiles() {
+  const targetExtensions = ['.ts', '.tsx', '.astro', '.css', '.cjs', '.mjs', '.js'];
+  const dirsToScan = [
+    path.join(rootDir, 'src'),
+    path.join(rootDir, 'scripts'),
+  ];
 
-let injectedCount = 0;
-let alreadyPresentCount = 0;
-
-for (const file of files) {
-  let content = fs.readFileSync(file, 'utf8');
-
-  // Check if watermark already present
-  if (content.includes('vijayraj.s') && content.includes('@Vijajraj')) {
-    alreadyPresentCount++;
-    continue;
+  let files = [];
+  for (const d of dirsToScan) {
+    files = files.concat(walkDir(d, targetExtensions));
   }
 
-  if (file.endsWith('.astro')) {
-    if (content.startsWith('---')) {
-      // Inject inside frontmatter
-      content = content.replace(/^---\r?\n/, `---\n${WATERMARK_COMMENT}`);
-    } else {
-      content = `---\n${WATERMARK_COMMENT}---\n` + content;
+  // Also include root config files
+  const rootFiles = ['astro.config.mjs'];
+  for (const rf of rootFiles) {
+    const full = path.join(rootDir, rf);
+    if (fs.existsSync(full)) files.push(full);
+  }
+
+  let injectedCount = 0;
+  let alreadyPresentCount = 0;
+
+  for (const file of files) {
+    let content = fs.readFileSync(file, 'utf8');
+
+    // Check if watermark signature already present
+    if (content.includes('vijayraj.s') && content.includes('@Vijajraj')) {
+      alreadyPresentCount++;
+      continue;
     }
-  } else {
-    // Standard JS/TS/CSS header
-    content = WATERMARK_COMMENT + content;
+
+    if (file.endsWith('.astro')) {
+      if (content.startsWith('---')) {
+        content = content.replace(/^---\r?\n/, `---\n${WATERMARK_COMMENT}`);
+      } else {
+        content = `---\n${WATERMARK_COMMENT}---\n` + content;
+      }
+    } else {
+      content = WATERMARK_COMMENT + content;
+    }
+
+    fs.writeFileSync(file, content, 'utf8');
+    injectedCount++;
   }
 
-  fs.writeFileSync(file, content, 'utf8');
-  console.log(`[INJECTED] ${path.relative('c:/projects/callisto', file)}`);
-  injectedCount++;
+  return { injectedCount, alreadyPresentCount, total: files.length };
 }
 
-console.log(`\nWatermark injection summary:`);
-console.log(`- Injected in ${injectedCount} files.`);
-console.log(`- Already present in ${alreadyPresentCount} files.`);
-console.log(`- Total files covered: ${injectedCount + alreadyPresentCount}`);
+const stats = processFiles();
+
+console.log(`[Watermark System] Enforced: ${stats.alreadyPresentCount} verified, ${stats.injectedCount} newly stamped. (Author: vijayraj.s / @Vijajraj)`);
