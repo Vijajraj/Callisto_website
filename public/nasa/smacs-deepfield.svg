@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
+  <defs>
+    <radialGradient id="deepVoid" cx="50%" cy="50%" r="85%">
+      <stop offset="0%" stop-color="#040817" />
+      <stop offset="50%" stop-color="#02040c" />
+      <stop offset="100%" stop-color="#000105" />
+    </radialGradient>
+    <radialGradient id="clusterCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffdf0" />
+      <stop offset="30%" stop-color="#fed7aa" stop-opacity="0.85" />
+      <stop offset="70%" stop-color="#ea580c" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <filter id="lensBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#deepVoid)" />
+
+  <!-- Background high-redshift ancient galaxies (13 billion years ago) -->
+  <g opacity="0.85">
+    <ellipse cx="140" cy="180" rx="12" ry="5" fill="#f87171" transform="rotate(25 140 180)" />
+    <ellipse cx="280" cy="110" rx="8" ry="4" fill="#fb923c" transform="rotate(-40 280 110)" />
+    <ellipse cx="980" cy="140" rx="14" ry="6" fill="#f43f5e" transform="rotate(65 980 140)" />
+    <ellipse cx="1060" cy="310" rx="9" ry="4" fill="#f87171" transform="rotate(10 1060 310)" />
+    <ellipse cx="890" cy="680" rx="11" ry="5" fill="#fb923c" transform="rotate(-30 890 680)" />
+    <ellipse cx="190" cy="670" rx="15" ry="7" fill="#fb7185" transform="rotate(45 190 670)" />
+    <ellipse cx="320" cy="540" rx="7" ry="3" fill="#fca5a5" transform="rotate(-15 320 540)" />
+  </g>
+
+  <!-- Central Galaxy Cluster SMACS 0723 Core -->
+  <g transform="translate(600, 400)">
+    <circle cx="0" cy="0" r="140" fill="url(#clusterCore)" />
+    <ellipse cx="0" cy="0" rx="65" ry="38" fill="#ffffff" opacity="0.9" filter="url(#lensBlur)" />
+    <ellipse cx="40" cy="-35" rx="35" ry="20" fill="#fef08a" opacity="0.8" />
+    <ellipse cx="-55" cy="30" rx="42" ry="24" fill="#fed7aa" opacity="0.75" />
+    <ellipse cx="-20" cy="-60" rx="28" ry="16" fill="#fed7aa" opacity="0.7" />
+    <ellipse cx="50" cy="50" rx="30" ry="18" fill="#fef08a" opacity="0.75" />
+
+    <!-- Gravitational Lensing Cosmic Arcs (Einstein Curved Light) -->
+    <path d="M -180 -90 A 210 210 0 0 1 120 -190" fill="none" stroke="#ef4444" stroke-width="4.5" stroke-linecap="round" opacity="0.9" filter="url(#lensBlur)" />
+    <path d="M -180 -90 A 210 210 0 0 1 120 -190" fill="none" stroke="#fca5a5" stroke-width="1.8" stroke-linecap="round" />
+    
+    <path d="M -150 140 A 230 230 0 0 0 160 170" fill="none" stroke="#f97316" stroke-width="5" stroke-linecap="round" opacity="0.85" filter="url(#lensBlur)" />
+    <path d="M -150 140 A 230 230 0 0 0 160 170" fill="none" stroke="#fdba74" stroke-width="2" stroke-linecap="round" />
+
+    <path d="M 180 -70 A 200 200 0 0 1 200 110" fill="none" stroke="#ef4444" stroke-width="4" stroke-linecap="round" opacity="0.8" />
+    <path d="M -220 -20 A 240 240 0 0 0 -190 120" fill="none" stroke="#f43f5e" stroke-width="3.5" stroke-linecap="round" opacity="0.8" />
+  </g>
+
+  <!-- Foreground Bright Star with JWST 8-Point Diffraction Spikes -->
+  <g transform="translate(860, 240)">
+    <circle cx="0" cy="0" r="30" fill="url(#clusterCore)" />
+    <line x1="-120" y1="0" x2="120" y2="0" stroke="#ffffff" stroke-width="2" opacity="0.9" />
+    <line x1="0" y1="-120" x2="0" y2="120" stroke="#ffffff" stroke-width="2" opacity="0.9" />
+    <line x1="-80" y1="-80" x2="80" y2="80" stroke="#fed7aa" stroke-width="1.4" opacity="0.8" />
+    <line x1="-80" y1="80" x2="80" y2="-80" stroke="#fed7aa" stroke-width="1.4" opacity="0.8" />
+    <circle cx="0" cy="0" r="6" fill="#ffffff" />
+  </g>
+
+  <g transform="translate(340, 560)">
+    <circle cx="0" cy="0" r="24" fill="url(#clusterCore)" />
+    <line x1="-70" y1="0" x2="70" y2="0" stroke="#ffffff" stroke-width="1.5" opacity="0.85" />
+    <line x1="0" y1="-70" x2="0" y2="70" stroke="#ffffff" stroke-width="1.5" opacity="0.85" />
+    <circle cx="0" cy="0" r="4.5" fill="#ffffff" />
+  </g>
+
+  <!-- Telemetry HUD -->
+  <g font-family="'Courier New', monospace" font-size="11" fill="#38bdf8" letter-spacing="1.5">
+    <text x="40" y="50">MISSION: JAMES WEBB SPACE TELESCOPE (JWST) // FIRST DEEP FIELD</text>
+    <text x="40" y="70">TARGET: GALAXY CLUSTER SMACS 0723 // GRAVITATIONAL LENSING</text>
+    <text x="40" y="760">LOOKBACK TIME: 13.1 BILLION YEARS // NIRCam COMPOSITE (12.5 HR EXPOSURE)</text>
+    <text x="910" y="760">CIT DEEP SKY SURVEY #JWST-01</text>
+  </g>
+</svg>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
+  <defs>
+    <radialGradient id="voidPitch" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#04060f" />
+      <stop offset="60%" stop-color="#010206" />
+      <stop offset="100%" stop-color="#000002" />
+    </radialGradient>
+    <radialGradient id="accretionGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#f59e0b" />
+      <stop offset="60%" stop-color="#ea580c" />
+      <stop offset="85%" stop-color="#7c2d12" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <filter id="bhBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#voidPitch)" />
+
+  <!-- Background Dense Star Field at Galactic Center -->
+  <g fill="#ffffff" opacity="0.6">
+    <circle cx="80" cy="110" r="1.1" />
+    <circle cx="160" cy="240" r="0.8" />
+    <circle cx="270" cy="90" r="1.3" />
+    <circle cx="980" cy="140" r="1.4" />
+    <circle cx="1110" cy="220" r="1.0" />
+    <circle cx="1060" cy="650" r="1.2" />
+    <circle cx="180" cy="670" r="0.9" />
+  </g>
+
+  <!-- SAGITTARIUS A* EVENT HORIZON & ACCRETION DISK -->
+  <g transform="translate(600, 400)">
+    <!-- Broad Accretion Halo -->
+    <circle cx="0" cy="0" r="240" fill="url(#accretionGlow)" filter="url(#bhBlur)" />
+    
+    <!-- Relativistic Glowing Plasma Ring -->
+    <circle cx="0" cy="0" r="145" fill="none" stroke="#f97316" stroke-width="64" opacity="0.85" filter="url(#bhBlur)" />
+    
+    <!-- Doppler Brightening Hotspot Knots (Orbital motion towards observer) -->
+    <ellipse cx="-110" cy="70" rx="60" ry="32" fill="#fef08a" opacity="0.95" filter="url(#bhBlur)" />
+    <ellipse cx="-110" cy="70" rx="35" ry="18" fill="#ffffff" />
+    
+    <ellipse cx="90" cy="-80" rx="45" ry="24" fill="#f97316" opacity="0.8" />
+    <ellipse cx="110" cy="60" rx="38" ry="20" fill="#ea580c" opacity="0.75" />
+
+    <!-- Innermost Stable Circular Orbit (ISCO) Rim -->
+    <circle cx="0" cy="0" r="116" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.9" />
+
+    <!-- EVENT HORIZON SHADOW (Absence of Light) -->
+    <circle cx="0" cy="0" r="105" fill="#000000" />
+    <circle cx="0" cy="0" r="95" fill="#020205" />
+  </g>
+
+  <!-- Telemetry HUD -->
+  <g font-family="'Courier New', monospace" font-size="11" fill="#f97316" letter-spacing="1.5">
+    <text x="40" y="50">COLLABORATION: EVENT HORIZON TELESCOPE (EHT) // GLOBAL VLBI ARRAY</text>
+    <text x="40" y="70">TARGET: SAGITTARIUS A* (Sgr A*) // SUPERMASSIVE BLACK HOLE EVENT HORIZON</text>
+    <text x="40" y="760">MASS: 4.15 MILLION SOLAR MASSES // WAVELENGTH: 1.3 MM (230 GHZ)</text>
+    <text x="910" y="760">CIT RELATIVISTIC OBSERVATION</text>
+  </g>
+</svg>

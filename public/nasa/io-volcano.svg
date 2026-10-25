@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
+  <defs>
+    <radialGradient id="spaceBack" cx="50%" cy="50%" r="85%">
+      <stop offset="0%" stop-color="#070c18" />
+      <stop offset="60%" stop-color="#020409" />
+      <stop offset="100%" stop-color="#000103" />
+    </radialGradient>
+    <radialGradient id="ioSphere" cx="40%" cy="42%" r="58%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="35%" stop-color="#facc15" />
+      <stop offset="65%" stop-color="#ca8a04" />
+      <stop offset="85%" stop-color="#854d0e" />
+      <stop offset="100%" stop-color="#1c1103" />
+    </radialGradient>
+    <radialGradient id="lavaGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="30%" stop-color="#ef4444" stop-opacity="0.9" />
+      <stop offset="70%" stop-color="#b91c1c" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <filter id="plumeMist" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#spaceBack)" />
+
+  <!-- Background Jupiter Limb Shadow (Io orbiting Jupiter) -->
+  <path d="M -200 -200 A 700 700 0 0 1 180 1000 L -200 1000 Z" fill="#9a3412" opacity="0.35" />
+  <path d="M -200 -200 A 700 700 0 0 1 140 1000 L -200 1000 Z" fill="#c2410c" opacity="0.25" />
+
+  <!-- Moon Io Disc -->
+  <g transform="translate(600, 400)">
+    <!-- Active Eruptive Gas Plume Rising off the Limb (Pele Volcano) -->
+    <path d="M -180 -120 Q -260 -240 -170 -310 Q -80 -240 -120 -180 Z" fill="#67e8f9" opacity="0.45" filter="url(#plumeMist)" />
+    <path d="M -170 -130 Q -230 -220 -160 -270 Q -100 -220 -130 -170 Z" fill="#38bdf8" opacity="0.35" filter="url(#plumeMist)" />
+    
+    <!-- Pele Caldera Glowing Vent -->
+    <circle cx="-160" cy="-140" r="18" fill="url(#lavaGlow)" />
+    <circle cx="-160" cy="-140" r="4" fill="#ffffff" />
+
+    <!-- Loki Patera Active Plume on East Limb -->
+    <path d="M 180 80 Q 280 110 240 190 Q 180 170 170 110 Z" fill="#fdba74" opacity="0.45" filter="url(#plumeMist)" />
+    <circle cx="175" cy="100" r="16" fill="url(#lavaGlow)" />
+
+    <!-- Io Moon Sphere -->
+    <circle cx="0" cy="0" r="220" fill="url(#ioSphere)" />
+
+    <!-- Volcanic Caldrons & Sulfur-Dioxide Frost Deposits -->
+    <!-- Loki Patera Lava Lake -->
+    <ellipse cx="60" cy="-30" rx="42" ry="24" fill="#18181b" opacity="0.85" />
+    <ellipse cx="60" cy="-30" rx="36" ry="18" fill="#450a0a" opacity="0.9" />
+    <circle cx="70" cy="-28" r="6" fill="#ef4444" opacity="0.9" />
+
+    <!-- Sulfur Dioxide White Frost Rings -->
+    <circle cx="-40" cy="70" r="32" fill="none" stroke="#fef08a" stroke-width="8" opacity="0.8" />
+    <circle cx="-40" cy="70" r="14" fill="#1c1917" />
+    <circle cx="-38" cy="72" r="4" fill="#f97316" />
+
+    <ellipse cx="-80" cy="-60" rx="28" ry="16" fill="#713f12" />
+    <ellipse cx="110" cy="80" rx="35" ry="18" fill="#451a03" />
+    <circle cx="10" cy="140" r="22" fill="#78350f" />
+
+    <!-- Dynamic 3D Shadow Terminator -->
+    <path d="M 0 -220 A 220 220 0 0 1 220 0 A 220 220 0 0 1 0 220 Q 110 0 0 -220 Z" fill="#000000" opacity="0.65" />
+    <path d="M 120 -184 A 220 220 0 0 1 220 0 A 220 220 0 0 1 120 184 Q 180 0 120 -184 Z" fill="#000000" opacity="0.85" />
+  </g>
+
+  <!-- Telemetry HUD -->
+  <g font-family="'Courier New', monospace" font-size="11" fill="#facc15" letter-spacing="1.5">
+    <text x="40" y="50">MISSION: NASA JUNO ORBITER // CLOSE FLYBY 57</text>
+    <text x="40" y="70">TARGET: JOVIAN VOLCANIC MOON IO (J I) // PELE & LOKI PATERA PLUMES</text>
+    <text x="40" y="760">TIDAL HEATING: 100 MILLION MEGAWATTS // OVER 400 ACTIVE VOLCANOES</text>
+    <text x="910" y="760">CIT EXPEDITION LOG #JUNO-IO</text>
+  </g>
+</svg>
