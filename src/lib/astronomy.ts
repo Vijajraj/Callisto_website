@@ -1,3 +1,13 @@
+/**
+ * =====================================================================
+ * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
+ * =====================================================================
+ * Architect & Developer: vijayraj.s
+ * GitHub Profile: https://github.com/Vijajraj
+ * Repository: https://github.com/Vijajraj/Callisto_website
+ * =====================================================================
+ */
+
 /* =========================================================================
    CALLISTO ASTRONOMICAL EPHEMERIS ENGINE // SPHERICAL & KEPLERIAN MECHANICS
    Implements Jean Meeus astronomical algorithms, Greenwich & Local Sidereal

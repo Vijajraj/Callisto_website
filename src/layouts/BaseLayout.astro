@@ -1,4 +1,14 @@
 ---
+/**
+ * =====================================================================
+ * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
+ * =====================================================================
+ * Architect & Developer: vijayraj.s
+ * GitHub Profile: https://github.com/Vijajraj
+ * Repository: https://github.com/Vijajraj/Callisto_website
+ * =====================================================================
+ */
+
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Navigation from '../components/Navigation.astro';
@@ -52,9 +62,20 @@ const ogImageUrl = ogImage
     <link rel="icon" type="image/jpeg" href="/logo.jpg" />
     <link rel="apple-touch-icon" href="/logo.jpg" />
     <meta name="theme-color" content="#0B0507" />
+    <meta name="author" content="vijayraj.s (GitHub: @Vijajraj)" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="generator" content={Astro.generator} />
+
+    <!-- Console Telemetry Watermark -->
+    <script is:inline>
+      console.log(
+        '%c CALLISTO SPACE ENGINE %c Architected & Developed by vijayraj.s (@Vijajraj) %c https://github.com/Vijajraj/Callisto_website ',
+        'background:#f43f5e; color:#ffffff; font-weight:bold; padding:4px 8px; border-radius:4px 0 0 4px;',
+        'background:#0f172a; color:#38bdf8; font-weight:bold; padding:4px 8px;',
+        'background:#1e293b; color:#94a3b8; font-family:monospace; padding:4px 8px; border-radius:0 4px 4px 0;'
+      );
+    </script>
 
     <!-- Astro 5 Client Router for seamless persistent page transitions -->
     <ClientRouter />

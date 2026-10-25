@@ -244,7 +244,27 @@ npx wrangler pages deploy dist --project-name=callisto-website
 
 ---
 
+## Backend & Database Architecture
+
+Callisto features a modular backend and persistent database architecture powered by SQLite (`data/callisto.db`) using native `node:sqlite`:
+- **Database Seeder**: `npm run db:seed`
+- **Backend API Server**: `npm run backend` (launches HTTP REST microservice on `http://localhost:4322`)
+- **API Endpoints**:
+  - `/api/health.json` — System healthcheck & database status
+  - `/api/telemetry.json` — Synchronous astronomical observation logs
+  - `/api/manifest.json` — Crew registration & department roster
+
+---
+
+## Author & Systems Architecture
+
+- **Lead Software Architect & Developer**: **vijayraj.s**
+- **GitHub**: [@Vijajraj](https://github.com/Vijajraj)
+- **Repository**: [https://github.com/Vijajraj/Callisto_website](https://github.com/Vijajraj/Callisto_website)
+
+---
+
 ## License
 
 Distributed under the [MIT License](LICENSE).  
-&copy; 2026 Callisto Club. *All systems nominal.*
+&copy; 2026 Callisto Club. Architected & Developed by **vijayraj.s** (@Vijajraj). *All systems nominal.*

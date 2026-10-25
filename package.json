@@ -1,13 +1,20 @@
 {
   "name": "callisto-club",
   "type": "module",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "author": "vijayraj.s (https://github.com/Vijajraj)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vijajraj/Callisto_website.git"
+  },
   "private": true,
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "backend": "node scripts/start-backend.cjs",
+    "db:seed": "node scripts/db-seed.cjs"
   },
   "dependencies": {
     "astro": "^5.7.0",
