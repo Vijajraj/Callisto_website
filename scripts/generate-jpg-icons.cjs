@@ -28,6 +28,16 @@
  * =====================================================================
  */
 
+/**
+ * =====================================================================
+ * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
+ * =====================================================================
+ * Architect & Developer: vijayraj.s
+ * GitHub Profile: https://github.com/Vijajraj
+ * Repository: https://github.com/Vijajraj/Callisto_website
+ * =====================================================================
+ */
+
 const sharp = require('c:/projects/callisto/node_modules/sharp');
 const path = require('path');
 const fs = require('fs');

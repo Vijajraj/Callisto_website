@@ -38,6 +38,16 @@
  * =====================================================================
  */
 
+/**
+ * =====================================================================
+ * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
+ * =====================================================================
+ * Architect & Developer: vijayraj.s
+ * GitHub Profile: https://github.com/Vijajraj
+ * Repository: https://github.com/Vijajraj/Callisto_website
+ * =====================================================================
+ */
+
 export const SCHEMA_SQL = `
 -- 1. Members and Crew Registry
 CREATE TABLE IF NOT EXISTS members (

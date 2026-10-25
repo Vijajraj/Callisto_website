@@ -38,6 +38,16 @@
  * =====================================================================
  */
 
+/**
+ * =====================================================================
+ * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
+ * =====================================================================
+ * Architect & Developer: vijayraj.s
+ * GitHub Profile: https://github.com/Vijajraj
+ * Repository: https://github.com/Vijajraj/Callisto_website
+ * =====================================================================
+ */
+
 import type { APIRoute } from 'astro';
 import { MembersRepository } from '../../lib/db/repositories';
 
