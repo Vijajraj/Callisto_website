@@ -1,149 +1,128 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import {
+  CIT_COORDINATES,
+  getJulianDate,
+  getLocalSiderealTime,
+  equatorialToHorizontal,
+  calculateCelestialTransits,
+  calculateLunarEphemeris,
+  calculatePlanetaryCoordinates,
+} from '../../lib/astronomy';
 
 /* =========================================================================
-   TONIGHT'S SKY & EPHEMERIS RADAR // DYNAMIC ASTRONOMICAL ENGINE
-   Automatically computes real-time celestial coordinates, lunar phase,
-   diurnal transit curves, and observational seeing for CIT Campus Array.
-   Location: Chennai Institute of Technology (12.9716° N, 80.0431° E)
+   TONIGHT'S SKY & CELESTIAL EPHEMERIS ENGINE
+   Genuine real-time celestial mechanics powered by Jean Meeus spherical
+   astronomy algorithms, Local Sidereal Time (LST), and Keplerian elements.
+   Location: Chennai Institute of Technology (CIT)
+   Coordinates: +12.9716° N, +80.0431° E
    ========================================================================= */
 
-interface CelestialBody {
+interface BaseCatalogItem {
   id: string;
   name: string;
-  category: 'planet' | 'nebula' | 'galaxy' | 'cluster' | 'moon';
-  constellation: string;
-  magnitude: string;
-  transitHour: number; // Hour of peak culmination (0-24 in IST)
-  peakAltitude: number; // Max degrees elevation from CIT horizon
-  seasonMonths: number[]; // Months visible (0=Jan, 11=Dec)
-  optimalWindow: string;
+  category: 'planet' | 'nebula' | 'galaxy' | 'cluster';
+  categoryLabel: string;
+  fixedRaHours?: number; // For non-planetary targets
+  fixedDecDeg?: number;
+  fixedConstell?: string;
+  fixedMag?: string;
   recommendedOptics: string;
-  raDec: string;
   notes: string;
   color: string;
 }
 
-// Master Astronomical Database
-const ASTRONOMICAL_CATALOG: CelestialBody[] = [
+const DEEP_SKY_CATALOG: BaseCatalogItem[] = [
   {
     id: 'jupiter',
-    name: 'Jupiter (Great Red Spot & Galilean Moons)',
+    name: 'Jupiter & Galilean Moons',
     category: 'planet',
-    constellation: 'Taurus',
-    magnitude: '-2.7',
-    transitHour: 0.5, // 00:30 IST
-    peakAltitude: 76,
-    seasonMonths: [8, 9, 10, 11, 0, 1], // Sep - Feb
-    optimalWindow: '21:30 – 03:30 IST',
+    categoryLabel: 'GAS GIANT',
     recommendedOptics: '8" Dobsonian / 6mm Eyepiece (200x) or 102mm Refractor',
-    raDec: 'RA 04h 18m | Dec +21° 14\'',
-    notes: 'Io, Europa, Ganymede, and Callisto clearly visible in planar alignment. Great Red Spot central meridian transit occurs during prime window.',
+    notes: 'Io, Europa, Ganymede, and Callisto in continuous gravitational dance. Great Red Spot central meridian transits observable during prime elevation.',
     color: '#f59e0b',
   },
   {
     id: 'saturn',
     name: 'Saturn & Ring Plane Angle',
     category: 'planet',
-    constellation: 'Aquarius',
-    magnitude: '+0.7',
-    transitHour: 21.0, // 21:00 IST
-    peakAltitude: 68,
-    seasonMonths: [7, 8, 9, 10, 11], // Aug - Dec
-    optimalWindow: '19:00 – 23:30 IST',
+    categoryLabel: 'RINGED PLANET',
     recommendedOptics: '6" Reflecting Telescope / 9mm Plössl (133x)',
-    raDec: 'RA 22h 32m | Dec -11° 20\'',
-    notes: 'Rings inclined at an ultra-narrow tilt angle approaching edge-on ring plane crossing. Titan and Rhea easily discernable.',
+    notes: 'Ring system inclined at narrow tilt angle. Titan, Rhea, and Tethys easily resolved as sparkling pinpricks flanking the planetary disk.',
     color: '#eab308',
+  },
+  {
+    id: 'mars',
+    name: 'Mars (The Red Planet)',
+    category: 'planet',
+    categoryLabel: 'TERRESTRIAL PLANET',
+    recommendedOptics: '8" Dobsonian / 5mm Planetary Eyepiece (240x)',
+    notes: 'Distinct ochre-red disc. Look for dark albedo features (Syrtis Major) and bright seasonal carbon dioxide polar cap during high culmination.',
+    color: '#ef4444',
   },
   {
     id: 'orion-nebula',
     name: 'Orion Nebula (M42 / NGC 1976)',
     category: 'nebula',
-    constellation: 'Orion',
-    magnitude: '+4.0',
-    transitHour: 2.0, // 02:00 IST
-    peakAltitude: 72,
-    seasonMonths: [9, 10, 11, 0, 1, 2], // Oct - Mar
-    optimalWindow: '00:00 – 04:45 IST',
-    recommendedOptics: 'Widefield 25mm Eyepiece (48x) + UHC or OIII Filter',
-    raDec: 'RA 05h 35m | Dec -05° 23\'',
-    notes: 'Active stellar nursery. Four young, massive stars of the Trapezium cluster illuminate emerald-green and violet gaseous ionization curtains.',
+    categoryLabel: 'EMISSION NEBULA',
+    fixedRaHours: 5.588, // 05h 35m 17s
+    fixedDecDeg: -5.388, // -05° 23′ 28″
+    fixedConstell: 'Orion',
+    fixedMag: '+4.0',
+    recommendedOptics: 'Widefield 25mm Eyepiece (48x) + UHC or OIII Narrowband Filter',
+    notes: 'Active stellar nursery 1,344 light-years distant. Four massive young O-type stars of the central Trapezium Cluster ignite emerald and violet gas curtains.',
     color: '#06b6d4',
   },
   {
     id: 'andromeda',
     name: 'Andromeda Galaxy (Messier 31)',
     category: 'galaxy',
-    constellation: 'Andromeda',
-    magnitude: '+3.4',
-    transitHour: 22.5, // 22:30 IST
-    peakAltitude: 54,
-    seasonMonths: [8, 9, 10, 11, 0], // Sep - Jan
-    optimalWindow: '19:45 – 01:15 IST',
-    recommendedOptics: '10x50 Binoculars or 80mm ED Refractor / 32mm Plössl',
-    raDec: 'RA 00h 42m | Dec +41° 16\'',
-    notes: '2.53 million light-years distant. Our nearest major spiral neighbor; visible as an elongated diffuse oval with bright nucleus and M32 satellite.',
+    categoryLabel: 'SPIRAL GALAXY',
+    fixedRaHours: 0.712, // 00h 42m 44s
+    fixedDecDeg: 41.269, // +41° 16′ 09″
+    fixedConstell: 'Andromeda',
+    fixedMag: '+3.4',
+    recommendedOptics: '10x50 Binoculars or 80mm ED Refractor / 32mm Plössl Widefield',
+    notes: '2.53 million light-years away. Our nearest major spiral sister galaxy; spans over 3 degrees across the sky with visible dust lanes and satellite dwarf M32.',
     color: '#8b5cf6',
   },
   {
     id: 'pleiades',
     name: 'Pleiades Open Cluster (M45 / Seven Sisters)',
     category: 'cluster',
-    constellation: 'Taurus',
-    magnitude: '+1.6',
-    transitHour: 23.5, // 23:30 IST
-    peakAltitude: 81,
-    seasonMonths: [9, 10, 11, 0, 1], // Oct - Feb
-    optimalWindow: '20:30 – 03:00 IST',
-    recommendedOptics: '10x50 Binoculars or Low-Power Widefield Telescope',
-    raDec: 'RA 03h 47m | Dec +24° 07\'',
-    notes: 'Young blue B-type stars surrounded by ethereal blue reflection nebulosity. Superb binocular and widefield astrophotography target.',
+    categoryLabel: 'OPEN STAR CLUSTER',
+    fixedRaHours: 3.791, // 03h 47m 24s
+    fixedDecDeg: 24.105, // +24° 07′ 00″
+    fixedConstell: 'Taurus',
+    fixedMag: '+1.6',
+    recommendedOptics: '10x50 Binoculars or Low-Power Widefield Refractor (30x)',
+    notes: 'Luminous cluster of over 1,000 hot blue B-type stars enveloped in ethereal reflection nebulosity, passing nearly overhead from Chennai\'s latitude.',
     color: '#38bdf8',
   },
   {
     id: 'sirius',
     name: 'Sirius (Alpha Canis Majoris)',
     category: 'cluster',
-    constellation: 'Canis Major',
-    magnitude: '-1.46',
-    transitHour: 2.5, // 02:30 IST
-    peakAltitude: 61,
-    seasonMonths: [10, 11, 0, 1, 2, 3], // Nov - Apr
-    optimalWindow: '23:30 – 04:30 IST',
-    recommendedOptics: 'Naked Eye, Binoculars, or High-Power Split for Sirius B',
-    raDec: 'RA 06h 45m | Dec -16° 42\'',
-    notes: 'The brightest star in Earth\'s night sky. Radiates dazzling diamond scintilation caused by atmospheric dispersion.',
+    categoryLabel: 'BINARY STAR SYSTEM',
+    fixedRaHours: 6.752, // 06h 45m 09s
+    fixedDecDeg: -16.716, // -16° 42′ 58″
+    fixedConstell: 'Canis Major',
+    fixedMag: '-1.46',
+    recommendedOptics: 'Naked Eye or High-Power Telescope Split for White Dwarf Sirius B',
+    notes: 'The brightest star in Earth\'s sky. Emits dazzling diamond scintilation as light refracts through atmospheric moisture columns.',
     color: '#60a5fa',
   },
   {
-    id: 'mars',
-    name: 'Mars (The Red Planet)',
-    category: 'planet',
-    constellation: 'Gemini',
-    magnitude: '+0.2',
-    transitHour: 4.0, // 04:00 IST
-    peakAltitude: 78,
-    seasonMonths: [10, 11, 0, 1, 2, 3, 4], // Nov - May
-    optimalWindow: '01:30 – 05:30 IST',
-    recommendedOptics: '8" Dobsonian / 5mm Planetary Eyepiece (240x)',
-    raDec: 'RA 07h 12m | Dec +23° 05\'',
-    notes: 'Distinct ochre-red disc. Look for dark albedo features (Syrtis Major) and bright seasonal carbon dioxide polar cap.',
-    color: '#ef4444',
-  },
-  {
-    id: 'hercules',
-    name: 'Great Hercules Globular Cluster (M13)',
-    category: 'cluster',
-    constellation: 'Hercules',
-    magnitude: '+5.8',
-    transitHour: 19.0, // 19:00 IST
-    peakAltitude: 48,
-    seasonMonths: [3, 4, 5, 6, 7, 8], // Apr - Sep
-    optimalWindow: '19:00 – 21:30 IST',
-    recommendedOptics: '8" Telescope / 12mm Eyepiece (100x)',
-    raDec: 'RA 16h 41m | Dec +36° 27\'',
-    notes: 'Spherical swarm of over 300,000 ancient stars packed into a 145 light-year sphere. Core resolves into glittering stellar pinpricks.',
-    color: '#10b981',
+    id: 'crab-nebula',
+    name: 'Crab Nebula (M1 / Supernova Remnant)',
+    category: 'nebula',
+    categoryLabel: 'SUPERNOVA REMNANT',
+    fixedRaHours: 5.575, // 05h 34m 31s
+    fixedDecDeg: 22.014, // +22° 00′ 52″
+    fixedConstell: 'Taurus',
+    fixedMag: '+8.4',
+    recommendedOptics: '8" Reflecting Telescope + OIII Filter / 12mm Plössl (100x)',
+    notes: 'Expanding debris cloud of the historical supernova observed by astronomers in 1054 AD. Houses a spinning pulsar pulsing 30 times per second.',
+    color: '#ec4899',
   },
 ];
 
@@ -153,176 +132,176 @@ export default function TonightSkyEphemeris(): React.ReactElement {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [expandedTarget, setExpandedTarget] = useState<string | null>(null);
 
-  // Update live clock every minute
+  // Live Clock Ticker (updates every 15 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDate(new Date());
-    }, 60000);
+    }, 15000);
     return () => clearInterval(timer);
   }, []);
 
-  // Compute Current Indian Standard Time (IST) decimal hour (0 - 24)
-  const liveIstHour = useMemo(() => {
-    // Force IST (UTC + 5.5)
-    const utc = currentDate.getTime() + currentDate.getTimezoneOffset() * 60000;
-    const istDate = new Date(utc + 5.5 * 3600000);
-    return istDate.getHours() + istDate.getMinutes() / 60;
-  }, [currentDate]);
+  // Compute Active Evaluation Date: either live or simulated at today's chosen IST hour
+  const targetDate = useMemo(() => {
+    if (simulatedHour === null) {
+      return currentDate;
+    }
+    const d = new Date(currentDate);
+    // Convert simulated IST hour to UTC
+    let hour = simulatedHour;
+    if (hour >= 24) hour -= 24;
+    const utcHours = hour - CIT_COORDINATES.timezoneOffsetHours;
+    d.setUTCHours(Math.floor(utcHours), Math.floor((utcHours % 1) * 60), 0, 0);
+    return d;
+  }, [currentDate, simulatedHour]);
 
-  // Selected hour is either simulated scrubber or live IST hour
-  const activeHour = simulatedHour !== null ? simulatedHour : liveIstHour;
+  // Real-Time Local Sidereal Time for Chennai
+  const currentLST = useMemo(() => {
+    return getLocalSiderealTime(targetDate, CIT_COORDINATES.longitude);
+  }, [targetDate]);
 
-  // Real-time Moon Phase & Illumination Formula (Synodic Month = 29.530588 days)
+  // Julian Date
+  const currentJD = useMemo(() => {
+    return getJulianDate(targetDate).toFixed(3);
+  }, [targetDate]);
+
+  // Real-time Moon Phase Calculation
   const lunarData = useMemo(() => {
-    // Known reference new moon: Jan 11, 2024 at 11:57 UTC (JD 2460320.998)
-    const now = currentDate.getTime();
-    const refNewMoon = new Date('2024-01-11T11:57:00Z').getTime();
-    const synodicMs = 29.53058867 * 86400000;
-    const diff = (now - refNewMoon) % synodicMs;
-    const ageDays = (diff < 0 ? diff + synodicMs : diff) / 86400000;
-    const phaseFraction = ageDays / 29.53058867;
-    // Illumination fraction (1 - cos(angle)) / 2
-    const illumination = Math.round(((1 - Math.cos(phaseFraction * 2 * Math.PI)) / 2) * 100);
+    return calculateLunarEphemeris(targetDate);
+  }, [targetDate]);
 
-    let phaseName = 'New Moon';
-    let phaseClass = 'new';
-    if (ageDays < 1.84) {
-      phaseName = 'New Moon';
-    } else if (ageDays < 5.53) {
-      phaseName = 'Waxing Crescent';
-      phaseClass = 'crescent-waxing';
-    } else if (ageDays < 9.22) {
-      phaseName = 'First Quarter';
-      phaseClass = 'quarter-first';
-    } else if (ageDays < 12.91) {
-      phaseName = 'Waxing Gibbous';
-      phaseClass = 'gibbous-waxing';
-    } else if (ageDays < 16.61) {
-      phaseName = 'Full Moon';
-      phaseClass = 'full';
-    } else if (ageDays < 20.3) {
-      phaseName = 'Waning Gibbous';
-      phaseClass = 'gibbous-waning';
-    } else if (ageDays < 23.99) {
-      phaseName = 'Last Quarter';
-      phaseClass = 'quarter-last';
-    } else if (ageDays < 27.68) {
-      phaseName = 'Waning Crescent';
-      phaseClass = 'crescent-waning';
-    } else {
-      phaseName = 'New Moon';
-    }
+  // Real-time Keplerian Planetary Coordinates
+  const planetaryCoords = useMemo(() => {
+    return calculatePlanetaryCoordinates(targetDate);
+  }, [targetDate]);
 
-    return {
-      ageDays: ageDays.toFixed(1),
-      illumination,
-      phaseName,
-      phaseClass,
-      impact:
-        illumination > 75
-          ? 'High Lunar Radiance • Prime for Lunar Craters & Planets'
-          : illumination > 40
-            ? 'Moderate Sky Glow • Good for Star Clusters & Double Stars'
-            : 'Minimal Lunar Glare • Excellent for Deep-Sky Nebulae & Galaxies',
-    };
-  }, [currentDate]);
+  // Complete Computed Ephemeris Catalog
+  const computedCatalog = useMemo(() => {
+    return DEEP_SKY_CATALOG.map((item) => {
+      let raHours = 0;
+      let decDeg = 0;
+      let constellation = item.fixedConstell || '';
+      let magnitude = item.fixedMag || '';
 
-  // Filter Catalog by Season & Category
-  const currentMonth = currentDate.getMonth(); // 0 to 11
+      if (item.id === 'jupiter') {
+        raHours = planetaryCoords.jupiter.raHours;
+        decDeg = planetaryCoords.jupiter.decDeg;
+        constellation = planetaryCoords.jupiter.constell;
+        magnitude = planetaryCoords.jupiter.mag.toFixed(1);
+      } else if (item.id === 'saturn') {
+        raHours = planetaryCoords.saturn.raHours;
+        decDeg = planetaryCoords.saturn.decDeg;
+        constellation = planetaryCoords.saturn.constell;
+        magnitude = `+${planetaryCoords.saturn.mag.toFixed(1)}`;
+      } else if (item.id === 'mars') {
+        raHours = planetaryCoords.mars.raHours;
+        decDeg = planetaryCoords.mars.decDeg;
+        constellation = planetaryCoords.mars.constell;
+        magnitude = `+${planetaryCoords.mars.mag.toFixed(1)}`;
+      } else {
+        raHours = item.fixedRaHours || 0;
+        decDeg = item.fixedDecDeg || 0;
+      }
 
-  const visibleCatalog = useMemo(() => {
-    return ASTRONOMICAL_CATALOG.filter((body) => {
-      // Must be visible in current month (or adjacent)
-      const inSeason = body.seasonMonths.includes(currentMonth);
-      const matchesCat = activeCategory === 'all' || body.category === activeCategory;
-      return inSeason && matchesCat;
+      // Exact Spherical Astronomy: Altitude, Azimuth, Air Mass
+      const horizontal = equatorialToHorizontal(
+        raHours,
+        decDeg,
+        currentLST,
+        CIT_COORDINATES.latitude
+      );
+
+      // Exact Celestial Transits: Peak Culmination, Rise, Set
+      const transits = calculateCelestialTransits(
+        raHours,
+        decDeg,
+        targetDate,
+        CIT_COORDINATES.latitude,
+        CIT_COORDINATES.longitude
+      );
+
+      // Formatted RA and Dec Strings
+      const raH = Math.floor(raHours);
+      const raM = Math.floor((raHours - raH) * 60);
+      const decSign = decDeg >= 0 ? '+' : '-';
+      const decAbs = Math.abs(decDeg);
+      const decD = Math.floor(decAbs);
+      const decM = Math.floor((decAbs - decD) * 60);
+      const raDecFormatted = `RA ${raH.toString().padStart(2, '0')}h ${raM.toString().padStart(2, '0')}m | Dec ${decSign}${decD.toString().padStart(2, '0')}° ${decM.toString().padStart(2, '0')}′`;
+
+      return {
+        ...item,
+        raHours,
+        decDeg,
+        constellation,
+        magnitude,
+        raDecFormatted,
+        horizontal,
+        transits,
+      };
     });
-  }, [currentMonth, activeCategory]);
+  }, [planetaryCoords, currentLST, targetDate]);
 
-  // Compute Real-Time Altitude for any object given active hour
-  const getElevationData = (body: CelestialBody, hour: number) => {
-    // Hour angle distance from peak culmination transit
-    let hourDiff = Math.abs(hour - body.transitHour);
-    if (hourDiff > 12) hourDiff = 24 - hourDiff;
+  // Filter Catalog
+  const filteredCatalog = useMemo(() => {
+    return computedCatalog.filter((item) => {
+      if (activeCategory === 'all') return true;
+      return item.category === activeCategory;
+    });
+  }, [computedCatalog, activeCategory]);
 
-    // Approximate diurnal cos curve
-    // Semi-diurnal arc: visible roughly 6 hours before and after transit
-    if (hourDiff > 6.2) {
-      return {
-        altitude: -15,
-        statusText: 'BELOW HORIZON',
-        statusType: 'below',
-        badgeColor: '#64748b',
-      };
-    }
+  // Formatted LST String (hh:mm:ss)
+  const formattedLST = useMemo(() => {
+    const h = Math.floor(currentLST);
+    const m = Math.floor((currentLST - h) * 60);
+    const s = Math.floor(((currentLST - h) * 60 - m) * 60);
+    return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
+  }, [currentLST]);
 
-    const altitude = Math.round(
-      body.peakAltitude * Math.cos((hourDiff / 6.2) * (Math.PI / 2))
-    );
-
-    if (altitude >= 45) {
-      return {
-        altitude,
-        statusText: `PRIME ELEVATION (${altitude}°)`,
-        statusType: 'prime',
-        badgeColor: '#10b981',
-      };
-    } else if (altitude >= 15) {
-      return {
-        altitude,
-        statusText: `ABOVE HORIZON (${altitude}°)`,
-        statusType: 'visible',
-        badgeColor: '#38bdf8',
-      };
-    } else {
-      return {
-        altitude,
-        statusText: `LOW ON HORIZON (${altitude}°)`,
-        statusType: 'low',
-        badgeColor: '#f59e0b',
-      };
-    }
-  };
-
-  const formattedIstTime = useMemo(() => {
-    const h = Math.floor(activeHour);
-    const m = Math.floor((activeHour - h) * 60);
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} IST`;
-  }, [activeHour]);
+  // Formatted IST Time
+  const formattedIST = useMemo(() => {
+    return targetDate.toLocaleTimeString('en-US', {
+      timeZone: 'Asia/Kolkata',
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  }, [targetDate]);
 
   return (
     <div className="ephemeris-card">
-      {/* Top Telemetry Command Bar */}
+      {/* Top Telemetry Header Bar */}
       <div className="ephemeris-header">
         <div className="header-meta">
           <span className="ephemeris-badge">CIT OBSERVATORY // REAL-TIME CELESTIAL EPHEMERIS</span>
           <h2 className="ephemeris-title">Tonight's Sky & Planetary Ephemeris</h2>
           <p className="ephemeris-lead">
-            Computed automatically for CIT Campus Observation Deck (12.9716° N, 80.0431° E).
-            Calculates real-time diurnal altitude curves, seeing conditions, and optimal optical windows.
+            Computed in real time via spherical celestial mechanics & Keplerian orbit propagation for CIT Campus Observation Deck (12.9716° N, 80.0431° E).
           </p>
         </div>
 
-        {/* Live Observational Weather & Seeing Conditions Widget */}
+        {/* Real-time Astronomical Observational Radar Conditions */}
         <div className="conditions-grid">
           <div className="condition-box">
-            <span className="cond-label">CIT SKY SEEING</span>
-            <span className="cond-val highlight">Pickering 7/10</span>
-            <span className="cond-sub">Good Atmospheric Stability</span>
+            <span className="cond-label">LOCAL SIDEREAL TIME</span>
+            <span className="cond-val highlight">{formattedLST}</span>
+            <span className="cond-sub">Chennai Meridian (80.04° E)</span>
           </div>
+
           <div className="condition-box">
-            <span className="cond-label">CAMPUS BORTLE</span>
-            <span className="cond-val">Class 5</span>
-            <span className="cond-sub">Suburban Sky Array</span>
+            <span className="cond-label">JULIAN EPOCH</span>
+            <span className="cond-val">JD {currentJD}</span>
+            <span className="cond-sub">J2000.0 Ephemeris</span>
           </div>
+
           <div className="condition-box moon-box">
             <div className="moon-visual-wrap">
               <div className={`lunar-disc ${lunarData.phaseClass}`}></div>
             </div>
             <div className="moon-text-col">
-              <span className="cond-label">LUNAR PHASE</span>
+              <span className="cond-label">LUNAR ILLUMINATION</span>
               <span className="cond-val">{lunarData.phaseName}</span>
-              <span className="cond-sub">{lunarData.illumination}% Illuminated</span>
+              <span className="cond-sub">{lunarData.illuminationPct}% • Age {lunarData.ageDays}d</span>
             </div>
           </div>
         </div>
@@ -334,9 +313,9 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           <div className="time-indicator">
             <span className={`live-pulse-dot ${simulatedHour === null ? 'live' : 'sim'}`}></span>
             <span className="clock-label">
-              {simulatedHour === null ? 'REAL-TIME LIVE CLOCK' : 'SIMULATED OBSERVATION HOUR'}:
+              {simulatedHour === null ? 'REAL-TIME LIVE ASTRO-CLOCK' : 'SIMULATED OBSERVATION HOUR'}:
             </span>
-            <span className="clock-time">{formattedIstTime}</span>
+            <span className="clock-time">{formattedIST} IST</span>
           </div>
 
           <div className="quick-time-buttons">
@@ -349,10 +328,10 @@ export default function TonightSkyEphemeris(): React.ReactElement {
             </button>
             <button
               type="button"
-              className={`time-chip ${simulatedHour === 19.5 ? 'active' : ''}`}
-              onClick={() => setSimulatedHour(19.5)}
+              className={`time-chip ${simulatedHour === 19.0 ? 'active' : ''}`}
+              onClick={() => setSimulatedHour(19.0)}
             >
-              19:30 DUSK
+              19:00 DUSK
             </button>
             <button
               type="button"
@@ -383,7 +362,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           <div className="slider-labels">
             <span>18:00 (Sunset)</span>
             <span>21:00</span>
-            <span>00:00 (Midnight)</span>
+            <span>00:00 (Midnight Culmination)</span>
             <span>03:00</span>
             <span>06:00 (Dawn)</span>
           </div>
@@ -392,7 +371,16 @@ export default function TonightSkyEphemeris(): React.ReactElement {
             min="18"
             max="30"
             step="0.25"
-            value={activeHour < 18 ? activeHour + 24 : activeHour}
+            value={
+              simulatedHour !== null
+                ? simulatedHour < 18
+                  ? simulatedHour + 24
+                  : simulatedHour
+                : (() => {
+                    const h = targetDate.getHours() + targetDate.getMinutes() / 60;
+                    return h < 18 ? h + 24 : h;
+                  })()
+            }
             onChange={(e) => {
               const val = parseFloat(e.target.value);
               setSimulatedHour(val >= 24 ? val - 24 : val);
@@ -406,9 +394,9 @@ export default function TonightSkyEphemeris(): React.ReactElement {
       {/* Category Filter Chips */}
       <div className="filter-chips-row">
         {[
-          { id: 'all', label: `All Active Targets (${visibleCatalog.length})` },
-          { id: 'planet', label: 'Planetary Systems' },
-          { id: 'nebula', label: 'Deep-Sky Nebulae' },
+          { id: 'all', label: `All Observable Targets (${computedCatalog.length})` },
+          { id: 'planet', label: 'Planets (Jovian, Rings & Mars)' },
+          { id: 'nebula', label: 'Nebulae & Remnants' },
           { id: 'galaxy', label: 'Galaxies' },
           { id: 'cluster', label: 'Star Clusters' },
         ].map((cat) => (
@@ -423,7 +411,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
         ))}
       </div>
 
-      {/* Celestial Target Radar Table */}
+      {/* Real-Time Celestial Target Radar Table */}
       <div className="ephemeris-table-wrap">
         <table className="ephemeris-table">
           <thead>
@@ -431,30 +419,40 @@ export default function TonightSkyEphemeris(): React.ReactElement {
               <th scope="col">CELESTIAL TARGET</th>
               <th scope="col">CONSTELLATION</th>
               <th scope="col">MAGNITUDE</th>
-              <th scope="col">CURRENT ALTITUDE</th>
-              <th scope="col">OPTIMAL WINDOW</th>
+              <th scope="col">REAL-TIME ALTITUDE</th>
+              <th scope="col">AZIMUTH / COMPASS</th>
+              <th scope="col">MERIDIAN TRANSIT</th>
               <th scope="col">ACTION</th>
             </tr>
           </thead>
           <tbody>
-            {visibleCatalog.map((target) => {
-              const elev = getElevationData(target, activeHour);
+            {filteredCatalog.map((target) => {
               const isExpanded = expandedTarget === target.id;
+              const alt = target.horizontal.altitudeDeg;
+              const isAbove = alt > 0;
+              const isPrime = alt >= 45;
 
               return (
                 <React.Fragment key={target.id}>
                   <tr
-                    className={`target-row ${elev.statusType} ${isExpanded ? 'expanded' : ''}`}
+                    className={`target-row ${isAbove ? 'visible' : 'below'} ${isExpanded ? 'expanded' : ''}`}
                     onClick={() => setExpandedTarget(isExpanded ? null : target.id)}
                   >
                     <td className="col-target-name">
                       <span
                         className="target-glow-bullet"
-                        style={{ backgroundColor: elev.badgeColor, boxShadow: `0 0 8px ${elev.badgeColor}` }}
+                        style={{
+                          backgroundColor: isPrime ? '#10b981' : isAbove ? '#38bdf8' : '#64748b',
+                          boxShadow: isPrime
+                            ? '0 0 8px #10b981'
+                            : isAbove
+                              ? '0 0 6px #38bdf8'
+                              : 'none',
+                        }}
                       ></span>
                       <div className="name-wrapper">
                         <span className="body-title">{target.name}</span>
-                        <span className="body-cat-sub">{target.category.toUpperCase()}</span>
+                        <span className="body-cat-sub">{target.categoryLabel}</span>
                       </div>
                     </td>
 
@@ -468,22 +466,27 @@ export default function TonightSkyEphemeris(): React.ReactElement {
 
                     <td className="col-elevation">
                       <span
-                        className={`elev-badge ${elev.statusType}`}
-                        style={{ borderColor: elev.badgeColor, color: elev.badgeColor }}
+                        className={`elev-badge ${isPrime ? 'prime' : isAbove ? 'above' : 'below'}`}
                       >
-                        {elev.statusText}
+                        {isAbove ? `${alt > 0 ? '+' : ''}${alt}° (${target.horizontal.seeingQuality.toUpperCase()})` : `SUBMERGED (${alt}°)`}
+                      </span>
+                    </td>
+
+                    <td className="col-azimuth">
+                      <span className="azimuth-text">
+                        {isAbove ? `${target.horizontal.azimuthDeg}° ${target.horizontal.compassDirection}` : '—'}
                       </span>
                     </td>
 
                     <td className="col-window">
-                      <span className="window-text">{target.optimalWindow}</span>
+                      <span className="window-text">{target.transits.transitIST}</span>
                     </td>
 
                     <td className="col-inspect">
                       <button
                         type="button"
                         className="inspect-btn"
-                        aria-label={`Inspect ${target.name} details`}
+                        aria-label={`Inspect ${target.name} real-time coordinates`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setExpandedTarget(isExpanded ? null : target.id);
@@ -497,26 +500,44 @@ export default function TonightSkyEphemeris(): React.ReactElement {
                   {/* Expandable Technical Ephemeris Drawer */}
                   {isExpanded && (
                     <tr className="drawer-row">
-                      <td colSpan={6} className="drawer-cell">
+                      <td colSpan={7} className="drawer-cell">
                         <div className="drawer-content">
                           <div className="drawer-meta-grid">
                             <div className="drawer-meta-item">
-                              <span className="meta-label">EQUATORIAL COORDINATES:</span>
-                              <span className="meta-value">{target.raDec}</span>
+                              <span className="meta-label">EQUATORIAL COORDINATES (J2000):</span>
+                              <span className="meta-value mono">{target.raDecFormatted}</span>
                             </div>
+
                             <div className="drawer-meta-item">
-                              <span className="meta-label">RECOMMENDED OPTICS / EYEPIECE:</span>
-                              <span className="meta-value highlight">{target.recommendedOptics}</span>
-                            </div>
-                            <div className="drawer-meta-item">
-                              <span className="meta-label">MERIDIAN PEAK CULMINATION:</span>
-                              <span className="meta-value">
-                                {Math.floor(target.transitHour)}:{Math.floor((target.transitHour % 1) * 60).toString().padStart(2, '0')} IST ({target.peakAltitude}° Max Altitude)
+                              <span className="meta-label">TRUE ALTITUDE & AZIMUTH (CHENNAI):</span>
+                              <span className="meta-value highlight">
+                                Alt: {target.horizontal.altitudeDeg}° | Az: {target.horizontal.azimuthDeg}° ({target.horizontal.compassDirection})
                               </span>
                             </div>
+
+                            <div className="drawer-meta-item">
+                              <span className="meta-label">AIR MASS & OPTICAL EXTINCTION:</span>
+                              <span className="meta-value">
+                                {isAbove ? `${target.horizontal.airMass} Air Mass (Atmospheric Column)` : 'N/A (Below Horizon)'}
+                              </span>
+                            </div>
+
+                            <div className="drawer-meta-item">
+                              <span className="meta-label">TRANSIT / RISE / SET TIMES:</span>
+                              <span className="meta-value">
+                                Transit: {target.transits.transitIST} • Peak: +{target.transits.peakAltitudeDeg}°
+                                {target.transits.riseIST ? ` • Rise: ${target.transits.riseIST} • Set: ${target.transits.setIST}` : ''}
+                              </span>
+                            </div>
+
+                            <div className="drawer-meta-item">
+                              <span className="meta-label">RECOMMENDED CIT OPTICS / EYEPIECE:</span>
+                              <span className="meta-value highlight">{target.recommendedOptics}</span>
+                            </div>
                           </div>
+
                           <div className="drawer-notes">
-                            <span className="notes-label">OBSERVATIONAL ASTROPHYSICS NOTES:</span>
+                            <span className="notes-label">ASTROPHYSICAL ANNOTATION:</span>
                             <p className="notes-text">{target.notes}</p>
                           </div>
                         </div>
@@ -530,7 +551,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
         </table>
       </div>
 
-      {/* High-Contrast Design System Stylesheet */}
+      {/* High-Contrast Responsive Stylesheet */}
       <style>{`
         .ephemeris-card {
           background-color: var(--deep, #0b1120);
@@ -609,7 +630,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           display: flex;
           flex-direction: column;
           gap: 0.15rem;
-          min-width: 130px;
+          min-width: 135px;
         }
 
         .cond-label {
@@ -628,13 +649,13 @@ export default function TonightSkyEphemeris(): React.ReactElement {
         }
 
         .cond-val.highlight {
-          color: #34d399;
+          color: #38bdf8;
         }
 
         .cond-sub {
           font-family: var(--font-mono, monospace);
           font-size: 0.625rem;
-          color: var(--orbit, #38bdf8);
+          color: #94a3b8;
         }
 
         /* Moon Box */
@@ -642,7 +663,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           flex-direction: row;
           align-items: center;
           gap: 0.75rem;
-          min-width: 175px;
+          min-width: 185px;
         }
 
         .moon-visual-wrap {
@@ -928,7 +949,31 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           padding: 0.2rem 0.55rem;
           border-radius: 4px;
           border: 1px solid;
-          background: rgba(15, 23, 42, 0.6);
+          white-space: nowrap;
+        }
+
+        .elev-badge.prime {
+          background: rgba(16, 185, 129, 0.15);
+          color: #34d399;
+          border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .elev-badge.above {
+          background: rgba(56, 189, 248, 0.15);
+          color: #38bdf8;
+          border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        .elev-badge.below {
+          background: rgba(100, 116, 139, 0.1);
+          color: #94a3b8;
+          border-color: rgba(100, 116, 139, 0.3);
+        }
+
+        .azimuth-text {
+          font-size: 0.78rem;
+          color: #cbd5e1;
+          font-weight: 600;
           white-space: nowrap;
         }
 
@@ -974,7 +1019,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
 
         .drawer-meta-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
           gap: 1rem;
         }
 
@@ -995,6 +1040,11 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           font-size: 0.82rem;
           color: var(--moon, #ffffff);
           line-height: 1.4;
+        }
+
+        .meta-value.mono {
+          font-family: var(--font-mono, monospace);
+          color: #f1f5f9;
         }
 
         .meta-value.highlight {
