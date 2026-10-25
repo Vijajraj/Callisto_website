@@ -69,7 +69,7 @@ function processFiles() {
     let content = fs.readFileSync(file, 'utf8');
 
     // Check if watermark signature already present
-    if (content.includes('vijayraj.s') && content.includes('@Vijajraj')) {
+    if (content.includes('vijayraj.s') && content.includes('Vijajraj')) {
       alreadyPresentCount++;
       continue;
     }
