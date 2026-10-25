@@ -1,5 +1,0 @@
-name = "callisto"
-compatibility_date = "2026-10-19"
-
-[site]
-bucket = "./dist"

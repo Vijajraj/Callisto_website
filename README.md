@@ -64,7 +64,7 @@ The **Callisto Exploration Engine** is a high-performance, space-grade web porta
 | **Backend API** | Node.js HTTP Server | Microservice REST API (`scripts/start-backend.cjs`) on port 4322 |
 | **Styling** | Scoped CSS | Custom Properties Design Tokens (`--void`, `--deep`, `--orbit`, `--moon`) |
 | **Typography** | Fontsource | Cormorant Garamond, Inter, JetBrains Mono |
-| **Deployment** | Cloudflare Pages | Wrangler static bundle deployment |
+| **Deployment** | Cloudflare Pages | Global Edge CDN & Automated Git CI/CD |
 
 ---
 
