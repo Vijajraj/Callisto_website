@@ -181,15 +181,17 @@ export function calculateCelestialTransits(
   };
 }
 
-/** Accurate Real-Time Lunar Ephemeris */
+/** Accurate Real-Time Lunar Ephemeris & Coordinates */
 export function calculateLunarEphemeris(date: Date): {
   ageDays: number;
   illuminationPct: number;
   phaseName: string;
   phaseClass: string;
   opticalInterference: string;
+  raHours: number;
+  decDeg: number;
 } {
-  // Reference Known New Moon: Jan 11, 2024 at 11:57 UTC (JD 2460320.998)
+  const t = getDaysSinceJ2000(date);
   const refNewMoonJD = 2460320.9979;
   const jd = getJulianDate(date);
   const synodicPeriod = 29.53058867;
@@ -198,8 +200,24 @@ export function calculateLunarEphemeris(date: Date): {
 
   const phaseFraction = age / synodicPeriod;
   const phaseAngleRad = phaseFraction * 2 * Math.PI;
-  // Illumination formula
   const illuminationPct = Math.round(((1 - Math.cos(phaseAngleRad)) / 2) * 100);
+
+  // Mean orbital positions
+  const L = (218.316 + 13.176396 * t) * RAD;
+  const M = (134.963 + 13.064993 * t) * RAD;
+  const F = (93.272 + 13.229350 * t) * RAD;
+
+  const lambda = L + 6.289 * RAD * Math.sin(M);
+  const beta = 5.128 * RAD * Math.sin(F);
+
+  const eps = 23.4393 * RAD;
+  const sinDec = Math.sin(beta) * Math.cos(eps) + Math.cos(beta) * Math.sin(eps) * Math.sin(lambda);
+  const decDeg = Math.asin(sinDec) * DEG;
+
+  const y = Math.sin(lambda) * Math.cos(eps) - Math.tan(beta) * Math.sin(eps);
+  const x = Math.cos(lambda);
+  let raHours = (Math.atan2(y, x) * DEG) / 15;
+  if (raHours < 0) raHours += 24;
 
   let phaseName = 'New Moon';
   let phaseClass = 'new';
@@ -245,62 +263,101 @@ export function calculateLunarEphemeris(date: Date): {
     phaseName,
     phaseClass,
     opticalInterference,
+    raHours: Math.round(raHours * 100) / 100,
+    decDeg: Math.round(decDeg * 100) / 100,
   };
 }
 
-/** Keplerian Orbital Elements for Planets (NASA JPL standard approximations) */
+export interface PlanetEphemeris {
+  raHours: number;
+  decDeg: number;
+  distAU: number;
+  mag: number;
+  constell: string;
+}
+
+/** Comprehensive Keplerian Orbital Elements for all Observable Solar System Bodies */
 export function calculatePlanetaryCoordinates(date: Date): {
-  jupiter: { raHours: number; decDeg: number; distAU: number; mag: number; constell: string };
-  saturn: { raHours: number; decDeg: number; distAU: number; mag: number; constell: string };
-  mars: { raHours: number; decDeg: number; distAU: number; mag: number; constell: string };
+  mercury: PlanetEphemeris;
+  venus: PlanetEphemeris;
+  mars: PlanetEphemeris;
+  jupiter: PlanetEphemeris;
+  saturn: PlanetEphemeris;
+  uranus: PlanetEphemeris;
+  neptune: PlanetEphemeris;
 } {
   const d = getDaysSinceJ2000(date);
+  const eps = 23.4393 * RAD; // Obliquity of ecliptic
 
-  // Mean Longitudes and Anomaly (JPL semi-analytic approximations)
-  // Jupiter
-  const M_jup = (19.895 + 0.0830853 * d) * RAD;
-  const L_jup = (34.351 + 0.0830912 * d + 5.55 * Math.sin(M_jup)) * RAD;
-  const dist_jup = 5.204 - 0.25 * Math.cos(M_jup);
-
-  // Saturn
-  const M_sat = (316.967 + 0.0334442 * d) * RAD;
-  const L_sat = (49.944 + 0.033456 * d + 6.35 * Math.sin(M_sat)) * RAD;
-  const dist_sat = 9.582 - 0.53 * Math.cos(M_sat);
-
-  // Mars
-  const M_mars = (19.373 + 0.5240207 * d) * RAD;
-  const L_mars = (355.433 + 0.524033 * d + 10.69 * Math.sin(M_mars)) * RAD;
-  const dist_mars = 1.524 - 0.14 * Math.cos(M_mars);
-
-  // Earth
+  // Earth coordinates
   const M_earth = (357.529 + 0.98560028 * d) * RAD;
   const L_earth = (280.466 + 0.98564736 * d + 1.915 * Math.sin(M_earth)) * RAD;
 
-  const eps = 23.4393 * RAD; // Obliquity of ecliptic
-
-  function toRaDec(L_p: number, r_p: number) {
+  function toRaDec(L_p: number, r_p: number, i_deg: number = 0) {
     const x = r_p * Math.cos(L_p) - 1.0 * Math.cos(L_earth);
     const y = r_p * Math.sin(L_p) - 1.0 * Math.sin(L_earth);
-    const z = 0; // approximate planar ecliptic
+    const z = r_p * Math.sin(i_deg * RAD) * Math.sin(L_p);
 
     const deltaAU = Math.sqrt(x * x + y * y + z * z);
-    const raRad = Math.atan2(y * Math.cos(eps), x);
+    const raRad = Math.atan2(y * Math.cos(eps) - z * Math.sin(eps), x);
     let raHours = (raRad * DEG) / 15;
     if (raHours < 0) raHours += 24;
 
-    const decRad = Math.asin((y * Math.sin(eps)) / deltaAU);
+    const decRad = Math.asin((y * Math.sin(eps) + z * Math.cos(eps)) / deltaAU);
     const decDeg = decRad * DEG;
 
     return { raHours, decDeg, distAU: Math.round(deltaAU * 100) / 100 };
   }
 
-  const jup = toRaDec(L_jup, dist_jup);
-  const sat = toRaDec(L_sat, dist_sat);
-  const mar = toRaDec(L_mars, dist_mars);
+  // Mercury
+  const M_mer = (174.794 + 4.0923344 * d) * RAD;
+  const L_mer = (252.250 + 4.0923344 * d + 23.44 * Math.sin(M_mer)) * RAD;
+  const dist_mer = 0.387 - 0.08 * Math.cos(M_mer);
+  const mer = toRaDec(L_mer, dist_mer, 7.0);
+
+  // Venus
+  const M_ven = (48.005 + 1.60213022 * d) * RAD;
+  const L_ven = (181.979 + 1.6021305 * d + 1.34 * Math.sin(M_ven)) * RAD;
+  const dist_ven = 0.723 - 0.005 * Math.cos(M_ven);
+  const ven = toRaDec(L_ven, dist_ven, 3.39);
+
+  // Mars
+  const M_mars = (19.373 + 0.5240207 * d) * RAD;
+  const L_mars = (355.433 + 0.524033 * d + 10.69 * Math.sin(M_mars)) * RAD;
+  const dist_mars = 1.524 - 0.14 * Math.cos(M_mars);
+  const mar = toRaDec(L_mars, dist_mars, 1.85);
+
+  // Jupiter
+  const M_jup = (19.895 + 0.0830853 * d) * RAD;
+  const L_jup = (34.351 + 0.0830912 * d + 5.55 * Math.sin(M_jup)) * RAD;
+  const dist_jup = 5.204 - 0.25 * Math.cos(M_jup);
+  const jup = toRaDec(L_jup, dist_jup, 1.3);
+
+  // Saturn
+  const M_sat = (316.967 + 0.0334442 * d) * RAD;
+  const L_sat = (49.944 + 0.033456 * d + 6.35 * Math.sin(M_sat)) * RAD;
+  const dist_sat = 9.582 - 0.53 * Math.cos(M_sat);
+  const sat = toRaDec(L_sat, dist_sat, 2.49);
+
+  // Uranus
+  const M_ura = (142.238 + 0.0117258 * d) * RAD;
+  const L_ura = (314.055 + 0.0117258 * d + 4.5 * Math.sin(M_ura)) * RAD;
+  const dist_ura = 19.189 - 0.9 * Math.cos(M_ura);
+  const ura = toRaDec(L_ura, dist_ura, 0.77);
+
+  // Neptune
+  const M_nep = (256.228 + 0.0059951 * d) * RAD;
+  const L_nep = (304.348 + 0.0059951 * d + 1.2 * Math.sin(M_nep)) * RAD;
+  const dist_nep = 30.070 - 0.2 * Math.cos(M_nep);
+  const nep = toRaDec(L_nep, dist_nep, 1.77);
 
   return {
+    mercury: { ...mer, mag: -0.4, constell: 'Virgo' },
+    venus: { ...ven, mag: -4.2, constell: 'Ophiuchus' },
+    mars: { ...mar, mag: +0.2, constell: 'Gemini' },
     jupiter: { ...jup, mag: -2.7, constell: 'Taurus' },
     saturn: { ...sat, mag: +0.7, constell: 'Aquarius' },
-    mars: { ...mar, mag: +0.2, constell: 'Gemini' },
+    uranus: { ...ura, mag: +5.7, constell: 'Taurus' },
+    neptune: { ...nep, mag: +7.8, constell: 'Pisces' },
   };
 }

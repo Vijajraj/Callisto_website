@@ -13,6 +13,8 @@ import {
    TONIGHT'S SKY & CELESTIAL EPHEMERIS ENGINE
    Genuine real-time celestial mechanics powered by Jean Meeus spherical
    astronomy algorithms, Local Sidereal Time (LST), and Keplerian elements.
+   Includes complete Solar System (Moon, Venus, Mars, Jupiter, Saturn, Uranus, Neptune)
+   and iconic telescopic Deep-Sky objects, Nebulae, Clusters, and Binary Stars.
    Location: Chennai Institute of Technology (CIT)
    Coordinates: +12.9716° N, +80.0431° E
    ========================================================================= */
@@ -20,7 +22,7 @@ import {
 interface BaseCatalogItem {
   id: string;
   name: string;
-  category: 'planet' | 'nebula' | 'galaxy' | 'cluster';
+  category: 'solarsystem' | 'nebula' | 'galaxy' | 'cluster' | 'doublestar';
   categoryLabel: string;
   fixedRaHours?: number; // For non-planetary targets
   fixedDecDeg?: number;
@@ -31,34 +33,82 @@ interface BaseCatalogItem {
   color: string;
 }
 
-const DEEP_SKY_CATALOG: BaseCatalogItem[] = [
+const MASTER_ASTRONOMICAL_CATALOG: BaseCatalogItem[] = [
+  // --- SOLAR SYSTEM & PLANETARY TARGETS ---
+  {
+    id: 'moon',
+    name: 'The Moon (Luna)',
+    category: 'solarsystem',
+    categoryLabel: 'EARTH MOON',
+    recommendedOptics: 'Neutral Density Moon Filter + 12mm to 25mm Eyepiece (48x – 100x)',
+    notes: 'Examine shadow contrast along the day/night terminator. Craters Tycho, Copernicus, Kepler, and the towering Montes Apenninus mountain range stand out in sharp relief.',
+    color: '#fef08a',
+  },
   {
     id: 'jupiter',
-    name: 'Jupiter & Galilean Moons',
-    category: 'planet',
+    name: 'Jupiter & Galilean Ocean Moons',
+    category: 'solarsystem',
     categoryLabel: 'GAS GIANT',
     recommendedOptics: '8" Dobsonian / 6mm Eyepiece (200x) or 102mm Refractor',
-    notes: 'Io, Europa, Ganymede, and Callisto in continuous gravitational dance. Great Red Spot central meridian transits observable during prime elevation.',
+    notes: 'Io, Europa, Ganymede, and Callisto form a sharp linear orbital plane. Watch for Great Red Spot transits and black shadow transits cast by the moons across Jovian cloud belts.',
     color: '#f59e0b',
   },
   {
     id: 'saturn',
     name: 'Saturn & Ring Plane Angle',
-    category: 'planet',
+    category: 'solarsystem',
     categoryLabel: 'RINGED PLANET',
     recommendedOptics: '6" Reflecting Telescope / 9mm Plössl (133x)',
-    notes: 'Ring system inclined at narrow tilt angle. Titan, Rhea, and Tethys easily resolved as sparkling pinpricks flanking the planetary disk.',
+    notes: 'Ring system tilted at an ultra-narrow angle approaching edge-on crossing. Dark Cassini Division separates A and B rings; giant moon Titan resolved like a golden beacon.',
     color: '#eab308',
+  },
+  {
+    id: 'venus',
+    name: 'Venus (Evening / Morning Star)',
+    category: 'solarsystem',
+    categoryLabel: 'INFERIOR PLANET',
+    recommendedOptics: 'Variable Polarizing Filter / 9mm Eyepiece (133x)',
+    notes: 'Dazzling planetary body displaying dramatic crescent phases like a miniature moon. Thick sulfurous clouds reflect over 70% of incident sunlight.',
+    color: '#fde047',
   },
   {
     id: 'mars',
     name: 'Mars (The Red Planet)',
-    category: 'planet',
+    category: 'solarsystem',
     categoryLabel: 'TERRESTRIAL PLANET',
-    recommendedOptics: '8" Dobsonian / 5mm Planetary Eyepiece (240x)',
-    notes: 'Distinct ochre-red disc. Look for dark albedo features (Syrtis Major) and bright seasonal carbon dioxide polar cap during high culmination.',
+    recommendedOptics: '8" Dobsonian / 5mm Planetary Eyepiece (240x) + Red/Orange Filter',
+    notes: 'Distinct ochre-red disc. Look for dark albedo features (Syrtis Major, Sinus Sabaeus) and the bright reflective seasonal polar ice cap during meridian culmination.',
     color: '#ef4444',
   },
+  {
+    id: 'uranus',
+    name: 'Uranus (Cyan Ice Giant)',
+    category: 'solarsystem',
+    categoryLabel: 'ICE GIANT',
+    recommendedOptics: '8" Telescope / 6mm Eyepiece (200x)',
+    notes: 'Seventh planet from the Sun; 2.8 billion km distant. Appears through telescopes as a distinct, unmistakable pale turquoise-cyan planetary disk.',
+    color: '#22d3ee',
+  },
+  {
+    id: 'neptune',
+    name: 'Neptune & Triton',
+    category: 'solarsystem',
+    categoryLabel: 'ICE GIANT',
+    recommendedOptics: '8"–10" Telescope / High Power 250x',
+    notes: 'Outermost major planet at 4.4 billion km. High-power magnification reveals a tiny deep azure-blue disc; retrograde moon Triton visible in dark skies.',
+    color: '#3b82f6',
+  },
+  {
+    id: 'mercury',
+    name: 'Mercury (Innermost World)',
+    category: 'solarsystem',
+    categoryLabel: 'INNER PLANET',
+    recommendedOptics: '80mm–102mm Refractor / 100x magnification',
+    notes: 'Telescopic challenge nestled low in evening or morning twilight. Shows crescent and gibbous phases; cratered surface obscured by thick atmospheric dispersion.',
+    color: '#94a3b8',
+  },
+
+  // --- ICONIC DEEP-SKY NEBULAE ---
   {
     id: 'orion-nebula',
     name: 'Orion Nebula (M42 / NGC 1976)',
@@ -73,6 +123,47 @@ const DEEP_SKY_CATALOG: BaseCatalogItem[] = [
     color: '#06b6d4',
   },
   {
+    id: 'ring-nebula',
+    name: 'Ring Nebula (Messier 57)',
+    category: 'nebula',
+    categoryLabel: 'PLANETARY NEBULA',
+    fixedRaHours: 18.893, // 18h 53m 35s
+    fixedDecDeg: 33.029, // +33° 01′ 45″
+    fixedConstell: 'Lyra',
+    fixedMag: '+8.8',
+    recommendedOptics: '8" Reflecting Telescope / 9mm Eyepiece (133x) + OIII Filter',
+    notes: 'The celestial smoke ring in Lyra. Expanding luminous gas shell blown off by a dying Sun-like star 20,000 years ago; tiny white dwarf core remains at center.',
+    color: '#10b981',
+  },
+  {
+    id: 'dumbbell-nebula',
+    name: 'Dumbbell Nebula (Messier 27)',
+    category: 'nebula',
+    categoryLabel: 'PLANETARY NEBULA',
+    fixedRaHours: 19.993, // 19h 59m 36s
+    fixedDecDeg: 22.721, // +22° 43′ 16″
+    fixedConstell: 'Vulpecula',
+    fixedMag: '+7.4',
+    recommendedOptics: 'Widefield 20mm Eyepiece (60x) + UHC Filter',
+    notes: 'The first planetary nebula ever discovered (Charles Messier, 1764). Displays a bright, distinct hourglass or apple-core emission profile.',
+    color: '#14b8a6',
+  },
+  {
+    id: 'crab-nebula',
+    name: 'Crab Nebula (M1 / Supernova Remnant)',
+    category: 'nebula',
+    categoryLabel: 'SUPERNOVA REMNANT',
+    fixedRaHours: 5.575, // 05h 34m 31s
+    fixedDecDeg: 22.014, // +22° 00′ 52″
+    fixedConstell: 'Taurus',
+    fixedMag: '+8.4',
+    recommendedOptics: '8" Reflecting Telescope + OIII Filter / 12mm Plössl (100x)',
+    notes: 'Expanding debris cloud of the historical supernova witnessed in 1054 AD. Houses a spinning neutron star (pulsar) rotating 30.2 times per second.',
+    color: '#ec4899',
+  },
+
+  // --- GALAXIES & STAR CLUSTERS ---
+  {
     id: 'andromeda',
     name: 'Andromeda Galaxy (Messier 31)',
     category: 'galaxy',
@@ -82,7 +173,7 @@ const DEEP_SKY_CATALOG: BaseCatalogItem[] = [
     fixedConstell: 'Andromeda',
     fixedMag: '+3.4',
     recommendedOptics: '10x50 Binoculars or 80mm ED Refractor / 32mm Plössl Widefield',
-    notes: '2.53 million light-years away. Our nearest major spiral sister galaxy; spans over 3 degrees across the sky with visible dust lanes and satellite dwarf M32.',
+    notes: '2.53 million light-years away. Our giant sister spiral galaxy; spans over 3 degrees across the sky with visible dust lanes and satellite dwarf M32.',
     color: '#8b5cf6',
   },
   {
@@ -99,30 +190,84 @@ const DEEP_SKY_CATALOG: BaseCatalogItem[] = [
     color: '#38bdf8',
   },
   {
+    id: 'hercules',
+    name: 'Great Hercules Globular Cluster (Messier 13)',
+    category: 'cluster',
+    categoryLabel: 'GLOBULAR CLUSTER',
+    fixedRaHours: 16.695, // 16h 41m 41s
+    fixedDecDeg: 36.460, // +36° 27′ 37″
+    fixedConstell: 'Hercules',
+    fixedMag: '+5.8',
+    recommendedOptics: '8" Telescope / 10mm Eyepiece (120x)',
+    notes: 'A swarm of over 300,000 ancient stars bound by gravity in a 145 light-year ball. Core resolves into thousands of glittering diamond pinpricks.',
+    color: '#a855f7',
+  },
+  {
+    id: 'double-cluster',
+    name: 'Double Cluster in Perseus (NGC 869 & 884)',
+    category: 'cluster',
+    categoryLabel: 'OPEN CLUSTERS',
+    fixedRaHours: 2.317, // 02h 19m 00s
+    fixedDecDeg: 57.150, // +57° 09′ 00″
+    fixedConstell: 'Perseus',
+    fixedMag: '+3.7',
+    recommendedOptics: '10x50 Binoculars or 80mm Refractor (40x Widefield)',
+    notes: 'Two neighboring open star clusters side by side in the Perseus arm of the Milky Way, crowded with blue supergiant stars and ruby red giants.',
+    color: '#6366f1',
+  },
+  {
+    id: 'bodes-galaxy',
+    name: 'Bode\'s & Cigar Galaxies (M81 & M82)',
+    category: 'galaxy',
+    categoryLabel: 'GALAXY PAIR',
+    fixedRaHours: 9.926, // 09h 55m 33s
+    fixedDecDeg: 69.065, // +69° 03′ 55″
+    fixedConstell: 'Ursa Major',
+    fixedMag: '+6.9 / +8.4',
+    recommendedOptics: '8" Reflecting Telescope / 25mm Eyepiece (48x)',
+    notes: 'A famous interacting galaxy pair visible in the same eyepiece field of view. M81 shows a grand spiral design while M82 is an edge-on starburst galaxy with red hydrogen jets.',
+    color: '#d946ef',
+  },
+
+  // --- TELESCOPIC BINARY & DOUBLE STARS ---
+  {
+    id: 'albireo',
+    name: 'Albireo (Beta Cygni Double Star)',
+    category: 'doublestar',
+    categoryLabel: 'OPTICAL BINARY',
+    fixedRaHours: 19.512, // 19h 30m 43s
+    fixedDecDeg: 27.959, // +27° 57′ 35″
+    fixedConstell: 'Cygnus',
+    fixedMag: '+3.1 / +5.1',
+    recommendedOptics: 'Any Telescope or 10x50 Binoculars (30x – 60x)',
+    notes: 'The most beautiful color-contrast double star in the entire night sky. Easily splits into a brilliant golden-topaz primary and an electric sapphire-blue companion.',
+    color: '#f59e0b',
+  },
+  {
+    id: 'castor',
+    name: 'Castor (Alpha Geminorum Sextuple)',
+    category: 'doublestar',
+    categoryLabel: 'MULTIPLE STAR',
+    fixedRaHours: 7.576, // 07h 34m 36s
+    fixedDecDeg: 31.888, // +31° 53′ 18″
+    fixedConstell: 'Gemini',
+    fixedMag: '+1.9 / +3.0',
+    recommendedOptics: '4"–8" Telescope / 100x – 150x magnification',
+    notes: 'A classic telescope benchmark split. Two brilliant white A-type stars separated by just 5 arcseconds, part of an intricate 6-star gravitational system.',
+    color: '#38bdf8',
+  },
+  {
     id: 'sirius',
     name: 'Sirius (Alpha Canis Majoris)',
-    category: 'cluster',
+    category: 'doublestar',
     categoryLabel: 'BINARY STAR SYSTEM',
     fixedRaHours: 6.752, // 06h 45m 09s
     fixedDecDeg: -16.716, // -16° 42′ 58″
     fixedConstell: 'Canis Major',
     fixedMag: '-1.46',
     recommendedOptics: 'Naked Eye or High-Power Telescope Split for White Dwarf Sirius B',
-    notes: 'The brightest star in Earth\'s sky. Emits dazzling diamond scintilation as light refracts through atmospheric moisture columns.',
+    notes: 'The brightest star in Earth\'s sky. Emits dazzling diamond scintilation as light refracts through atmospheric moisture columns; white dwarf companion (The Pup) nearby.',
     color: '#60a5fa',
-  },
-  {
-    id: 'crab-nebula',
-    name: 'Crab Nebula (M1 / Supernova Remnant)',
-    category: 'nebula',
-    categoryLabel: 'SUPERNOVA REMNANT',
-    fixedRaHours: 5.575, // 05h 34m 31s
-    fixedDecDeg: 22.014, // +22° 00′ 52″
-    fixedConstell: 'Taurus',
-    fixedMag: '+8.4',
-    recommendedOptics: '8" Reflecting Telescope + OIII Filter / 12mm Plössl (100x)',
-    notes: 'Expanding debris cloud of the historical supernova observed by astronomers in 1054 AD. Houses a spinning pulsar pulsing 30 times per second.',
-    color: '#ec4899',
   },
 ];
 
@@ -164,7 +309,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
     return getJulianDate(targetDate).toFixed(3);
   }, [targetDate]);
 
-  // Real-time Moon Phase Calculation
+  // Real-time Moon Phase & Coordinates Calculation
   const lunarData = useMemo(() => {
     return calculateLunarEphemeris(targetDate);
   }, [targetDate]);
@@ -176,13 +321,18 @@ export default function TonightSkyEphemeris(): React.ReactElement {
 
   // Complete Computed Ephemeris Catalog
   const computedCatalog = useMemo(() => {
-    return DEEP_SKY_CATALOG.map((item) => {
+    return MASTER_ASTRONOMICAL_CATALOG.map((item) => {
       let raHours = 0;
       let decDeg = 0;
       let constellation = item.fixedConstell || '';
       let magnitude = item.fixedMag || '';
 
-      if (item.id === 'jupiter') {
+      if (item.id === 'moon') {
+        raHours = lunarData.raHours;
+        decDeg = lunarData.decDeg;
+        constellation = 'Pisces / Aries';
+        magnitude = `-${(10 + (lunarData.illuminationPct / 100) * 2.7).toFixed(1)}`;
+      } else if (item.id === 'jupiter') {
         raHours = planetaryCoords.jupiter.raHours;
         decDeg = planetaryCoords.jupiter.decDeg;
         constellation = planetaryCoords.jupiter.constell;
@@ -192,11 +342,31 @@ export default function TonightSkyEphemeris(): React.ReactElement {
         decDeg = planetaryCoords.saturn.decDeg;
         constellation = planetaryCoords.saturn.constell;
         magnitude = `+${planetaryCoords.saturn.mag.toFixed(1)}`;
+      } else if (item.id === 'venus') {
+        raHours = planetaryCoords.venus.raHours;
+        decDeg = planetaryCoords.venus.decDeg;
+        constellation = planetaryCoords.venus.constell;
+        magnitude = planetaryCoords.venus.mag.toFixed(1);
       } else if (item.id === 'mars') {
         raHours = planetaryCoords.mars.raHours;
         decDeg = planetaryCoords.mars.decDeg;
         constellation = planetaryCoords.mars.constell;
         magnitude = `+${planetaryCoords.mars.mag.toFixed(1)}`;
+      } else if (item.id === 'uranus') {
+        raHours = planetaryCoords.uranus.raHours;
+        decDeg = planetaryCoords.uranus.decDeg;
+        constellation = planetaryCoords.uranus.constell;
+        magnitude = `+${planetaryCoords.uranus.mag.toFixed(1)}`;
+      } else if (item.id === 'neptune') {
+        raHours = planetaryCoords.neptune.raHours;
+        decDeg = planetaryCoords.neptune.decDeg;
+        constellation = planetaryCoords.neptune.constell;
+        magnitude = `+${planetaryCoords.neptune.mag.toFixed(1)}`;
+      } else if (item.id === 'mercury') {
+        raHours = planetaryCoords.mercury.raHours;
+        decDeg = planetaryCoords.mercury.decDeg;
+        constellation = planetaryCoords.mercury.constell;
+        magnitude = planetaryCoords.mercury.mag.toFixed(1);
       } else {
         raHours = item.fixedRaHours || 0;
         decDeg = item.fixedDecDeg || 0;
@@ -239,7 +409,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
         transits,
       };
     });
-  }, [planetaryCoords, currentLST, targetDate]);
+  }, [planetaryCoords, lunarData, currentLST, targetDate]);
 
   // Filter Catalog
   const filteredCatalog = useMemo(() => {
@@ -274,9 +444,9 @@ export default function TonightSkyEphemeris(): React.ReactElement {
       <div className="ephemeris-header">
         <div className="header-meta">
           <span className="ephemeris-badge">CIT OBSERVATORY // REAL-TIME CELESTIAL EPHEMERIS</span>
-          <h2 className="ephemeris-title">Tonight's Sky & Planetary Ephemeris</h2>
+          <h2 className="ephemeris-title">Tonight's Sky & Telescope Radar</h2>
           <p className="ephemeris-lead">
-            Computed in real time via spherical celestial mechanics & Keplerian orbit propagation for CIT Campus Observation Deck (12.9716° N, 80.0431° E).
+            Real-time orbital tracking for the Solar System (Moon & planets), planetary nebulae, star clusters, galaxies, and binary stars from CIT Campus Observation Deck (12.9716° N, 80.0431° E).
           </p>
         </div>
 
@@ -395,10 +565,10 @@ export default function TonightSkyEphemeris(): React.ReactElement {
       <div className="filter-chips-row">
         {[
           { id: 'all', label: `All Observable Targets (${computedCatalog.length})` },
-          { id: 'planet', label: 'Planets (Jovian, Rings & Mars)' },
-          { id: 'nebula', label: 'Nebulae & Remnants' },
-          { id: 'galaxy', label: 'Galaxies' },
-          { id: 'cluster', label: 'Star Clusters' },
+          { id: 'solarsystem', label: 'Solar System & Planets (8)' },
+          { id: 'nebula', label: 'Deep-Sky Nebulae (4)' },
+          { id: 'galaxy', label: 'Galaxies & Clusters (5)' },
+          { id: 'doublestar', label: 'Binary & Double Stars (3)' },
         ].map((cat) => (
           <button
             key={cat.id}
@@ -537,7 +707,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
                           </div>
 
                           <div className="drawer-notes">
-                            <span className="notes-label">ASTROPHYSICAL ANNOTATION:</span>
+                            <span className="notes-label">TELESCOPIC OBSERVATION NOTES:</span>
                             <p className="notes-text">{target.notes}</p>
                           </div>
                         </div>
