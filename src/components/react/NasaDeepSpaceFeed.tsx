@@ -39,12 +39,12 @@ const COSMIC_DISPATCHES: CosmicDispatch[] = [
     coordinates: 'RA 18h 18m 48s | Dec -13° 49′ 00″',
     spectralBand: '0.9 – 4.4 µm Near-Infrared',
     explanation:
-      'Towering columns of cool molecular hydrogen gas and semi-transparent interstellar dust in the Serpens constellation. Penetrating near-infrared wavelengths unveil newly formed protostars blazing like ruby embers as gravitational collapse triggers thermonuclear fusion within the finger-like evaporating gaseous globules (EGGs).',
+      'Towering columns of cool molecular hydrogen gas and semi-transparent cosmic dust in the Serpens constellation. Penetrating near-infrared wavelengths unveil newly formed protostars blazing like ruby embers as gravitational collapse triggers thermonuclear fusion within the finger-like evaporating gaseous globules (EGGs).',
     url: '/nasa/pillars-creation.svg',
     hdurl: '/nasa/pillars-creation.svg',
     credit: 'NASA, ESA, CSA, STScI // JWST Science Team',
     citation: 'NASA/ESA/CSA (2022). JWST NIRCam Observation of M16: Protostellar Genesis in the Eagle Nebula.',
-    icon: '🦅',
+    icon: '/icons/icon-pillars.jpg',
   },
   {
     id: 'jupiter',
@@ -63,7 +63,7 @@ const COSMIC_DISPATCHES: CosmicDispatch[] = [
     hdurl: '/nasa/jupiter-storm.svg',
     credit: 'NASA / JPL-Caltech / SwRI / MSSS / CIT Astrophysics',
     citation: 'NASA/JPL (2019). JunoCam Perijove Composite: Atmospheric Dynamics of Jupiter’s South Equatorial Belt.',
-    icon: '🌪️',
+    icon: '/icons/icon-storm.jpg',
   },
   {
     id: 'smacs0723',
@@ -82,7 +82,7 @@ const COSMIC_DISPATCHES: CosmicDispatch[] = [
     hdurl: '/nasa/smacs-deepfield.svg',
     credit: 'NASA, ESA, CSA, STScI // Webb First Observations',
     citation: 'NASA/STScI (2022). JWST Deep Field SMACS 0723: Relativistic Gravitational Lensing of Primordial Galaxies.',
-    icon: '🌌',
+    icon: '/icons/icon-deepfield.jpg',
   },
   {
     id: 'saturn',
@@ -101,7 +101,7 @@ const COSMIC_DISPATCHES: CosmicDispatch[] = [
     hdurl: '/nasa/saturn-rings.svg',
     credit: 'NASA, ESA, CSA, STScI, M. Tiscareno (SETI Institute)',
     citation: 'JWST NIRCam Team (2023). Methane Absorption Observation of Saturnian Ring Particulates and Titan.',
-    icon: '🪐',
+    icon: '/icons/icon-saturn.jpg',
   },
   {
     id: 'carina',
@@ -120,7 +120,7 @@ const COSMIC_DISPATCHES: CosmicDispatch[] = [
     hdurl: '/nasa/carina-nebula.svg',
     credit: 'NASA, ESA, CSA, STScI // NIRCam Science Archive',
     citation: 'NASA/STScI (2022). Cosmic Cliffs in NGC 3324: Photoevaporation and Protostellar Jets in the Carina Complex.',
-    icon: '🏔️',
+    icon: '/icons/icon-nebula.jpg',
   },
   {
     id: 'andromeda',
@@ -139,7 +139,7 @@ const COSMIC_DISPATCHES: CosmicDispatch[] = [
     hdurl: '/nasa/andromeda-core.svg',
     credit: 'NASA / ESA / STScI / CIT Deep Sky Survey Cohort',
     citation: 'Hubble Heritage (2023). Messier 31 High-Density Optical Bulge and Dust Extinction Profiles.',
-    icon: '🌀',
+    icon: '/icons/icon-andromeda.jpg',
   },
   {
     id: 'io',
@@ -158,7 +158,7 @@ const COSMIC_DISPATCHES: CosmicDispatch[] = [
     hdurl: '/nasa/io-volcano.svg',
     credit: 'NASA / JPL-Caltech / SwRI / ASI / INAF',
     citation: 'NASA/JPL Juno Mission (2024). High-Resolution Imaging of Active Magma Lakes and Plumes on Io.',
-    icon: '🌋',
+    icon: '/icons/icon-volcano.jpg',
   },
   {
     id: 'blackhole',
@@ -177,7 +177,7 @@ const COSMIC_DISPATCHES: CosmicDispatch[] = [
     hdurl: '/nasa/blackhole-sgra.svg',
     credit: 'Event Horizon Telescope Collaboration // EHT Science Team',
     citation: 'EHT Collaboration (2022). First Sagittarius A* Event Horizon Imaging: General Relativity in Strong Field Limits.',
-    icon: '🕳️',
+    icon: '/icons/icon-blackhole.jpg',
   },
 ];
 
@@ -206,6 +206,18 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
     const rect = imageContainerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    const pctX = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    const pctY = Math.max(0, Math.min(100, (y / rect.height) * 100));
+    setLoupePos({ x, y, pctX, pctY });
+  }, []);
+
+  // Handle Touch Screen Loupe (Mobile / Tablet compatibility)
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (!imageContainerRef.current || e.touches.length === 0) return;
+    const touch = e.touches[0];
+    const rect = imageContainerRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
     const pctX = Math.max(0, Math.min(100, (x / rect.width) * 100));
     const pctY = Math.max(0, Math.min(100, (y / rect.height) * 100));
     setLoupePos({ x, y, pctX, pctY });
@@ -298,6 +310,12 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
             onMouseEnter={() => setLoupeActive(true)}
             onMouseLeave={() => setLoupeActive(false)}
             onMouseMove={handleMouseMove}
+            onTouchStart={(e) => {
+              setLoupeActive(true);
+              handleTouchMove(e);
+            }}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={() => setLoupeActive(false)}
             onClick={() => setLightboxOpen(true)}
             title="Click for Fullscreen HD Observation"
           >
@@ -336,7 +354,9 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
 
             {/* Hover Scrim Hint */}
             <div className="viewport-scrim">
-              <span className="scrim-icon">🔍</span>
+              <span className="scrim-icon">
+                <img src="/icons/icon-loupe.jpg" alt="" width="18" height="18" style={{ borderRadius: '3px', verticalAlign: 'middle' }} />
+              </span>
               <span className="scrim-text">Click to Inspect in Fullscreen HD</span>
             </div>
           </div>
@@ -351,7 +371,8 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
                 onClick={handleRandomDispatch}
                 title="Explore a random cosmic dispatch"
               >
-                🎲 RANDOM EXPEDITION
+                <img src="/icons/icon-random.jpg" alt="" width="14" height="14" style={{ borderRadius: '3px', objectFit: 'cover' }} />
+                <span>RANDOM EXPEDITION</span>
               </button>
             </div>
 
@@ -365,7 +386,9 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
                     className={`expedition-chip ${isSelected ? 'active' : ''}`}
                     onClick={() => setCurrentDispatch(item)}
                   >
-                    <span className="chip-icon">{item.icon}</span>
+                    <span className="chip-icon">
+                      <img src={item.icon} alt="" width="16" height="16" style={{ borderRadius: '3px', objectFit: 'cover', display: 'block' }} />
+                    </span>
                     <span className="chip-name">{item.title.split(':')[0].split('(')[0].trim()}</span>
                   </button>
                 );
@@ -429,7 +452,16 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
                 className={`action-btn secondary ${copiedCitation ? 'copied' : ''}`}
                 onClick={handleCopyCitation}
               >
-                <span>{copiedCitation ? '✓ CITATION COPIED' : '📋 CITE DISPATCH'}</span>
+                {copiedCitation ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span>✓ CITATION COPIED</span>
+                  </span>
+                ) : (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <img src="/icons/icon-cite.jpg" alt="" width="14" height="14" style={{ borderRadius: '2px', objectFit: 'cover' }} />
+                    <span>CITE DISPATCH</span>
+                  </span>
+                )}
               </button>
             </div>
 
@@ -1058,6 +1090,60 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
           font-family: var(--font-mono, monospace);
           font-size: 0.7rem;
           color: #94a3b8;
+        }
+
+        /* Responsive Mobile Breakpoints */
+        @media (max-width: 768px) {
+          .feed-content-grid {
+            padding: 1rem;
+            gap: 1.25rem;
+          }
+          .feed-header-bar {
+            padding: 0.85rem 1rem;
+          }
+          .object-title {
+            font-size: 1.25rem;
+          }
+          .meta-card {
+            padding: 1.15rem;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .feed-header-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+          .brand-left {
+            gap: 0.5rem;
+          }
+          .optical-loupe {
+            width: 105px;
+            height: 105px;
+          }
+          .spectral-bar {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .spectral-buttons {
+            width: 100%;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            padding-bottom: 0.25rem;
+            -webkit-overflow-scrolling: touch;
+          }
+          .telemetry-grid {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+          }
+          .actions-strip {
+            flex-direction: column;
+          }
+          .action-btn {
+            width: 100%;
+            justify-content: center;
+          }
         }
       `}</style>
     </div>

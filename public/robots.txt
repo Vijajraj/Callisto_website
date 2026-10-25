@@ -1,0 +1,6 @@
+# Callisto Astronomy & Deep Space Club - Search Engine Directive
+User-agent: *
+Allow: /
+Disallow: /404.html
+
+Sitemap: https://callisto.pages.dev/sitemap.xml

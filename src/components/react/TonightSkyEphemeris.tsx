@@ -1244,6 +1244,72 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           color: var(--star, #cbd5e1);
           margin: 0;
         }
+
+        /* Mobile & Tablet Responsiveness */
+        @media (max-width: 768px) {
+          .ephemeris-card {
+            padding: 1.25rem;
+          }
+          .ephemeris-header {
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+          }
+          .drawer-meta-grid {
+            grid-template-columns: 1fr;
+          }
+          .drawer-content {
+            padding: 1rem;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .conditions-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+          }
+          .condition-box {
+            min-width: 0;
+            width: 100%;
+          }
+          .moon-box {
+            min-width: 0;
+          }
+          .timeline-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+          .quick-time-buttons {
+            width: 100%;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            padding-bottom: 0.35rem;
+            -webkit-overflow-scrolling: touch;
+          }
+          .filter-chips-row {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            padding-bottom: 0.35rem;
+            -webkit-overflow-scrolling: touch;
+          }
+          .cat-pill {
+            flex-shrink: 0;
+            white-space: nowrap;
+          }
+          .time-chip {
+            flex-shrink: 0;
+            white-space: nowrap;
+          }
+          .slider-labels span:nth-child(2),
+          .slider-labels span:nth-child(4) {
+            display: none;
+          }
+          .col-target-name {
+            min-width: 220px;
+          }
+        }
       `}</style>
     </div>
   );

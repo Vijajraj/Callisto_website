@@ -201,7 +201,7 @@ export const COSMIC_SYSTEMS: CosmicSystem[] = [
         habitableStatus: 'NON_HABITABLE',
         habitabilityIndexPct: 22,
         funAnalogy: 'Resembles Jupiter’s icy moons, orbiting far beyond the system’s frost line.',
-        description: 'Outermost cryogenic ball of rock and ice, perpetually frozen in deep interstellar cold.',
+        description: 'Outermost cryogenic ball of rock and ice, perpetually frozen in deep cosmic cold.',
         discoveryMethod: 'Transit Photometry',
         discoveryYear: 2017,
       },
@@ -441,7 +441,7 @@ export const COSMIC_SYSTEMS: CosmicSystem[] = [
         surfaceGravityG: 1.08,
         habitableStatus: 'IN_HABITABLE_ZONE',
         habitabilityIndexPct: 87,
-        funAnalogy: 'If interstellar travel becomes real, Proxima b will be humanity’s very first destination!',
+        funAnalogy: 'If extrasolar travel becomes real, Proxima b will be humanity’s very first destination!',
         description: 'Terrestrial exoplanet orbiting within the habitable zone; faces intense stellar flare activity.',
         discoveryMethod: 'Radial Velocity (HARPS / ESO)',
         discoveryYear: 2016,
@@ -778,7 +778,42 @@ export default function ExpeditionSimulator() {
       const by = centerY + Math.sin(angle) * orbitRadiusPx;
 
       const dist = Math.hypot(clickX - bx, clickY - by);
-      if (dist < 24) {
+      if (dist < 28) {
+        setSelectedBodyId(b.id);
+        break;
+      }
+    }
+  };
+
+  // Touch on Canvas to Select Nearest Body (Mobile / Tablet)
+  const handleCanvasTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
+    const touch = e.changedTouches[0];
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const touchX = (touch.clientX - rect.left) * scaleX;
+    const touchY = (touch.clientY - rect.top) * scaleY;
+
+    const centerX = canvas.width * 0.5;
+    const centerY = canvas.height * 0.5;
+
+    const totalBodies = currentSystem.bodies.length;
+    const minRadiusPx = 55;
+    const maxRadiusPx = Math.min(canvas.width, canvas.height) * 0.44;
+    const radiusStep = (maxRadiusPx - minRadiusPx) / Math.max(1, totalBodies);
+
+    for (let idx = 0; idx < totalBodies; idx++) {
+      const b = currentSystem.bodies[idx];
+      const orbitRadiusPx = minRadiusPx + (idx + 1) * radiusStep;
+      const angle = anglesRef.current[b.id] || 0;
+      const bx = centerX + Math.cos(angle) * orbitRadiusPx;
+      const by = centerY + Math.sin(angle) * orbitRadiusPx;
+
+      const dist = Math.hypot(touchX - bx, touchY - by);
+      if (dist < 34) {
         setSelectedBodyId(b.id);
         break;
       }
@@ -834,7 +869,13 @@ export default function ExpeditionSimulator() {
             onClick={() => setBriefingModalOpen(true)}
             title="Read system astrobiology briefing"
           >
-            <span className="btn-icon">📑</span>
+            <img
+              src="/icons/icon-certificate.jpg"
+              alt=""
+              width="14"
+              height="14"
+              style={{ borderRadius: '2px', objectFit: 'cover' }}
+            />
             <span>SYSTEM DOSSIER</span>
           </button>
         </div>
@@ -890,6 +931,7 @@ export default function ExpeditionSimulator() {
                 height={520}
                 className="orrery-canvas"
                 onClick={handleCanvasClick}
+                onTouchEnd={handleCanvasTouch}
               />
             )}
 
@@ -1904,6 +1946,46 @@ export default function ExpeditionSimulator() {
           display: flex;
           justify-content: flex-end;
           margin-top: 1rem;
+        }
+
+        /* Responsive Mobile Breakpoints */
+        @media (max-width: 768px) {
+          .command-ribbon {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+          .system-selector-bar {
+            width: 100%;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            -webkit-overflow-scrolling: touch;
+          }
+          .system-btn {
+            flex-shrink: 0;
+            white-space: nowrap;
+          }
+          .telemetry-bar {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .canvas-hud-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+          }
+          .view-toggle-group {
+            width: 100%;
+            overflow-x: auto;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .telemetry-bar {
+            grid-template-columns: 1fr;
+          }
+          .orrery-canvas {
+            height: 340px;
+          }
         }
       `}</style>
     </div>

@@ -1,240 +1,602 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
 import { getSolCount } from '../lib/utils';
 
 const solCount = getSolCount();
+
+const recoveryVectors = [
+  {
+    title: 'Mission Control',
+    subtitle: 'Primary Base & Mission Hub',
+    href: '/',
+    icon: '/icons/icon-flag.jpg',
+    tag: 'SECTOR 00',
+  },
+  {
+    title: 'Virtual Observatory',
+    subtitle: 'Real-Time Sky Ephemeris & Feeds',
+    href: '/observatory',
+    icon: '/icons/icon-telescope.jpg',
+    tag: 'OPTICAL ARRAY',
+  },
+  {
+    title: 'Flight Deck',
+    subtitle: 'Jovian Surface Expedition Engine',
+    href: '/expedition',
+    icon: '/icons/craft-rover.jpg',
+    tag: 'SURFACE ROVER',
+  },
+  {
+    title: 'Missions Console',
+    subtitle: 'Orbital Trajectory & Planetary Fleet',
+    href: '/missions',
+    icon: '/icons/icon-rocket.jpg',
+    tag: 'ORBITAL DYNAMICS',
+  },
+  {
+    title: 'Cosmic Gallery',
+    subtitle: 'Deep-Space Imagery & Telescopic Archives',
+    href: '/gallery',
+    icon: '/icons/icon-camera.jpg',
+    tag: 'VISUAL ARCHIVE',
+  },
+  {
+    title: 'Mission Archives',
+    subtitle: 'Research Cohort & Observational Logs',
+    href: '/about',
+    icon: '/icons/icon-calendar.jpg',
+    tag: 'HISTORICAL LOGS',
+  },
+];
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Signal Lost (404) | Callisto Expedition</title>
-    <meta name="description" content="Coordinates not recognized. Signal lost in deep space." />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#060919" />
+<BaseLayout
+  title="Sector 404 // Signal Lost in Deep Space"
+  description="Stellar coordinates unresolved. Telemetry lost in unmapped celestial sector. Recalibrate navigation vector to return to Callisto Base Station."
+>
+  <main class="drift-sector-page" role="main">
+    <div class="drift-container">
+      {/* Top Telemetry Beacon */}
+      <div class="telemetry-hud-strip">
+        <div class="hud-pill">
+          <span class="hud-indicator pulse"></span>
+          <span>EMERGENCY BEACON ACTIVE</span>
+        </div>
+        <div class="hud-pill">
+          <span>MISSION SOL {solCount}</span>
+        </div>
+        <div class="hud-pill">
+          <span>VECTOR STATUS: 0x404_DRIFT</span>
+        </div>
+      </div>
 
-    <style>
-      :root {
-        --void: #0b0507;
-        --deep: #160b10;
-        --navy: #2b121c;
-        --steel: #8c7f87;
-        --dusk: #7f1d1d;
-        --orbit: #f43f5e;
-        --star: #ffb399;
-        --moon: #fff5f5;
-        --sol-dust: #e05a2b;
-        --astrophage: #ff6633;
+      {/* Hero Radar Graphic & 404 Notice */}
+      <div class="radar-hero-section">
+        <div class="radar-scan-wrapper" aria-hidden="true">
+          <div class="radar-screen">
+            <div class="radar-sweep"></div>
+            <div class="radar-ring r1"></div>
+            <div class="radar-ring r2"></div>
+            <div class="radar-ring r3"></div>
+            <div class="radar-crosshair-h"></div>
+            <div class="radar-crosshair-v"></div>
+            <div class="radar-blip b1"></div>
+            <div class="radar-blip b2"></div>
+            <div class="radar-center-insignia">
+              <img
+                src="/logo.jpg"
+                alt="Callisto Insignia"
+                width="54"
+                height="54"
+                class="radar-emblem"
+              />
+            </div>
+          </div>
+        </div>
 
-        --font-display: 'Cormorant Garamond', Georgia, serif;
-        --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        --font-mono: 'JetBrains Mono', 'Courier New', monospace;
-      }
+        <div class="alert-content">
+          <div class="status-code-badge">HTTP 404 // UNMAPPED STELLAR REGION</div>
+          <h1 class="drift-title">DEEP SPACE DRIFT</h1>
+          <p class="drift-explanation">
+            Carrier signal lost. The astrodynamics engine cannot resolve celestial coordinates for this trajectory. The coordinates you requested do not correlate to any cataloged waypoint in the Jovian orbital sphere.
+          </p>
 
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+          <div class="telemetry-readout-card">
+            <div class="readout-col">
+              <span class="readout-label">ANOMALY DESIGNATION:</span>
+              <span class="readout-val alert">SECTOR-404-NULL</span>
+            </div>
+            <div class="readout-col">
+              <span class="readout-label">CARRIER FREQUENCY:</span>
+              <span class="readout-val">1420.405 MHz (HI-LINE)</span>
+            </div>
+            <div class="readout-col">
+              <span class="readout-label">MERIDIAN DRIFT:</span>
+              <span class="readout-val">UNRESOLVED</span>
+            </div>
+            <div class="readout-col">
+              <span class="readout-label">SYSTEM RECOVERY:</span>
+              <span class="readout-val success">CHANNELS STANDBY</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        background-color: var(--void);
-        color: var(--moon);
-        font-family: var(--font-body);
-        overflow: hidden;
-      }
+      {/* Recalibration Section */}
+      <section class="recalibration-section" aria-label="Course Recalibration">
+        <div class="section-header">
+          <h2 class="section-title">RECALIBRATE NAVIGATION VECTOR</h2>
+          <p class="section-subtitle">Select an authorized spaceport or observatory outpost to re-establish synchronous telemetry:</p>
+        </div>
 
-      .error-container {
-        position: relative;
-        width: 100%;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        <div class="vectors-grid">
+          {recoveryVectors.map((vector) => (
+            <a href={vector.href} class="vector-card">
+              <div class="vector-icon-wrap">
+                <img src={vector.icon} alt="" width="36" height="36" class="vector-icon-img" />
+              </div>
+              <div class="vector-body">
+                <div class="vector-top">
+                  <span class="vector-tag">{vector.tag}</span>
+                  <span class="vector-arrow">→</span>
+                </div>
+                <h3 class="vector-title">{vector.title}</h3>
+                <p class="vector-desc">{vector.subtitle}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <div class="primary-return-strip">
+          <a href="/" class="primary-home-btn">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            <span>RETURN TO CALLISTO BASE STATION</span>
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <style>
+    .drift-sector-page {
+      min-height: calc(100vh - 80px);
+      padding: 3rem 1.5rem 5rem;
+      background: radial-gradient(circle at 50% 20%, rgba(244, 63, 94, 0.08) 0%, transparent 65%),
+                  radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.04) 0%, transparent 50%),
+                  var(--void, #0b0507);
+      color: var(--moon, #fff5f5);
+      font-family: var(--font-body, 'Inter', sans-serif);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .drift-container {
+      max-width: 1080px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    /* Top HUD Strip */
+    .telemetry-hud-strip {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hud-pill {
+      font-family: var(--font-mono, monospace);
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+      color: var(--steel, #94a3b8);
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .hud-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f43f5e;
+      box-shadow: 0 0 8px #f43f5e;
+    }
+
+    .hud-indicator.pulse {
+      animation: hudPulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes hudPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    /* Radar Hero Section */
+    .radar-hero-section {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 2.5rem;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      border-radius: 16px;
+      padding: 2.25rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Radar Screen */
+    .radar-scan-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .radar-screen {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(244, 63, 94, 0.15) 0%, rgba(15, 23, 42, 0.95) 80%);
+      border: 2px solid rgba(244, 63, 94, 0.5);
+      box-shadow: 0 0 24px rgba(244, 63, 94, 0.25), inset 0 0 20px rgba(244, 63, 94, 0.2);
+      overflow: hidden;
+    }
+
+    .radar-sweep {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(244, 63, 94, 0.45) 0deg, transparent 60deg, transparent 360deg);
+      animation: radarRotate 4s linear infinite;
+    }
+
+    @keyframes radarRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .radar-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px dashed rgba(244, 63, 94, 0.3);
+    }
+    .radar-ring.r1 { width: 33%; height: 33%; }
+    .radar-ring.r2 { width: 66%; height: 66%; }
+    .radar-ring.r3 { width: 95%; height: 95%; }
+
+    .radar-crosshair-h {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: rgba(244, 63, 94, 0.25);
+    }
+
+    .radar-crosshair-v {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 1px;
+      height: 100%;
+      background: rgba(244, 63, 94, 0.25);
+    }
+
+    .radar-blip {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fbbf24;
+      box-shadow: 0 0 8px #fbbf24;
+    }
+    .radar-blip.b1 { top: 35%; left: 70%; animation: blipFade 2s ease-in-out infinite; }
+    .radar-blip.b2 { top: 68%; left: 28%; animation: blipFade 2s ease-in-out infinite 0.7s; }
+
+    @keyframes blipFade {
+      0%, 100% { opacity: 0.2; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.4); }
+    }
+
+    .radar-center-insignia {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+
+    .radar-emblem {
+      border-radius: 50%;
+      border: 1.5px solid rgba(244, 63, 94, 0.6);
+      box-shadow: 0 0 12px rgba(244, 63, 94, 0.5);
+      object-fit: cover;
+    }
+
+    /* Alert Content */
+    .alert-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .status-code-badge {
+      font-family: var(--font-mono, monospace);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: #f43f5e;
+      font-weight: 700;
+    }
+
+    .drift-title {
+      font-family: var(--font-display, serif);
+      font-size: clamp(2.25rem, 4vw, 3.25rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      margin: 0;
+      color: var(--moon, #fff5f5);
+      text-shadow: 0 0 24px rgba(244, 63, 94, 0.35);
+    }
+
+    .drift-explanation {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--steel, #cbd5e1);
+      margin: 0;
+      max-width: 640px;
+    }
+
+    /* Telemetry Readout Grid */
+    .telemetry-readout-card {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+      padding: 0.85rem 1rem;
+      background: rgba(11, 15, 25, 0.7);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      border-radius: 8px;
+    }
+
+    .readout-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .readout-label {
+      font-family: var(--font-mono, monospace);
+      font-size: 0.625rem;
+      letter-spacing: 0.1em;
+      color: var(--steel, #94a3b8);
+    }
+
+    .readout-val {
+      font-family: var(--font-mono, monospace);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--moon, #f8fafc);
+    }
+
+    .readout-val.alert {
+      color: #f43f5e;
+    }
+
+    .readout-val.success {
+      color: #22c55e;
+    }
+
+    /* Vectors Grid */
+    .recalibration-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .section-header {
+      text-align: center;
+    }
+
+    .section-title {
+      font-family: var(--font-mono, monospace);
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      color: var(--orbit, #f43f5e);
+      margin-bottom: 0.35rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.875rem;
+      color: var(--steel, #94a3b8);
+      margin: 0;
+    }
+
+    .vectors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .vector-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.15rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .vector-card:hover {
+      border-color: rgba(244, 63, 94, 0.5);
+      background: rgba(30, 41, 59, 0.7);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(244, 63, 94, 0.15);
+    }
+
+    .vector-icon-wrap {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vector-icon-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .vector-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .vector-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .vector-tag {
+      font-family: var(--font-mono, monospace);
+      font-size: 0.625rem;
+      letter-spacing: 0.12em;
+      color: var(--orbit, #f43f5e);
+      font-weight: 600;
+    }
+
+    .vector-arrow {
+      color: var(--steel, #94a3b8);
+      font-size: 0.85rem;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .vector-card:hover .vector-arrow {
+      transform: translateX(4px);
+      color: #f43f5e;
+    }
+
+    .vector-title {
+      font-family: var(--font-body, 'Inter', sans-serif);
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 0;
+      color: var(--moon, #f8fafc);
+    }
+
+    .vector-desc {
+      font-size: 0.775rem;
+      color: var(--steel, #94a3b8);
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Primary Home Action */
+    .primary-return-strip {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .primary-home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.85rem 1.85rem;
+      background: linear-gradient(135deg, #f43f5e, #be123c);
+      color: #ffffff;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.8125rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(244, 63, 94, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .primary-home-btn:hover {
+      background: linear-gradient(135deg, #fb7185, #e11d48);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(244, 63, 94, 0.6);
+      color: #ffffff;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 768px) {
+      .radar-hero-section {
+        grid-template-columns: 1fr;
         text-align: center;
-        padding: 2rem 1.5rem;
-        background: radial-gradient(circle at center, color-mix(in srgb, var(--navy) 45%, transparent) 0%, var(--void) 75%);
+        padding: 1.5rem;
       }
-
-      /* Sol Counter in Top Right Corner */
-      .sol-counter {
-        position: absolute;
-        top: 2rem;
-        right: 2rem;
-        font-family: var(--font-mono);
-        font-size: 0.8125rem;
-        letter-spacing: 0.15em;
-        color: var(--steel);
-        background: color-mix(in srgb, var(--navy) 60%, transparent);
-        border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
-        padding: 0.35rem 0.75rem;
-        border-radius: 9999px;
-        display: flex;
+      .alert-content {
         align-items: center;
-        gap: 0.5rem;
       }
-
-      .sol-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background-color: var(--sol-dust);
-        box-shadow: 0 0 8px var(--sol-dust);
-      }
-
-      /* Rotating Star Centerpiece */
-      .star-wrapper {
-        width: 140px;
-        height: 140px;
-        margin-bottom: 2rem;
-        animation: rotateGentle 30s linear infinite;
-        filter: drop-shadow(0 0 24px color-mix(in srgb, var(--orbit) 50%, transparent));
-      }
-
-      @keyframes rotateGentle {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      .star-svg {
+      .telemetry-readout-card {
         width: 100%;
-        height: 100%;
+        grid-template-columns: 1fr 1fr;
+        text-align: left;
       }
+    }
 
-      /* Status Telemetry */
-      .error-status {
-        font-family: var(--font-mono);
-        font-size: 0.875rem;
-        letter-spacing: 0.25em;
-        text-transform: uppercase;
-        color: var(--astrophage);
-        margin-bottom: 0.5rem;
+    @media (max-width: 480px) {
+      .drift-sector-page {
+        padding: 2rem 1rem 4rem;
       }
-
-      /* Heading */
-      .error-heading {
-        font-family: var(--font-display);
-        font-size: clamp(3rem, 7vw, 5.5rem);
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        color: var(--moon);
-        line-height: 1.05;
-        margin-bottom: 1.25rem;
-        text-shadow: 0 0 30px color-mix(in srgb, var(--orbit) 40%, transparent);
+      .telemetry-readout-card {
+        grid-template-columns: 1fr;
       }
-
-      /* Description */
-      .error-desc {
-        font-family: var(--font-body);
-        font-size: clamp(1rem, 2vw, 1.25rem);
-        line-height: 1.6;
-        color: var(--star);
-        max-width: 520px;
-        margin-bottom: 2.5rem;
+      .vectors-grid {
+        grid-template-columns: 1fr;
       }
-
-      /* Action Button */
-      .return-btn {
-        display: inline-flex;
-        align-items: center;
+      .primary-home-btn {
+        width: 100%;
         justify-content: center;
-        gap: 0.6rem;
-        padding: 0.85rem 2rem;
-        background: linear-gradient(135deg, var(--orbit), var(--dusk));
-        color: var(--moon);
-        font-family: var(--font-mono);
-        font-size: 0.875rem;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        text-decoration: none;
-        border-radius: 8px;
-        border: 1px solid color-mix(in srgb, var(--orbit) 50%, transparent);
-        box-shadow: 0 0 24px color-mix(in srgb, var(--orbit) 40%, transparent);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
       }
+    }
 
-      .return-btn:hover,
-      .return-btn:focus-visible {
-        transform: translateY(-2px);
-        box-shadow: 0 0 32px color-mix(in srgb, var(--orbit) 70%, transparent);
-        filter: brightness(1.1);
-        color: #ffffff;
-        outline: none;
+    @media (prefers-reduced-motion: reduce) {
+      .radar-sweep,
+      .radar-blip,
+      .hud-indicator.pulse {
+        animation: none !important;
       }
-
-      /* Coordinates Glitch Decorator */
-      .coordinates-decor {
-        position: absolute;
-        bottom: 2rem;
-        font-family: var(--font-mono);
-        font-size: 0.6875rem;
-        letter-spacing: 0.15em;
-        color: var(--steel);
-        opacity: 0.7;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .star-wrapper {
-          animation: none !important;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <main class="error-container" role="main">
-      <!-- Sol Counter in corner -->
-      <div class="sol-counter" aria-label={`Mission Sol ${solCount}`}>
-        <span class="sol-dot" aria-hidden="true"></span>
-        <span>SOL {solCount}</span>
-      </div>
-
-      <!-- Logo / Insignia Emblem -->
-      <div class="star-wrapper" aria-hidden="true">
-        <img
-          src="/logo.jpg"
-          alt="Callisto Insignia"
-          width="88"
-          height="88"
-          style="border-radius: 50%; box-shadow: 0 0 24px rgba(244, 63, 94, 0.55); border: 2px solid rgba(244, 63, 94, 0.4); object-fit: cover;"
-        />
-      </div>
-
-      <div class="error-status">COMMUNICATION VECTOR UNREACHABLE</div>
-      <h1 class="error-heading">SIGNAL LOST</h1>
-
-      <p class="error-desc">
-        404 — The coordinates you entered don’t match any known destination in the stellar catalog.
-      </p>
-
-      <a href="/" class="return-btn">
-        <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-        </svg>
-        <span>Return to Base</span>
-      </a>
-
-      <div class="coordinates-decor" aria-hidden="true">
-        GRID-LOC: [RA 00h 00m 00s / DEC -90° 00' 00"] // DRIFT VELOCITY: 0 km/s
-      </div>
-    </main>
-
-    <script>
-      import { getSolCount } from '../lib/utils';
-      const liveSol = getSolCount();
-      const solEl = document.querySelector('.sol-counter span');
-      if (solEl) solEl.textContent = `SOL ${liveSol}`;
-    </script>
-  </body>
-</html>
+    }
+  </style>
+</BaseLayout>
