@@ -39,34 +39,34 @@
  */
 
 :root,
-html[data-theme="deep-space"],
-html[data-theme="dark"],
-html.theme-deep-space {
+html[data-theme="solar-flare"],
+html[data-theme="light"],
+html.theme-solar-flare,
+html.light-mode {
   /* ========================================================
-     DEEP SPACE MODE — Pure Pitch Black Void & 3D Perspective Grid
+     SOLAR SLATE MODE — Pure White Void & High-Contrast Black Grid (DEFAULT)
      ======================================================== */
-  --void: #000000;        /* Pure pitch-black deep space void */
-  --deep: rgba(10, 10, 14, 0.85); /* Dark translucent card & module surfaces */
-  --navy: #121217;        /* Mid dark panels & borders */
-  --steel: #A1A1AA;       /* Zinc 400 - high-contrast crisp titanium-slate text & telemetry */
-  --dusk: #27272A;        /* Dark panel border & clean wireframe elevation */
-  --orbit: #F43F5E;       /* Radiant Crimson Ember orbit ring, links & primary glow */
-  --star: #FFFFFF;        /* Crisp starlight white highlights, buttons & badges */
-  --moon: #FFFFFF;        /* Pure starlight white headings & text */
-  --sol-dust: #E05A2B;    /* Mars sol rust warmth */
-  --astrophage: #FF6633;  /* High-energy solar flare amber */
+  --void: #FFFFFF;        /* Pure stark white void */
+  --deep: rgba(255, 255, 255, 0.92); /* Pure solar-clean card surfaces */
+  --navy: #F4F4F6;        /* Soft tinted slate-ember panels */
+  --steel: #27272A;       /* Zinc 800 - crisp high-contrast readable dark text (10:1) */
+  --dusk: #E4E4E7;        /* Clean light borders & dividers */
+  --orbit: #E11D48;       /* Deep crimson-ember accent & focused links */
+  --star: #000000;        /* Deep black for strong contrast starlight glyphs */
+  --moon: #000000;        /* Pure black headings & telemetry (21:1 contrast) */
+  --sol-dust: #C2410C;    /* Mars rust warmth */
+  --astrophage: #EA580C;  /* Radiant flare amber */
 
-  /* Gradients reflecting the Cosmic Grid */
-  --gradient-main: linear-gradient(180deg, #000000 0%, #08080C 100%);
-  --gradient-surface: linear-gradient(180deg, rgba(18, 18, 24, 0.85) 0%, rgba(10, 10, 14, 0.92) 100%);
-  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, #FB7185 100%);
+  --gradient-main: linear-gradient(180deg, #FFFFFF 0%, #F4F4F6 100%);
+  --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 244, 246, 0.96) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, #9F1239 100%);
   --gradient-beacon: linear-gradient(135deg, var(--sol-dust) 0%, var(--astrophage) 100%);
 
   /* Atmospheric Logo Glows */
-  --glow-orbit: 0 0 24px color-mix(in srgb, var(--orbit) 55%, transparent);
-  --glow-star: 0 0 20px color-mix(in srgb, var(--star) 50%, transparent);
-  --glow-astrophage: 0 0 24px color-mix(in srgb, var(--astrophage) 55%, transparent);
-  --glow-subtle: 0 4px 24px rgba(11, 5, 7, 0.7);
+  --glow-orbit: 0 0 16px rgba(225, 29, 72, 0.22);
+  --glow-star: 0 0 16px rgba(159, 18, 57, 0.18);
+  --glow-astrophage: 0 0 16px rgba(234, 88, 12, 0.22);
+  --glow-subtle: 0 4px 20px rgba(15, 23, 42, 0.08);
 
   /* Typography */
   --font-display: 'Cormorant Garamond', Georgia, serif;
@@ -119,30 +119,29 @@ html.theme-deep-space {
 }
 
 /* ========================================================
-   SOLAR SLATE MODE — Pure White Void & High-Contrast Black Grid
+   DEEP SPACE MODE — Pure Pitch Black Void & 3D Perspective Grid
    ======================================================== */
-html[data-theme="solar-flare"],
-html[data-theme="light"],
-html.theme-solar-flare,
-html.light-mode {
-  --void: #FFFFFF;        /* Pure stark white void */
-  --deep: rgba(255, 255, 255, 0.92); /* Pure solar-clean card surfaces */
-  --navy: #F4F4F6;        /* Soft tinted slate-ember panels */
-  --steel: #27272A;       /* Zinc 800 - crisp high-contrast readable dark text (10:1) */
-  --dusk: #E4E4E7;        /* Clean light borders & dividers */
-  --orbit: #E11D48;       /* Deep crimson-ember accent & focused links */
-  --star: #000000;        /* Deep black for strong contrast starlight glyphs */
-  --moon: #000000;        /* Pure black headings & telemetry (21:1 contrast) */
-  --sol-dust: #C2410C;    /* Mars rust warmth */
-  --astrophage: #EA580C;  /* Radiant flare amber */
+html[data-theme="deep-space"],
+html[data-theme="dark"],
+html.theme-deep-space {
+  --void: #000000;        /* Pure pitch-black deep space void */
+  --deep: rgba(10, 10, 14, 0.82); /* Dark translucent card & module surfaces */
+  --navy: #121217;        /* Mid dark panels & borders */
+  --steel: #D4D4D8;       /* Zinc 300 - high-contrast crisp titanium-slate text & telemetry (9:1) */
+  --dusk: #27272A;        /* Dark panel border & clean wireframe elevation */
+  --orbit: #F43F5E;       /* Radiant Crimson Ember orbit ring, links & primary glow */
+  --star: #FFFFFF;        /* Crisp starlight white highlights, buttons & badges */
+  --moon: #FFFFFF;        /* Pure starlight white headings & text */
+  --sol-dust: #FB7185;    /* Radiant accent warmth */
+  --astrophage: #FF6633;  /* High-energy solar flare amber */
 
-  --gradient-main: linear-gradient(180deg, #FFFFFF 0%, #F4F4F6 100%);
-  --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 244, 246, 0.96) 100%);
-  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, #9F1239 100%);
+  --gradient-main: linear-gradient(180deg, #000000 0%, #08080C 100%);
+  --gradient-surface: linear-gradient(180deg, rgba(18, 18, 24, 0.85) 0%, rgba(10, 10, 14, 0.92) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, #FB7185 100%);
   --gradient-beacon: linear-gradient(135deg, var(--sol-dust) 0%, var(--astrophage) 100%);
 
-  --glow-orbit: 0 0 16px rgba(225, 29, 72, 0.22);
-  --glow-star: 0 0 16px rgba(159, 18, 57, 0.18);
-  --glow-astrophage: 0 0 16px rgba(234, 88, 12, 0.22);
-  --glow-subtle: 0 4px 20px rgba(15, 23, 42, 0.08);
+  --glow-orbit: 0 0 24px color-mix(in srgb, var(--orbit) 55%, transparent);
+  --glow-star: 0 0 20px color-mix(in srgb, var(--star) 50%, transparent);
+  --glow-astrophage: 0 0 24px color-mix(in srgb, var(--astrophage) 55%, transparent);
+  --glow-subtle: 0 4px 24px rgba(0, 0, 0, 0.7);
 }

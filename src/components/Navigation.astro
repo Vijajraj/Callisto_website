@@ -677,34 +677,33 @@ const isLinkActive = (href: string): boolean => {
     const btn = target?.closest('[data-flat-toggle]');
     if (!btn) return;
 
-    const isCurrentlySolar =
-      document.documentElement.classList.contains('theme-solar-flare') ||
-      document.documentElement.classList.contains('light-mode') ||
-      document.documentElement.getAttribute('data-theme') === 'solar-flare';
-    const nextIsSolar = !isCurrentlySolar;
+    const isCurrentlyDeepSpace =
+      document.documentElement.classList.contains('theme-deep-space') ||
+      document.documentElement.getAttribute('data-theme') === 'deep-space';
+    const nextIsDeepSpace = !isCurrentlyDeepSpace;
 
-    if (nextIsSolar) {
-      document.documentElement.classList.add('theme-solar-flare');
-      document.documentElement.classList.add('light-mode');
-      document.documentElement.classList.remove('theme-deep-space');
-      document.documentElement.setAttribute('data-theme', 'solar-flare');
-    } else {
+    if (nextIsDeepSpace) {
       document.documentElement.classList.add('theme-deep-space');
       document.documentElement.classList.remove('theme-solar-flare');
       document.documentElement.classList.remove('light-mode');
       document.documentElement.setAttribute('data-theme', 'deep-space');
+    } else {
+      document.documentElement.classList.add('theme-solar-flare');
+      document.documentElement.classList.add('light-mode');
+      document.documentElement.classList.remove('theme-deep-space');
+      document.documentElement.setAttribute('data-theme', 'solar-flare');
     }
 
     try {
-      localStorage.setItem('callisto-theme', nextIsSolar ? 'solar-flare' : 'deep-space');
+      localStorage.setItem('callisto-theme', nextIsDeepSpace ? 'deep-space' : 'solar-flare');
     } catch (e) {
       /* LocalStorage fallback */
     }
 
     // Sync all toggle buttons on the page
     document.querySelectorAll('[data-flat-toggle]').forEach((b) => {
-      b.setAttribute('aria-label', nextIsSolar ? 'Switch to Deep Space mode' : 'Switch to Solar mode');
-      b.setAttribute('title', nextIsSolar ? 'Switch to Deep Space mode' : 'Switch to Solar mode');
+      b.setAttribute('aria-label', nextIsDeepSpace ? 'Switch to Solar mode' : 'Switch to Deep Space mode');
+      b.setAttribute('title', nextIsDeepSpace ? 'Switch to Solar mode' : 'Switch to Deep Space mode');
     });
   });
 

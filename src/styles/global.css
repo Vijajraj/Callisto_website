@@ -62,18 +62,29 @@ html {
   font-size: 100%;
   scrollbar-width: thin;
   scrollbar-color: var(--orbit) var(--deep);
+  background-color: var(--void);
+  color: var(--moon);
 }
 
 body {
   font-family: var(--font-body);
   color: var(--moon);
-  background-color: transparent;
+  background-color: transparent !important;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   overflow-x: hidden;
   transition: color 0.3s ease;
+}
+
+main {
+  background-color: transparent !important;
+}
+
+/* Theme body overrides */
+html body {
+  background-color: transparent !important;
 }
 
 /* Solar Slate / Light Mode Overrides */

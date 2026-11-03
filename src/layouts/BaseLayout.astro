@@ -81,13 +81,14 @@ const ogImageUrl = ogImage
     <!-- Astro 5 Client Router for seamless persistent page transitions -->
     <ClientRouter />
 
-    <!-- Prevent flash of unstyled theme / Space Theme preference script -->
+    <!-- Prevent flash of unstyled theme / Light Mode Default preference script -->
     <script is:inline>
       (function () {
         function applyTheme() {
           try {
             var savedTheme = localStorage.getItem('callisto-theme');
-            var isSolar = savedTheme === 'solar-flare' || savedTheme === 'light';
+            // Default to Solar (Light Mode) unless user explicitly chose Deep Space (Dark Mode)
+            var isSolar = savedTheme !== 'deep-space' && savedTheme !== 'dark';
             if (isSolar) {
               document.documentElement.classList.add('theme-solar-flare');
               document.documentElement.classList.add('light-mode');
@@ -148,7 +149,7 @@ const ogImageUrl = ogImage
     flex-direction: column;
     margin: 0;
     padding: 0;
-    background-color: var(--void);
+    background-color: transparent !important;
     color: var(--moon);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
@@ -163,6 +164,7 @@ const ogImageUrl = ogImage
     width: 100%;
     position: relative;
     padding-top: 64px; /* Account for fixed top navigation */
+    background-color: transparent !important;
   }
 
   main:focus {
