@@ -18,7 +18,8 @@
     "astro": "astro",
     "backend": "node scripts/start-backend.cjs",
     "db:seed": "node scripts/db-seed.cjs",
-    "watermark": "node scripts/inject-watermarks.cjs"
+    "watermark": "node scripts/inject-watermarks.cjs",
+    "watermark:watch": "node scripts/inject-watermarks.cjs --watch"
   },
   "dependencies": {
     "astro": "^5.7.0",
