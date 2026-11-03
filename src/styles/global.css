@@ -67,20 +67,13 @@ html {
 body {
   font-family: var(--font-body);
   color: var(--moon);
-  background-color: var(--void);
-  /* Ambient cosmic nebula gradient reproducing the Crimson Ember atmosphere */
-  background-image:
-    radial-gradient(ellipse 65% 45% at 75% 20%, rgba(127, 29, 29, 0.25) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 55% at 18% 70%, rgba(43, 18, 28, 0.45) 0%, transparent 70%),
-    linear-gradient(160deg, #0B0507 0%, #160B10 45%, #240C16 100%);
-  background-attachment: fixed;
-  background-size: cover;
+  background-color: transparent;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: color 0.3s ease;
 }
 
 /* Solar Slate / Light Mode Overrides */
@@ -88,20 +81,12 @@ html[data-theme="solar-flare"] body,
 html[data-theme="light"] body,
 html.theme-solar-flare body,
 html.light-mode body {
-  background-color: var(--void);
-  background-image:
-    radial-gradient(ellipse 60% 40% at 80% 15%, rgba(254, 205, 211, 0.35) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 50% at 15% 75%, rgba(241, 245, 249, 0.8) 0%, transparent 65%),
-    linear-gradient(160deg, #F8FAFC 0%, #F1F5F9 50%, #FFF1F2 100%);
+  background-color: transparent;
   color: var(--moon);
 }
 
-html[data-theme="solar-flare"] canvas[aria-hidden="true"],
-html[data-theme="light"] canvas[aria-hidden="true"],
-html.theme-solar-flare canvas[aria-hidden="true"],
-html.light-mode canvas[aria-hidden="true"] {
-  opacity: 0.15;
-  filter: invert(1);
+canvas[aria-hidden="true"] {
+  opacity: 1;
 }
 
 /* Primary and Outline Buttons High Contrast Guarantee */

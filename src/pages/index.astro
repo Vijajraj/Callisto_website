@@ -42,7 +42,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import DepartmentCard from '../components/DepartmentCard.astro';
-import Starfield from '../components/react/Starfield';
 import CrescentLoader from '../components/react/CrescentLoader';
 import EventCountdown from '../components/react/EventCountdown';
 import JovianOrrery from '../components/react/JovianOrrery';
@@ -58,9 +57,6 @@ const previewDepartments = departments.slice(0, 5);
 ---
 
 <BaseLayout title="Callisto | Space Expedition & Astronomy Club" description="Embark on an expedition into observational astrophysics, space robotics, and celestial cartography with Callisto Club.">
-  <!-- Interactive Starfield Canvas Island -->
-  <Starfield client:load />
-
   <!-- Act 0 Opening Sequence Overlay -->
   <CrescentLoader client:load />
 

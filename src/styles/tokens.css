@@ -43,23 +43,23 @@ html[data-theme="deep-space"],
 html[data-theme="dark"],
 html.theme-deep-space {
   /* ========================================================
-     DEEP SPACE MODE — Crimson Ember & Mars Rust
+     DEEP SPACE MODE — Pure Pitch Black Void & 3D Perspective Grid
      ======================================================== */
-  --void: #0B0507;        /* Deep obsidian ember space base */
-  --deep: #160B10;        /* Rich dark crimson card & module surfaces */
-  --navy: #2B121C;        /* Crimson-nebula mid panels & gradients */
-  --steel: #94A3B8;       /* Slate 400 - high-contrast crisp titanium-slate text & telemetry (6.8:1) */
-  --dusk: #7F1D1D;        /* Glowing deep crimson twilight haze */
+  --void: #000000;        /* Pure pitch-black deep space void */
+  --deep: rgba(10, 10, 14, 0.85); /* Dark translucent card & module surfaces */
+  --navy: #121217;        /* Mid dark panels & borders */
+  --steel: #A1A1AA;       /* Zinc 400 - high-contrast crisp titanium-slate text & telemetry */
+  --dusk: #27272A;        /* Dark panel border & clean wireframe elevation */
   --orbit: #F43F5E;       /* Radiant Crimson Ember orbit ring, links & primary glow */
-  --star: #FFB399;        /* Mars starlight peach-amber highlights, buttons & badges */
-  --moon: #FFF5F5;        /* Crescent warm starlight white headings & text */
+  --star: #FFFFFF;        /* Crisp starlight white highlights, buttons & badges */
+  --moon: #FFFFFF;        /* Pure starlight white headings & text */
   --sol-dust: #E05A2B;    /* Mars sol rust warmth */
   --astrophage: #FF6633;  /* High-energy solar flare amber */
 
-  /* Gradients reflecting the Crimson Ember nebula */
-  --gradient-main: linear-gradient(160deg, #0B0507 0%, #2B121C 55%, #7F1D1D 100%);
-  --gradient-surface: linear-gradient(180deg, color-mix(in srgb, #2B121C 75%, transparent) 0%, color-mix(in srgb, #160B10 90%, transparent) 100%);
-  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, var(--star) 100%);
+  /* Gradients reflecting the Cosmic Grid */
+  --gradient-main: linear-gradient(180deg, #000000 0%, #08080C 100%);
+  --gradient-surface: linear-gradient(180deg, rgba(18, 18, 24, 0.85) 0%, rgba(10, 10, 14, 0.92) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, #FB7185 100%);
   --gradient-beacon: linear-gradient(135deg, var(--sol-dust) 0%, var(--astrophage) 100%);
 
   /* Atmospheric Logo Glows */
@@ -119,25 +119,25 @@ html.theme-deep-space {
 }
 
 /* ========================================================
-   SOLAR SLATE MODE (Light Mode with Crisp Cosmic Contrast)
+   SOLAR SLATE MODE — Pure White Void & High-Contrast Black Grid
    ======================================================== */
 html[data-theme="solar-flare"],
 html[data-theme="light"],
 html.theme-solar-flare,
 html.light-mode {
-  --void: #F8FAFC;        /* Crisp Titanium-Slate wash (Slate 50) */
-  --deep: #FFFFFF;        /* Pure solar-clean card surfaces */
-  --navy: #F1F5F9;        /* Soft tinted slate-ember panels (Slate 100) */
-  --steel: #475569;       /* Slate 600 - crisp high-contrast readable text & borders (6:1) */
-  --dusk: #881337;        /* Rich dark crimson dusk for high-contrast button gradients */
-  --orbit: #E11D48;       /* Deep crimson-ember accent & focused links (4.6:1 contrast) */
-  --star: #9F1239;        /* Deep Mars crimson for strong starlight glyphs & subheadings (7:1) */
-  --moon: #0F172A;        /* Deep Slate 900 headings & telemetry (16.5:1 contrast) */
-  --sol-dust: #C2410C;    /* Mars rust warmth (4.8:1 contrast) */
-  --astrophage: #EA580C;  /* Radiant flare amber (4.5:1 contrast) */
+  --void: #FFFFFF;        /* Pure stark white void */
+  --deep: rgba(255, 255, 255, 0.92); /* Pure solar-clean card surfaces */
+  --navy: #F4F4F6;        /* Soft tinted slate-ember panels */
+  --steel: #27272A;       /* Zinc 800 - crisp high-contrast readable dark text (10:1) */
+  --dusk: #E4E4E7;        /* Clean light borders & dividers */
+  --orbit: #E11D48;       /* Deep crimson-ember accent & focused links */
+  --star: #000000;        /* Deep black for strong contrast starlight glyphs */
+  --moon: #000000;        /* Pure black headings & telemetry (21:1 contrast) */
+  --sol-dust: #C2410C;    /* Mars rust warmth */
+  --astrophage: #EA580C;  /* Radiant flare amber */
 
-  --gradient-main: linear-gradient(160deg, #F8FAFC 0%, #F1F5F9 55%, #FFE4E6 100%);
-  --gradient-surface: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+  --gradient-main: linear-gradient(180deg, #FFFFFF 0%, #F4F4F6 100%);
+  --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 244, 246, 0.96) 100%);
   --gradient-accent: linear-gradient(135deg, var(--orbit) 0%, #9F1239 100%);
   --gradient-beacon: linear-gradient(135deg, var(--sol-dust) 0%, var(--astrophage) 100%);
 
