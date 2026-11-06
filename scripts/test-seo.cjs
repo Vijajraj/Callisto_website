@@ -93,6 +93,7 @@ const htmlPages = scanHtml(distDir);
 htmlPages.forEach(hp => {
   const rel = path.relative(distDir, hp);
   const content = fs.readFileSync(hp, 'utf8');
+  if (content.includes('http-equiv="refresh"')) return; // Ignore Astro redirect stubs
 
   const titleMatch = content.match(/<title>([^<]+)<\/title>/i);
   const title = titleMatch ? titleMatch[1].trim() : '';

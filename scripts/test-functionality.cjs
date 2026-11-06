@@ -51,8 +51,6 @@ const requiredPages = [
   '404.html',
   'about/index.html',
   'observatory/index.html',
-  'expedition/index.html',
-  'missions/index.html',
   'gallery/index.html',
   'events/index.html',
   'crew/index.html',
@@ -136,8 +134,6 @@ if (brokenLinks.length === 0) {
 console.log('\n--- Interactive Astro Islands Check ---');
 const clientIslandPages = [
   { page: 'observatory/index.html', islands: ['TonightSkyEphemeris', 'NasaDeepSpaceFeed'] },
-  { page: 'expedition/index.html', islands: ['ExpeditionSimulator'] },
-  { page: 'missions/index.html', islands: ['MissionsConsole'] },
   { page: 'avatar/index.html', islands: ['AvatarBuilder'] },
   { page: 'index.html', islands: ['Starfield', 'SoundHud', 'EventCountdown'] },
 ];

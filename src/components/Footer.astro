@@ -46,11 +46,9 @@ interface FooterLink {
   label: string;
 }
 
-const expeditionLinks: FooterLink[] = [
-  { href: '/expedition', label: 'Flight Deck Simulator' },
-  { href: '/observatory', label: 'Virtual Telescope' },
-  { href: '/missions', label: 'Classified Missions' },
-  { href: '/gallery', label: 'Astrophotography' },
+const observatoryLinks: FooterLink[] = [
+  { href: '/observatory', label: 'Virtual Telescope & Ephemeris' },
+  { href: '/gallery', label: 'Astrophotography Gallery' },
   { href: '/avatar', label: 'Spacesuit Fabricator' },
 ];
 
@@ -87,12 +85,12 @@ const operationsLinks: FooterLink[] = [
         </div>
       </div>
 
-      <!-- Column 2: Expedition Systems Links -->
+      <!-- Column 2: Observatory Systems Links -->
       <div class="footer-col links-col">
-        <h3 class="footer-heading">Expedition</h3>
+        <h3 class="footer-heading">Observatory</h3>
         <ul class="footer-links-list">
           {
-            expeditionLinks.map((item) => (
+            observatoryLinks.map((item) => (
               <li>
                 <a href={item.href} class="footer-link">
                   {item.label}
@@ -259,8 +257,8 @@ const operationsLinks: FooterLink[] = [
     height: 36px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid rgba(244, 63, 94, 0.4);
-    box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
   }
 
   .footer-title {

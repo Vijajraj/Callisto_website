@@ -116,6 +116,10 @@ function callistoWatermarkGuardianPlugin() {
 export default defineConfig({
   site: 'https://callisto.pages.dev',
   output: 'static',
+  redirects: {
+    '/expedition': '/observatory',
+    '/missions': '/events',
+  },
   integrations: [
     react(),
   ],

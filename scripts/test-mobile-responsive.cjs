@@ -69,6 +69,7 @@ const htmlPages = getHtmlFiles(distDir);
 let missingViewport = 0;
 htmlPages.forEach(hp => {
   const content = fs.readFileSync(hp, 'utf8');
+  if (content.includes('http-equiv="refresh"')) return; // Ignore Astro redirect stubs
   if (!content.includes('name="viewport"') || !content.includes('width=device-width')) {
     console.error(`[FAIL] Missing or invalid viewport meta tag in ${hp}`);
     missingViewport++;
@@ -85,7 +86,6 @@ console.log('\n--- Component Mobile Breakpoints & Touch Handlers Audit ---');
 const componentsToCheck = [
   { file: 'src/components/react/TonightSkyEphemeris.tsx', name: 'TonightSkyEphemeris' },
   { file: 'src/components/react/NasaDeepSpaceFeed.tsx', name: 'NasaDeepSpaceFeed' },
-  { file: 'src/components/react/ExpeditionSimulator.tsx', name: 'ExpeditionSimulator' },
   { file: 'src/components/react/SoundHud.tsx', name: 'SoundHud' },
   { file: 'src/pages/404.astro', name: 'Custom 404 Page' },
   { file: 'src/styles/global.css', name: 'Global Stylesheet' },
@@ -108,14 +108,6 @@ componentsToCheck.forEach(c => {
     const hasTouchEvents = content.includes('onTouchStart') && content.includes('onTouchMove');
     if (hasTouchEvents) {
       console.log(`[PASS] ${c.name} has native mobile touch handlers (onTouchStart, onTouchMove).`);
-    } else {
-      console.warn(`[WARN] ${c.name} missing native touch listeners.`);
-      responsiveIssues++;
-    }
-  } else if (c.name === 'ExpeditionSimulator') {
-    const hasTouchEvents = content.includes('onTouchEnd');
-    if (hasTouchEvents) {
-      console.log(`[PASS] ${c.name} has native mobile touch tap selection handler (onTouchEnd).`);
     } else {
       console.warn(`[WARN] ${c.name} missing native touch listeners.`);
       responsiveIssues++;
