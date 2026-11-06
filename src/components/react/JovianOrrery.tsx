@@ -144,9 +144,7 @@ const JOVIAN_BODIES: JovianBody[] = [
 export default function JovianOrrery(): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [selectedBody, setSelectedBody] = useState<JovianBody>(JOVIAN_BODIES[4]); // Default to Callisto
-  const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [speedMultiplier, setSpeedMultiplier] = useState<number>(1.0);
-  const [showOrbits, setShowOrbits] = useState<boolean>(true);
 
   const anglesRef = useRef<{ [key: string]: number }>({
     io: 0.5,
@@ -154,9 +152,6 @@ export default function JovianOrrery(): React.ReactElement {
     ganymede: 4.0,
     callisto: 1.2,
   });
-
-  const isPlayingRef = useRef(isPlaying);
-  isPlayingRef.current = isPlaying;
 
   const speedRef = useRef(speedMultiplier);
   speedRef.current = speedMultiplier;
@@ -179,29 +174,37 @@ export default function JovianOrrery(): React.ReactElement {
       const centerX = width / 2;
       const centerY = height / 2;
 
+      const isLight =
+        typeof document !== 'undefined' &&
+        (document.documentElement.classList.contains('light-mode') ||
+          document.documentElement.getAttribute('data-theme') === 'solar-flare');
+
       ctx.clearRect(0, 0, width, height);
 
-      // Advance angles if playing
-      if (isPlayingRef.current) {
-        JOVIAN_BODIES.slice(1).forEach((moon) => {
-          anglesRef.current[moon.id] =
-            (anglesRef.current[moon.id] + moon.orbitalSpeedRadPerSec * speedRef.current * dt) %
-            (Math.PI * 2);
-        });
-      }
+      // Advance orbital angles smoothly (always active)
+      JOVIAN_BODIES.slice(1).forEach((moon) => {
+        anglesRef.current[moon.id] =
+          (anglesRef.current[moon.id] + moon.orbitalSpeedRadPerSec * speedRef.current * dt) %
+          (Math.PI * 2);
+      });
 
-      // Draw Orbit Lines
-      if (showOrbits) {
-        JOVIAN_BODIES.slice(1).forEach((moon) => {
-          ctx.strokeStyle = moon.orbitColor;
-          ctx.lineWidth = moon.id === selectedBody.id ? 1.5 : 1;
-          ctx.setLineDash(moon.id === 'callisto' ? [4, 4] : []);
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, moon.orbitalRadiusPx, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.setLineDash([]);
-        });
-      }
+      // Draw Orbit Lines (always enabled by default with theme-contrast styling)
+      JOVIAN_BODIES.slice(1).forEach((moon) => {
+        const isSel = moon.id === selectedBody.id;
+        ctx.strokeStyle = isLight
+          ? isSel
+            ? 'rgba(0, 0, 0, 0.45)'
+            : 'rgba(0, 0, 0, 0.16)'
+          : isSel
+            ? 'rgba(255, 255, 255, 0.65)'
+            : 'rgba(255, 255, 255, 0.22)';
+        ctx.lineWidth = isSel ? 1.5 : 1;
+        ctx.setLineDash(moon.id === 'callisto' ? [4, 4] : []);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, moon.orbitalRadiusPx, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
 
       // Draw Jupiter (Center)
       const jupiterRadius = 24;
@@ -271,8 +274,8 @@ export default function JovianOrrery(): React.ReactElement {
 
         // Selection Target Reticle
         if (isSelected) {
-          ctx.strokeStyle = 'var(--moon, #F7F5FF)';
-          ctx.lineWidth = 1;
+          ctx.strokeStyle = isLight ? '#000000' : '#FFFFFF';
+          ctx.lineWidth = 1.25;
           ctx.beginPath();
           ctx.arc(mx, my, moonRadius + 6, 0, Math.PI * 2);
           ctx.stroke();
@@ -296,10 +299,16 @@ export default function JovianOrrery(): React.ReactElement {
         ctx.arc(mx, my, moonRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Moon Name Label
-        ctx.fillStyle = isSelected ? 'var(--moon, #FFF5F5)' : 'var(--star, #FFB399)';
+        // Moon Name Label (High-contrast with halo outline for 100% legibility in both modes)
         ctx.font = isSelected ? 'bold 10px monospace' : '9px monospace';
         ctx.textAlign = 'center';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.95)';
+        ctx.strokeText(moon.name.toUpperCase(), mx, my + moonRadius + 14);
+
+        ctx.fillStyle = isLight
+          ? isSelected ? '#000000' : '#334155'
+          : isSelected ? '#FFFFFF' : '#CBD5E1';
         ctx.fillText(moon.name.toUpperCase(), mx, my + moonRadius + 14);
       });
 
@@ -308,7 +317,7 @@ export default function JovianOrrery(): React.ReactElement {
 
     animationId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animationId);
-  }, [selectedBody, showOrbits]);
+  }, [selectedBody]);
 
   const selectBody = (body: JovianBody) => {
     setSelectedBody(body);
@@ -329,6 +338,52 @@ export default function JovianOrrery(): React.ReactElement {
       }}
       aria-label="Interactive Jovian System Orbital Orrery"
     >
+      <style>{`
+        .orrery-pill-btn {
+          padding: 0.35rem 0.85rem;
+          font-size: 0.75rem;
+          font-family: var(--font-mono);
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          color: var(--moon) !important;
+          background-color: transparent;
+          border: 1px solid transparent;
+          border-radius: var(--radius-full);
+          cursor: pointer;
+          transition: all 0.18s ease;
+        }
+        .orrery-pill-btn:hover {
+          background-color: color-mix(in srgb, var(--orbit) 18%, transparent);
+          border-color: color-mix(in srgb, var(--orbit) 35%, transparent);
+          color: var(--moon) !important;
+        }
+        .orrery-pill-btn.active {
+          background-color: var(--orbit) !important;
+          color: var(--void) !important;
+          border-color: var(--orbit) !important;
+          font-weight: 700 !important;
+          box-shadow: 0 0 16px color-mix(in srgb, var(--orbit) 50%, transparent) !important;
+        }
+        .orrery-speed-btn {
+          padding: 0.4rem 0.85rem;
+          font-size: 0.75rem;
+          font-family: var(--font-mono);
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          background-color: color-mix(in srgb, var(--navy) 70%, transparent);
+          color: var(--moon);
+          border: 1px solid color-mix(in srgb, var(--steel) 40%, transparent);
+          border-radius: var(--radius-sm);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .orrery-speed-btn:hover {
+          border-color: var(--orbit);
+          background-color: color-mix(in srgb, var(--orbit) 15%, transparent);
+          color: var(--moon);
+        }
+      `}</style>
+
       {/* Header & Controls Bar */}
       <div
         style={{
@@ -365,27 +420,8 @@ export default function JovianOrrery(): React.ReactElement {
           </h3>
         </div>
 
-        {/* Playback Controls */}
+        {/* Orbital Speed Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            style={{
-              padding: '0.4rem 0.85rem',
-              fontSize: '0.75rem',
-              fontFamily: 'var(--font-mono)',
-              fontWeight: 600,
-              backgroundColor: isPlaying
-                ? 'color-mix(in srgb, var(--navy) 70%, transparent)'
-                : 'color-mix(in srgb, var(--astrophage) 25%, transparent)',
-              color: 'var(--moon)',
-              border: '1px solid color-mix(in srgb, var(--orbit) 40%, transparent)',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-            }}
-          >
-            {isPlaying ? 'PAUSE' : 'RESUME'}
-          </button>
-
           <button
             onClick={() => {
               const speeds = [0.5, 1.0, 2.0, 5.0];
@@ -393,38 +429,11 @@ export default function JovianOrrery(): React.ReactElement {
               setSpeedMultiplier(speeds[nextIdx]);
               playTelemetryBeep(600, 0.05);
             }}
-            style={{
-              padding: '0.4rem 0.75rem',
-              fontSize: '0.75rem',
-              fontFamily: 'var(--font-mono)',
-              fontWeight: 600,
-              backgroundColor: 'color-mix(in srgb, var(--navy) 70%, transparent)',
-              color: 'var(--moon)',
-              border: '1px solid color-mix(in srgb, var(--steel) 40%, transparent)',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-            }}
+            className="orrery-speed-btn"
             title="Cycle orbital speed"
+            aria-label="Cycle orbital speed"
           >
             {speedMultiplier}x SPEED
-          </button>
-
-          <button
-            onClick={() => setShowOrbits(!showOrbits)}
-            style={{
-              padding: '0.4rem 0.75rem',
-              fontSize: '0.75rem',
-              fontFamily: 'var(--font-mono)',
-              backgroundColor: showOrbits
-                ? 'color-mix(in srgb, var(--orbit) 25%, transparent)'
-                : 'color-mix(in srgb, var(--navy) 70%, transparent)',
-              color: 'var(--moon)',
-              border: '1px solid color-mix(in srgb, var(--orbit) 35%, transparent)',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-            }}
-          >
-            {showOrbits ? 'ORBITS: ON' : 'ORBITS: OFF'}
           </button>
         </div>
       </div>
@@ -493,38 +502,7 @@ export default function JovianOrrery(): React.ReactElement {
                 <button
                   key={b.id}
                   onClick={() => selectBody(b)}
-                  style={{
-                    padding: '0.35rem 0.8rem',
-                    fontSize: '0.75rem',
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: isSelected ? 700 : 600,
-                    letterSpacing: '0.04em',
-                    color: isSelected ? '#FFFFFF' : 'var(--moon)',
-                    backgroundColor: isSelected
-                      ? 'var(--orbit)'
-                      : 'transparent',
-                    border: isSelected
-                      ? '1px solid var(--orbit)'
-                      : '1px solid transparent',
-                    borderRadius: 'var(--radius-full)',
-                    cursor: 'pointer',
-                    boxShadow: isSelected
-                      ? '0 0 14px color-mix(in srgb, var(--orbit) 50%, transparent)'
-                      : 'none',
-                    transition: 'all 0.18s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--orbit) 15%, transparent)';
-                      e.currentTarget.style.color = 'var(--orbit)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = 'var(--moon)';
-                    }
-                  }}
+                  className={`orrery-pill-btn ${isSelected ? 'active' : ''}`}
                 >
                   {b.name}
                 </button>
