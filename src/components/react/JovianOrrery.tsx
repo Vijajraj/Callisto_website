@@ -188,24 +188,6 @@ export default function JovianOrrery(): React.ReactElement {
           (Math.PI * 2);
       });
 
-      // Draw Orbit Lines (always enabled by default with theme-contrast styling)
-      JOVIAN_BODIES.slice(1).forEach((moon) => {
-        const isSel = moon.id === selectedBody.id;
-        ctx.strokeStyle = isLight
-          ? isSel
-            ? 'rgba(0, 0, 0, 0.45)'
-            : 'rgba(0, 0, 0, 0.16)'
-          : isSel
-            ? 'rgba(255, 255, 255, 0.65)'
-            : 'rgba(255, 255, 255, 0.22)';
-        ctx.lineWidth = isSel ? 1.5 : 1;
-        ctx.setLineDash(moon.id === 'callisto' ? [4, 4] : []);
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, moon.orbitalRadiusPx, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      });
-
       // Draw Jupiter (Center)
       const jupiterRadius = 24;
       const jupGrad = ctx.createRadialGradient(
