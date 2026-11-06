@@ -44,12 +44,28 @@ import SectionHeading from '../components/SectionHeading.astro';
 import TelescopeSimulator from '../components/react/TelescopeSimulator';
 import NasaDeepSpaceFeed from '../components/react/NasaDeepSpaceFeed';
 import TonightSkyEphemeris from '../components/react/TonightSkyEphemeris';
+
+const preloadedAssets = [
+  '/nasa/pillars-creation.svg',
+  '/nasa/jupiter-storm.svg',
+  '/nasa/smacs-deepfield.svg',
+  '/nasa/saturn-rings.svg',
+  '/nasa/carina-nebula.svg',
+  '/nasa/andromeda-core.svg',
+  '/nasa/io-volcano.svg',
+  '/nasa/blackhole-sgra.svg',
+];
 ---
 
 <BaseLayout
   title="The Observatory & Sky Logs | Callisto Club"
   description="Sky charts, observation forecasts, featured astronomical science dispatches, and deep-sky imaging from Callisto Club."
 >
+  {/* High-priority asset preloading to eliminate expedition load latency */}
+  {preloadedAssets.map((asset) => (
+    <link rel="preload" as="image" type="image/svg+xml" href={asset} />
+  ))}
+
   <div class="observatory-container">
     <!-- Header -->
     <header class="observatory-header">
@@ -68,7 +84,7 @@ import TonightSkyEphemeris from '../components/react/TonightSkyEphemeris';
 
     <!-- Live NASA Deep Space & APOD Gateway Island -->
     <section class="nasa-section" aria-label="NASA Deep Space & APOD Feed">
-      <NasaDeepSpaceFeed client:visible />
+      <NasaDeepSpaceFeed client:load />
     </section>
 
     <!-- Dynamic Automatic Ephemeris & Tonight's Sky Radar Island -->

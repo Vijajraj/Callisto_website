@@ -38,7 +38,7 @@
  * =====================================================================
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 /* =========================================================================
    CALLISTO DEEP SPACE OBSERVATORY & COSMIC ARCHIVE
@@ -230,6 +230,18 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [copiedCitation, setCopiedCitation] = useState<boolean>(false);
 
+  // Pre-decode and cache all 8 expedition vector assets immediately on mount
+  useEffect(() => {
+    COSMIC_DISPATCHES.forEach((d) => {
+      const img = new Image();
+      img.src = d.url;
+      if (d.hdurl && d.hdurl !== d.url) {
+        const hd = new Image();
+        hd.src = d.hdurl;
+      }
+    });
+  }, []);
+
   // Optical Magnifier / Loupe Inspection State
   const [loupeActive, setLoupeActive] = useState<boolean>(false);
   const [loupePos, setLoupePos] = useState<{ x: number; y: number; pctX: number; pctY: number }>({
@@ -359,14 +371,32 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
             onClick={() => setLightboxOpen(true)}
             title="Click for Fullscreen HD Observation"
           >
-            <img
-              key={currentDispatch.id}
-              src={currentDispatch.url}
-              alt={currentDispatch.title}
-              className="viewport-img"
-              style={{ filter: getFilterStyle() }}
-              loading="eager"
-            />
+            {/* Pre-rendered synchronized viewport images for 0ms instantaneous switching */}
+            {COSMIC_DISPATCHES.map((d) => {
+              const isActive = currentDispatch.id === d.id;
+              return (
+                <img
+                  key={d.id}
+                  src={d.url}
+                  alt={d.title}
+                  className={`viewport-img ${isActive ? 'active' : ''}`}
+                  style={{
+                    filter: getFilterStyle(),
+                    opacity: isActive ? 1 : 0,
+                    pointerEvents: isActive ? 'auto' : 'none',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transition: 'opacity 0.12s ease-in-out',
+                  }}
+                  loading="eager"
+                  decoding="sync"
+                />
+              );
+            })}
 
             {/* Interactive Optical Magnifier Loupe */}
             {loupeActive && (
@@ -522,13 +552,23 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
             >
               ✕
             </button>
-            <img
-              key={`lightbox-${currentDispatch.id}`}
-              src={currentDispatch.hdurl}
-              alt={currentDispatch.title}
-              className="lightbox-img"
-              style={{ filter: getFilterStyle() }}
-            />
+            {COSMIC_DISPATCHES.map((d) => {
+              const isActive = currentDispatch.id === d.id;
+              return (
+                <img
+                  key={`lightbox-${d.id}`}
+                  src={d.hdurl}
+                  alt={d.title}
+                  className="lightbox-img"
+                  style={{
+                    filter: getFilterStyle(),
+                    display: isActive ? 'block' : 'none',
+                  }}
+                  loading="eager"
+                  decoding="sync"
+                />
+              );
+            })}
             <div className="lightbox-footer">
               <h4>{currentDispatch.title}</h4>
               <p>
