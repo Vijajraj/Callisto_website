@@ -276,10 +276,25 @@ export default function JovianOrrery(): React.ReactElement {
         }
 
         // Moon Body
-        ctx.fillStyle = moon.bodyColor;
+        const bodyFill = isLight
+          ? (moon.id === 'callisto'
+              ? '#1E293B'
+              : moon.id === 'europa'
+                ? '#4F46E5'
+                : moon.id === 'io'
+                  ? '#D97706'
+                  : '#475569')
+          : moon.bodyColor;
+
+        ctx.fillStyle = bodyFill;
         ctx.beginPath();
         ctx.arc(mx, my, moonRadius, 0, Math.PI * 2);
         ctx.fill();
+
+        // Moon Rim Outline (gives every moon crisp definition against white/black canvas)
+        ctx.strokeStyle = isLight ? '#0F172A' : 'rgba(0, 0, 0, 0.45)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
 
         // Moon Name Label (High-contrast with halo outline for 100% legibility in both modes)
         ctx.font = isSelected ? 'bold 10px monospace' : '9px monospace';
@@ -529,6 +544,7 @@ export default function JovianOrrery(): React.ReactElement {
                   height: '12px',
                   borderRadius: '50%',
                   backgroundColor: selectedBody.bodyColor,
+                  border: '1.5px solid var(--steel)',
                   boxShadow: `0 0 10px ${selectedBody.bodyColor}`,
                   display: 'inline-block',
                 }}
