@@ -100,14 +100,90 @@ canvas[aria-hidden="true"] {
   opacity: 1;
 }
 
-/* Primary and Outline Buttons High Contrast Guarantee */
+/* Retro-futuristic Wireframe Buttons */
 .btn-primary {
+  background: rgba(255, 255, 255, 0.12) !important;
   color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.75) !important;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn-primary:hover,
 .btn-primary:focus-visible {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.7) !important;
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
   color: #FFFFFF !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-outline:hover,
+.btn-outline:focus-visible {
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+/* Wireframe Glassmorphism Cards */
+.brief-card,
+.dept-card,
+.department-card,
+.event-card,
+.act-card,
+.story-card,
+.mission-card {
+  background: rgba(8, 8, 12, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7) !important;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.brief-card:hover,
+.dept-card:hover,
+.department-card:hover,
+.event-card:hover,
+.act-card:hover,
+.story-card:hover,
+.mission-card:hover {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.12) !important;
+  transform: translateY(-3px);
+}
+
+/* Light Mode Overrides */
+html[data-theme="solar-flare"] .btn-primary,
+html.light-mode .btn-primary {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+  border: 1px solid rgba(0, 0, 0, 0.8) !important;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+html[data-theme="solar-flare"] .btn-primary:hover,
+html.light-mode .btn-primary:hover {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  border-color: #000000 !important;
 }
 
 html[data-theme="solar-flare"] .btn-outline,
@@ -115,8 +191,8 @@ html[data-theme="light"] .btn-outline,
 html.theme-solar-flare .btn-outline,
 html.light-mode .btn-outline {
   background-color: #FFFFFF !important;
-  border-color: rgba(71, 85, 105, 0.35) !important;
-  color: var(--star) !important;
+  border-color: rgba(0, 0, 0, 0.35) !important;
+  color: #000000 !important;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
 }
 
@@ -124,10 +200,23 @@ html[data-theme="solar-flare"] .btn-outline:hover,
 html[data-theme="light"] .btn-outline:hover,
 html.theme-solar-flare .btn-outline:hover,
 html.light-mode .btn-outline:hover {
-  background-color: var(--navy) !important;
-  border-color: var(--orbit) !important;
-  color: var(--orbit) !important;
-  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.16) !important;
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16) !important;
+}
+
+html[data-theme="solar-flare"] .dept-card,
+html[data-theme="solar-flare"] .department-card,
+html[data-theme="solar-flare"] .brief-card,
+html[data-theme="solar-flare"] .event-card,
+html.light-mode .dept-card,
+html.light-mode .department-card,
+html.light-mode .brief-card,
+html.light-mode .event-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.14) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Enhanced Light Mode Card & Panel Shadows for Crisp Depth */

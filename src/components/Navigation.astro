@@ -244,11 +244,11 @@ const isLinkActive = (href: string): boolean => {
     left: 0;
     width: 100%;
     height: 64px;
-    background: rgba(11, 5, 7, 0.94);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(244, 63, 94, 0.25);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
@@ -256,8 +256,8 @@ const isLinkActive = (href: string): boolean => {
   :global(html[data-theme="solar-flare"]) .nav-bar,
   :global(html.theme-solar-flare) .nav-bar,
   :global(html.light-mode) .nav-bar {
-    background: rgba(248, 250, 252, 0.95);
-    border-bottom: 1px solid rgba(71, 85, 105, 0.15);
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
     box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
   }
 
@@ -677,33 +677,34 @@ const isLinkActive = (href: string): boolean => {
     const btn = target?.closest('[data-flat-toggle]');
     if (!btn) return;
 
-    const isCurrentlyDeepSpace =
-      document.documentElement.classList.contains('theme-deep-space') ||
-      document.documentElement.getAttribute('data-theme') === 'deep-space';
-    const nextIsDeepSpace = !isCurrentlyDeepSpace;
+    const isCurrentlySolar =
+      document.documentElement.classList.contains('theme-solar-flare') ||
+      document.documentElement.classList.contains('light-mode') ||
+      document.documentElement.getAttribute('data-theme') === 'solar-flare';
+    const nextIsSolar = !isCurrentlySolar;
 
-    if (nextIsDeepSpace) {
-      document.documentElement.classList.add('theme-deep-space');
-      document.documentElement.classList.remove('theme-solar-flare');
-      document.documentElement.classList.remove('light-mode');
-      document.documentElement.setAttribute('data-theme', 'deep-space');
-    } else {
+    if (nextIsSolar) {
       document.documentElement.classList.add('theme-solar-flare');
       document.documentElement.classList.add('light-mode');
       document.documentElement.classList.remove('theme-deep-space');
       document.documentElement.setAttribute('data-theme', 'solar-flare');
+    } else {
+      document.documentElement.classList.add('theme-deep-space');
+      document.documentElement.classList.remove('theme-solar-flare');
+      document.documentElement.classList.remove('light-mode');
+      document.documentElement.setAttribute('data-theme', 'deep-space');
     }
 
     try {
-      localStorage.setItem('callisto-theme', nextIsDeepSpace ? 'deep-space' : 'solar-flare');
+      localStorage.setItem('callisto-theme', nextIsSolar ? 'solar-flare' : 'deep-space');
     } catch (e) {
       /* LocalStorage fallback */
     }
 
     // Sync all toggle buttons on the page
     document.querySelectorAll('[data-flat-toggle]').forEach((b) => {
-      b.setAttribute('aria-label', nextIsDeepSpace ? 'Switch to Solar mode' : 'Switch to Deep Space mode');
-      b.setAttribute('title', nextIsDeepSpace ? 'Switch to Solar mode' : 'Switch to Deep Space mode');
+      b.setAttribute('aria-label', nextIsSolar ? 'Switch to Deep Space Wireframe mode' : 'Switch to Solar mode');
+      b.setAttribute('title', nextIsSolar ? 'Switch to Deep Space Wireframe mode' : 'Switch to Solar mode');
     });
   });
 

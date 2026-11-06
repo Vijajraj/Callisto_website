@@ -81,14 +81,14 @@ const ogImageUrl = ogImage
     <!-- Astro 5 Client Router for seamless persistent page transitions -->
     <ClientRouter />
 
-    <!-- Prevent flash of unstyled theme / Light Mode Default preference script -->
+    <!-- Prevent flash of unstyled theme / Deep Space Wireframe Default preference script -->
     <script is:inline>
       (function () {
         function applyTheme() {
           try {
             var savedTheme = localStorage.getItem('callisto-theme');
-            // Default to Solar (Light Mode) unless user explicitly chose Deep Space (Dark Mode)
-            var isSolar = savedTheme !== 'deep-space' && savedTheme !== 'dark';
+            // Default to Deep Space Wireframe (#000000 + 3D Grid) unless user explicitly chose Solar Flare
+            var isSolar = savedTheme === 'solar-flare' || savedTheme === 'light';
             if (isSolar) {
               document.documentElement.classList.add('theme-solar-flare');
               document.documentElement.classList.add('light-mode');

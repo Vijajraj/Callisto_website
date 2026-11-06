@@ -56,8 +56,8 @@ interface CosmicRipple {
 
 /**
  * Starfield: High-performance 3D perspective wireframe grid & cosmic starfield engine.
- * - Default Mode: Pure white void (#FFFFFF) with high-contrast black stars & 3D wireframe grid plane.
- * - Dark Mode: Pure pitch-black void (#000000) with radiant white stars & luminous perspective grid.
+ * - Primary Theme: Pure pitch-black void (#000000) with radiant white stars & luminous 3D perspective wireframe grid.
+ * - Alternative Theme: High-contrast pure white void (#FFFFFF) with sharp black stars & wireframe grid plane.
  * - Smooth infinite forward flight motion across the celestial grid.
  * - Interactive mouse parallax, warp acceleration on 'W', and shooting stars.
  * - Respects prefers-reduced-motion for a majestic static perspective wallpaper.
@@ -101,14 +101,14 @@ export default function Starfield({
 
     const computeStarCount = (w: number, h: number): number => {
       const area = w * h;
-      const base = Math.floor(Math.min(700, Math.max(350, area / 2600)));
+      const base = Math.floor(Math.min(750, Math.max(380, area / 2400)));
       return Math.round(base * Math.max(0.3, Math.min(density, 2.0)));
     };
 
     let stars: Star[] = [];
     let meteors: Meteor[] = [];
     let ripples: CosmicRipple[] = [];
-    let nextMeteorTime = performance.now() + 4000 + Math.random() * 5000;
+    let nextMeteorTime = performance.now() + 3500 + Math.random() * 4500;
 
     const initStars = () => {
       const starCount = computeStarCount(width, height);
@@ -124,12 +124,12 @@ export default function Starfield({
         const isSpikeStar = spikeIndices.has(i);
         const size = isSpikeStar
           ? Math.random() * 1.0 + 2.0
-          : Math.random() * 1.6 + 0.8;
+          : Math.random() * 1.6 + 0.75;
 
         const parallaxDepth = 0.15 + (size / 2.8) * 0.8;
         const baseOpacity = isSpikeStar
           ? Math.random() * 0.2 + 0.8
-          : Math.random() * 0.7 + 0.3;
+          : Math.random() * 0.75 + 0.25;
 
         stars.push({
           x: Math.random() * width,
@@ -157,11 +157,11 @@ export default function Starfield({
         y: originY,
         vx: Math.cos(angle) * velocity,
         vy: Math.sin(angle) * velocity,
-        length: 90 + Math.random() * 120,
-        thickness: 1.5 + Math.random() * 1.2,
+        length: 100 + Math.random() * 130,
+        thickness: 1.5 + Math.random() * 1.3,
         opacity: 0.95,
         decay: 0.75 + Math.random() * 0.35,
-        color: '244, 63, 94',
+        color: '255, 255, 255',
       });
     };
 
@@ -171,9 +171,9 @@ export default function Starfield({
         x,
         y,
         radius: 2,
-        maxRadius: 130,
-        opacity: 0.8,
-        color: '244, 63, 94',
+        maxRadius: 140,
+        opacity: 0.85,
+        color: '255, 255, 255',
       });
     };
 
@@ -219,7 +219,7 @@ export default function Starfield({
         return;
       }
       spawnRipple(e.clientX, e.clientY);
-      if (Math.random() > 0.6) {
+      if (Math.random() > 0.5) {
         spawnMeteor(e.clientX - 50, e.clientY - 50);
       }
       triggerWarpPulse();
@@ -252,14 +252,15 @@ export default function Starfield({
       const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
 
-      // Detect current theme mode (Default is Light Mode unless theme-deep-space is explicitly set)
-      const isDarkMode =
-        document.documentElement.classList.contains('theme-deep-space') ||
-        document.documentElement.getAttribute('data-theme') === 'deep-space';
+      // Detect current theme mode: Default is Deep Space (#000000 Wireframe)
+      const isLightMode =
+        document.documentElement.classList.contains('theme-solar-flare') ||
+        document.documentElement.classList.contains('light-mode') ||
+        document.documentElement.getAttribute('data-theme') === 'solar-flare';
 
-      const isLightMode = !isDarkMode;
+      const isDarkMode = !isLightMode;
 
-      // High-contrast color palette: Light (Default) vs Dark (Pure Black Void)
+      // Color palette: Default (Pure Black Void & Radiant White Grid) vs Alternative (Pure White Void & Sharp Black Grid)
       const bgColor = isDarkMode ? '#000000' : '#FFFFFF';
       const starColorRgb = isDarkMode ? '255, 255, 255' : '0, 0, 0';
       const gridColorRgb = isDarkMode ? '255, 255, 255' : '0, 0, 0';
@@ -275,12 +276,12 @@ export default function Starfield({
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Horizon geometry (horizon positioned at ~60% of viewport height)
-      const horizonY = Math.round(height * 0.60);
+      // 2. Horizon geometry (horizon positioned at ~58% of viewport height, matching reference image)
+      const horizonY = Math.round(height * 0.58);
       const vanishX = width / 2 - currentMouseX * 35;
       const groundHeight = height - horizonY;
 
-      // 3. Render Stars (visible across entire canvas, upper sky & through grid)
+      // 3. Render Stars across the celestial sky and subtly behind grid
       for (let i = 0; i < stars.length; i++) {
         const star = stars[i];
 
@@ -296,8 +297,8 @@ export default function Starfield({
 
           const twinkle = Math.sin(now * 0.001 * star.twinkleSpeed + star.twinklePhase);
           star.currentOpacity = Math.max(
-            0.2,
-            Math.min(1.0, star.baseOpacity * (0.68 + 0.32 * twinkle))
+            0.25,
+            Math.min(1.0, star.baseOpacity * (0.7 + 0.3 * twinkle))
           );
         } else {
           star.currentOpacity = star.baseOpacity;
@@ -310,7 +311,7 @@ export default function Starfield({
 
         // Render star dot
         const finalAlpha = isDarkMode
-          ? Math.min(1.0, star.currentOpacity * 1.1)
+          ? Math.min(1.0, star.currentOpacity * 1.15)
           : star.currentOpacity * 0.8;
 
         ctx.fillStyle = `rgba(${starColorRgb}, ${finalAlpha})`;
@@ -320,8 +321,8 @@ export default function Starfield({
 
         // Diffraction cross spikes for designated beacon stars in the sky
         if (star.hasSpike && drawY < horizonY) {
-          const spikeLength = star.size * 3.5;
-          ctx.strokeStyle = `rgba(${starColorRgb}, ${finalAlpha * 0.6})`;
+          const spikeLength = star.size * 3.8;
+          ctx.strokeStyle = `rgba(${starColorRgb}, ${finalAlpha * 0.65})`;
           ctx.lineWidth = isDarkMode ? 0.9 : 0.75;
 
           ctx.beginPath();
@@ -334,49 +335,51 @@ export default function Starfield({
       }
 
       // 4. Render 3D Perspective Ground Grid (Retro-futuristic Vector Wireframe)
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, horizonY, width, groundHeight);
-      ctx.clip();
-
-      // Atmospheric horizon glow in dark mode so the horizon stands out brilliantly
+      // Atmospheric horizon glow so the horizon stands out brilliantly
       if (isDarkMode) {
-        const horizonGlow = ctx.createLinearGradient(0, horizonY - 45, 0, horizonY + 35);
+        const horizonGlow = ctx.createLinearGradient(0, horizonY - 45, 0, horizonY + 30);
         horizonGlow.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        horizonGlow.addColorStop(0.55, 'rgba(255, 255, 255, 0.18)');
+        horizonGlow.addColorStop(0.55, 'rgba(255, 255, 255, 0.22)');
         horizonGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
         ctx.fillStyle = horizonGlow;
-        ctx.fillRect(0, horizonY - 45, width, 80);
+        ctx.fillRect(0, horizonY - 45, width, 75);
       } else {
         const horizonGlow = ctx.createLinearGradient(0, horizonY - 30, 0, horizonY + 30);
         horizonGlow.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        horizonGlow.addColorStop(0.5, 'rgba(0, 0, 0, 0.05)');
+        horizonGlow.addColorStop(0.5, 'rgba(0, 0, 0, 0.06)');
         horizonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.fillStyle = horizonGlow;
         ctx.fillRect(0, horizonY - 30, width, 60);
       }
 
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, horizonY, width, groundHeight);
+      ctx.clip();
+
       // Advance infinite forward flight motion
       if (!prefersReducedMotion) {
-        const flightSpeed = 0.22 * speed * (warpFactor > 1.2 ? warpFactor * 2.2 : 1.0);
+        const flightSpeed = 0.38 * speed * (warpFactor > 1.2 ? warpFactor * 2.2 : 1.0);
         gridOffset = (gridOffset + flightSpeed * dt) % 1.0;
       }
 
       // 4a. Transverse (Horizontal) Perspective Lines
-      const horizontalLineCount = 26;
-      for (let k = 1; k <= horizontalLineCount; k++) {
-        const normK = (k + gridOffset) / horizontalLineCount;
-        if (normK <= 0 || normK > 1.04) continue;
-
-        // Non-linear cubic perspective curve: tightly compressed at horizon, wide in foreground
-        const lineY = horizonY + groundHeight * Math.pow(normK, 2.7);
+      // True 3D perspective formula:
+      // z starts at near plane and extends toward the horizon.
+      // u(z) = 1 / (1 + 0.32 * z) gives the exact non-linear optical foreshortening from the image!
+      const totalHorizontalLines = 25;
+      for (let k = 0; k < totalHorizontalLines; k++) {
+        const z = k + (1 - gridOffset);
+        if (z < 0) continue;
+        const u = 1 / (1 + 0.32 * z);
+        const lineY = horizonY + groundHeight * u;
         if (lineY < horizonY || lineY > height + 2) continue;
 
         // Smooth anti-aliased opacity fade near horizon
-        const minAlpha = isDarkMode ? 0.25 : 0.14;
-        const lineAlpha = Math.min(1.0, Math.max(minAlpha, Math.pow(normK, 1.1) * 1.15));
+        const minAlpha = isDarkMode ? 0.32 : 0.2;
+        const lineAlpha = Math.min(1.0, Math.max(minAlpha, u * 1.3));
         ctx.strokeStyle = `rgba(${gridColorRgb}, ${lineAlpha})`;
-        ctx.lineWidth = Math.min(2.0, Math.max(isDarkMode ? 1.0 : 0.75, 0.8 + normK * 1.0));
+        ctx.lineWidth = Math.min(2.2, Math.max(isDarkMode ? 1.2 : 0.85, 0.9 + u * 1.1));
 
         ctx.beginPath();
         ctx.moveTo(0, lineY);
@@ -385,11 +388,11 @@ export default function Starfield({
       }
 
       // 4b. Longitudinal (Perspective Converging) Grid Lines fanning from vanishing point
-      const bottomSpacing = Math.max(38, Math.min(68, width / 18));
+      const bottomSpacing = Math.max(45, Math.min(75, width / 14));
       const rayCount = Math.ceil(width / bottomSpacing) + 16;
       const halfRays = Math.ceil(rayCount / 2);
 
-      ctx.lineWidth = isDarkMode ? 1.25 : 1.0;
+      ctx.lineWidth = isDarkMode ? 1.35 : 1.0;
       ctx.strokeStyle = `rgba(${gridColorRgb}, ${isDarkMode ? 0.95 : 0.85})`;
 
       for (let j = -halfRays; j <= halfRays; j++) {
@@ -402,7 +405,7 @@ export default function Starfield({
 
       // 4c. Crisp Horizon Boundary Line
       ctx.strokeStyle = `rgba(${gridColorRgb}, 1.0)`;
-      ctx.lineWidth = isDarkMode ? 2.0 : 1.5;
+      ctx.lineWidth = isDarkMode ? 2.5 : 1.8;
       ctx.beginPath();
       ctx.moveTo(0, horizonY);
       ctx.lineTo(width, horizonY);
