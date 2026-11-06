@@ -49,8 +49,10 @@ import {
 
 export default function SoundHud(): React.ReactElement {
   const [musicOn, setMusicOn] = useState<boolean>(false);
-  const [volume, setVolume] = useState<number>(0.8);
+  const [volume, setVolume] = useState<number>(0.32);
   const [expanded, setExpanded] = useState<boolean>(false);
+  const [isUsingHtmlAudio, setIsUsingHtmlAudio] = useState<boolean>(false);
+  const [audioStatus, setAudioStatus] = useState<string>('idle');
   const [movement, setMovement] = useState<{ name: string; theme: string }>({
     name: 'SILENT',
     theme: 'STANDBY',
@@ -65,12 +67,20 @@ export default function SoundHud(): React.ReactElement {
       const customEvent = e as CustomEvent<{
         musicEnabled: boolean;
         musicVolume: number;
+        isUsingHtmlAudio?: boolean;
+        audioTrackStatus?: string;
         movementName: string;
         movementTheme: string;
       }>;
       if (customEvent.detail) {
         setMusicOn(customEvent.detail.musicEnabled);
         setVolume(customEvent.detail.musicVolume);
+        if (customEvent.detail.isUsingHtmlAudio !== undefined) {
+          setIsUsingHtmlAudio(customEvent.detail.isUsingHtmlAudio);
+        }
+        if (customEvent.detail.audioTrackStatus) {
+          setAudioStatus(customEvent.detail.audioTrackStatus);
+        }
         setMovement({
           name: customEvent.detail.movementName,
           theme: customEvent.detail.movementTheme,
@@ -105,6 +115,7 @@ export default function SoundHud(): React.ReactElement {
 
   return (
     <div
+      className="sound-hud-container"
       style={{
         position: 'fixed',
         bottom: '1.25rem',
@@ -115,6 +126,14 @@ export default function SoundHud(): React.ReactElement {
       role="region"
       aria-label="Expedition Background Music Audio Console"
     >
+      <style>{`
+        @media (max-width: 768px) {
+          .sound-hud-container {
+            bottom: 0.75rem !important;
+            right: 0.75rem !important;
+          }
+        }
+      `}</style>
       {/* Expanded Master Music Console */}
       {expanded && (
         <div
@@ -246,6 +265,19 @@ export default function SoundHud(): React.ReactElement {
                 ? `${movement.name} // ${movement.theme}`
                 : 'Score in standby (click to engage)'}
             </div>
+
+            {musicOn && (
+              <div
+                style={{
+                  fontSize: '0.58rem',
+                  color: isUsingHtmlAudio ? '#38bdf8' : 'var(--steel)',
+                  marginTop: '0.35rem',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                AUDIO SOURCE: {isUsingHtmlAudio ? 'MP3 NATIVE SOUNDTRACK' : 'PROCEDURAL SYNTH ENGINE'}
+              </div>
+            )}
           </div>
 
           {/* Master Music Toggle */}

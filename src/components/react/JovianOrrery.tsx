@@ -162,10 +162,43 @@ export default function JovianOrrery(): React.ReactElement {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    let isVisible = true;
+    let isRunning = true;
     let animationId: number;
     let lastTime = performance.now();
 
+    let cachedCenterX = -1;
+    let cachedCenterY = -1;
+    let cachedJupGrad: CanvasGradient | null = null;
+    let cachedJupGlow: CanvasGradient | null = null;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        isVisible = entry ? entry.isIntersecting : true;
+        if (isVisible && isRunning) {
+          lastTime = performance.now();
+          cancelAnimationFrame(animationId);
+          animationId = requestAnimationFrame(render);
+        }
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(canvas);
+
+    const handleVisibility = () => {
+      isRunning = !document.hidden;
+      if (isRunning && isVisible) {
+        lastTime = performance.now();
+        cancelAnimationFrame(animationId);
+        animationId = requestAnimationFrame(render);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     const render = (time: number) => {
+      if (!isVisible || !isRunning) return;
+
       const dt = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
 
@@ -190,20 +223,35 @@ export default function JovianOrrery(): React.ReactElement {
 
       // Draw Jupiter (Center)
       const jupiterRadius = 24;
-      const jupGrad = ctx.createRadialGradient(
-        centerX - 6,
-        centerY - 6,
-        2,
-        centerX,
-        centerY,
-        jupiterRadius
-      );
-      jupGrad.addColorStop(0, '#FFD8A8');
-      jupGrad.addColorStop(0.4, '#C98A66');
-      jupGrad.addColorStop(0.7, '#8C4D28');
-      jupGrad.addColorStop(1, '#4A2411');
+      if (cachedCenterX !== centerX || cachedCenterY !== centerY) {
+        cachedCenterX = centerX;
+        cachedCenterY = centerY;
+        cachedJupGrad = ctx.createRadialGradient(
+          centerX - 6,
+          centerY - 6,
+          2,
+          centerX,
+          centerY,
+          jupiterRadius
+        );
+        cachedJupGrad.addColorStop(0, '#FFD8A8');
+        cachedJupGrad.addColorStop(0.4, '#C98A66');
+        cachedJupGrad.addColorStop(0.7, '#8C4D28');
+        cachedJupGrad.addColorStop(1, '#4A2411');
 
-      ctx.fillStyle = jupGrad;
+        cachedJupGlow = ctx.createRadialGradient(
+          centerX,
+          centerY,
+          jupiterRadius,
+          centerX,
+          centerY,
+          jupiterRadius + 12
+        );
+        cachedJupGlow.addColorStop(0, 'rgba(201, 138, 102, 0.35)');
+        cachedJupGlow.addColorStop(1, 'transparent');
+      }
+
+      ctx.fillStyle = cachedJupGrad || '#C98A66';
       ctx.beginPath();
       ctx.arc(centerX, centerY, jupiterRadius, 0, Math.PI * 2);
       ctx.fill();
@@ -230,20 +278,12 @@ export default function JovianOrrery(): React.ReactElement {
       ctx.restore();
 
       // Jupiter Glow
-      const jupGlow = ctx.createRadialGradient(
-        centerX,
-        centerY,
-        jupiterRadius,
-        centerX,
-        centerY,
-        jupiterRadius + 12
-      );
-      jupGlow.addColorStop(0, 'rgba(201, 138, 102, 0.35)');
-      jupGlow.addColorStop(1, 'transparent');
-      ctx.fillStyle = jupGlow;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, jupiterRadius + 12, 0, Math.PI * 2);
-      ctx.fill();
+      if (cachedJupGlow) {
+        ctx.fillStyle = cachedJupGlow;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, jupiterRadius + 12, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       // Draw Galilean Moons
       JOVIAN_BODIES.slice(1).forEach((moon) => {
@@ -309,11 +349,17 @@ export default function JovianOrrery(): React.ReactElement {
         ctx.fillText(moon.name.toUpperCase(), mx, my + moonRadius + 14);
       });
 
-      animationId = requestAnimationFrame(render);
+      if (isVisible && isRunning) {
+        animationId = requestAnimationFrame(render);
+      }
     };
 
     animationId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(animationId);
+    return () => {
+      cancelAnimationFrame(animationId);
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [selectedBody]);
 
   const selectBody = (body: JovianBody) => {

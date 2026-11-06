@@ -84,7 +84,14 @@ let reverbNode: ConvolverNode | null = null;
 
 // Audio States
 let musicEnabled: boolean = false;
-let musicVolume: number = 0.8;
+let musicVolume: number = parseFloat(getStorageItem(STORAGE_KEYS.MUSIC_VOLUME, '0.32'));
+
+// HTML5 Native Audio for MP3 Soundtrack
+let audioElement: HTMLAudioElement | null = null;
+let isUsingHtmlAudio: boolean = false;
+let audioTrackStatus: 'idle' | 'loading' | 'playing' | 'paused' | 'error' = 'idle';
+let audioErrorMessage: string | null = null;
+const SOUNDTRACK_SRC = '/audio/callisto-soundtrack.mp3';
 
 // Conductor / Score State
 let isPlayingScore: boolean = false;
@@ -479,6 +486,70 @@ function stopChronometer() {
   }
 }
 
+function getAudioElement(): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null;
+  if (!audioElement) {
+    audioElement = new Audio();
+    audioElement.src = SOUNDTRACK_SRC;
+    audioElement.loop = true;
+    audioElement.preload = 'metadata';
+    audioElement.volume = musicVolume;
+
+    audioElement.addEventListener('playing', () => {
+      isUsingHtmlAudio = true;
+      audioTrackStatus = 'playing';
+      audioErrorMessage = null;
+      dispatchAudioStateEvent();
+    });
+
+    audioElement.addEventListener('pause', () => {
+      if (!musicEnabled) {
+        audioTrackStatus = 'paused';
+        dispatchAudioStateEvent();
+      }
+    });
+
+    audioElement.addEventListener('error', () => {
+      // If MP3 file not available, fall back to procedural audio engine seamlessly!
+      isUsingHtmlAudio = false;
+      audioTrackStatus = 'error';
+      audioErrorMessage = 'MP3 track not found; fell back to procedural synthesis.';
+      if (musicEnabled && !isPlayingScore) {
+        startProceduralScore();
+      }
+      dispatchAudioStateEvent();
+    });
+  }
+  return audioElement;
+}
+
+function startProceduralScore() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  isPlayingScore = true;
+  if (musicFaderGain) {
+    musicFaderGain.gain.setValueAtTime(0.001, ctx.currentTime);
+    musicFaderGain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 1.8);
+  }
+  currentPhaseIndex = 0;
+  chronometerStep = 0;
+  runSymphonyConductor();
+  startChronometer(ctx);
+}
+
+function stopProceduralScore() {
+  isPlayingScore = false;
+  if (scoreLoopTimeout) {
+    clearTimeout(scoreLoopTimeout);
+    scoreLoopTimeout = null;
+  }
+  stopChronometer();
+  if (audioCtx && musicFaderGain) {
+    musicFaderGain.gain.setValueAtTime(musicFaderGain.gain.value, audioCtx.currentTime);
+    musicFaderGain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+  }
+}
+
 function dispatchAudioStateEvent() {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(
@@ -486,8 +557,19 @@ function dispatchAudioStateEvent() {
       detail: {
         musicEnabled,
         musicVolume,
-        movementName: isPlayingScore ? SCORE_MOVEMENTS[currentPhaseIndex]?.name : 'SILENT',
-        movementTheme: isPlayingScore ? SCORE_MOVEMENTS[currentPhaseIndex]?.theme : 'STANDBY',
+        isUsingHtmlAudio,
+        audioTrackStatus,
+        audioErrorMessage,
+        movementName: isUsingHtmlAudio
+          ? 'ORCHESTRAL SOUNDTRACK'
+          : isPlayingScore
+            ? SCORE_MOVEMENTS[currentPhaseIndex]?.name
+            : 'SILENT',
+        movementTheme: isUsingHtmlAudio
+          ? 'MASTER MP3 AUDIO'
+          : isPlayingScore
+            ? SCORE_MOVEMENTS[currentPhaseIndex]?.theme
+            : 'STANDBY',
       },
     })
   );
@@ -499,33 +581,39 @@ function dispatchAudioStateEvent() {
 
 export function setMusicEnabled(enable: boolean): boolean {
   try {
-    const ctx = getAudioContext();
-    if (!ctx) return false;
-
     musicEnabled = enable;
     setStorageItem(STORAGE_KEYS.MUSIC_ENABLED, enable ? 'true' : 'false');
 
+    const audio = getAudioElement();
+
     if (enable) {
-      isPlayingScore = true;
-      if (musicFaderGain) {
-        musicFaderGain.gain.setValueAtTime(0.001, ctx.currentTime);
-        musicFaderGain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 1.8);
+      if (audio) {
+        audio.volume = musicVolume;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              isUsingHtmlAudio = true;
+              audioTrackStatus = 'playing';
+              audioErrorMessage = null;
+              dispatchAudioStateEvent();
+            })
+            .catch(() => {
+              // Browser autoplay policy blocked or file not found -> seamless procedural fallback
+              isUsingHtmlAudio = false;
+              startProceduralScore();
+              dispatchAudioStateEvent();
+            });
+        }
+      } else {
+        startProceduralScore();
       }
-      currentPhaseIndex = 0;
-      chronometerStep = 0;
-      runSymphonyConductor();
-      startChronometer(ctx);
     } else {
-      isPlayingScore = false;
-      if (scoreLoopTimeout) {
-        clearTimeout(scoreLoopTimeout);
-        scoreLoopTimeout = null;
+      if (audio && !audio.paused) {
+        audio.pause();
       }
-      stopChronometer();
-      if (musicFaderGain) {
-        musicFaderGain.gain.setValueAtTime(musicFaderGain.gain.value, ctx.currentTime);
-        musicFaderGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-      }
+      stopProceduralScore();
+      audioTrackStatus = 'paused';
     }
 
     dispatchAudioStateEvent();
@@ -548,6 +636,10 @@ export function setMusicVolume(vol: number): void {
   musicVolume = clamped;
   setStorageItem(STORAGE_KEYS.MUSIC_VOLUME, clamped.toFixed(2));
 
+  if (audioElement) {
+    audioElement.volume = clamped;
+  }
+
   if (audioCtx && musicMasterGain) {
     musicMasterGain.gain.setValueAtTime(clamped, audioCtx.currentTime);
   }
@@ -559,8 +651,11 @@ export function getMusicVolume(): number {
 }
 
 export function getCurrentMovementInfo(): { name: string; theme: string } {
-  if (!isPlayingScore) {
+  if (!musicEnabled) {
     return { name: 'MUTED', theme: 'STANDBY' };
+  }
+  if (isUsingHtmlAudio) {
+    return { name: 'ORCHESTRAL SOUNDTRACK', theme: 'MASTER MP3 PLAYBACK' };
   }
   const cur = SCORE_MOVEMENTS[currentPhaseIndex];
   return {

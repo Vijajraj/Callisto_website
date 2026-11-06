@@ -93,6 +93,8 @@ export default function Starfield({
 
     // Infinite forward grid scroll offset
     let gridOffset = 0.0;
+    let isRunning = true;
+    let isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
     // Detect prefers-reduced-motion
     const prefersReducedMotion = window.matchMedia(
@@ -100,9 +102,13 @@ export default function Starfield({
     ).matches;
 
     const computeStarCount = (w: number, h: number): number => {
+      if (w < 768) {
+        // Mobile: lightweight 70 stars for optimal memory footprint and 60fps scrolling
+        return Math.round(70 * Math.max(0.4, Math.min(density, 1.2)));
+      }
       const area = w * h;
-      const base = Math.floor(Math.min(750, Math.max(380, area / 2400)));
-      return Math.round(base * Math.max(0.3, Math.min(density, 2.0)));
+      const base = Math.floor(Math.min(420, Math.max(200, area / 3400)));
+      return Math.round(base * Math.max(0.3, Math.min(density, 1.8)));
     };
 
     let stars: Star[] = [];
@@ -110,12 +116,16 @@ export default function Starfield({
     let ripples: CosmicRipple[] = [];
     let nextMeteorTime = performance.now() + 3500 + Math.random() * 4500;
 
+    let cachedHorizonY = -1;
+    let cachedGlowDark: CanvasGradient | null = null;
+    let cachedGlowLight: CanvasGradient | null = null;
+
     const initStars = () => {
       const starCount = computeStarCount(width, height);
       stars = [];
 
       const spikeIndices = new Set<number>();
-      const totalSpikes = Math.floor(Math.random() * 6) + 6;
+      const totalSpikes = isMobile ? 3 : Math.floor(Math.random() * 6) + 6;
       while (spikeIndices.size < totalSpikes && spikeIndices.size < starCount) {
         spikeIndices.add(Math.floor(Math.random() * starCount));
       }
@@ -146,7 +156,7 @@ export default function Starfield({
     };
 
     const spawnMeteor = (startX?: number, startY?: number) => {
-      if (prefersReducedMotion) return;
+      if (prefersReducedMotion || (isMobile && meteors.length >= 1)) return;
       const originX = startX !== undefined ? startX : Math.random() * width * 0.8 + width * 0.1;
       const originY = startY !== undefined ? startY : Math.random() * (height * 0.45);
       const angle = (Math.PI / 4) + (Math.random() * 0.35 - 0.18);
@@ -166,7 +176,7 @@ export default function Starfield({
     };
 
     const spawnRipple = (x: number, y: number) => {
-      if (prefersReducedMotion) return;
+      if (prefersReducedMotion || (isMobile && ripples.length >= 2)) return;
       ripples.push({
         x,
         y,
@@ -186,7 +196,9 @@ export default function Starfield({
     };
 
     const resizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      isMobile = window.innerWidth < 768;
+      // On mobile devices, capping DPR strictly to 1.0 reduces memory by up to 88% and prevents GPU fill rate throttling
+      const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = Math.round(width * dpr);
@@ -194,6 +206,7 @@ export default function Starfield({
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cachedHorizonY = -1; // invalidate gradient cache
       initStars();
     };
 
@@ -245,10 +258,35 @@ export default function Starfield({
     };
     window.addEventListener('resize', handleResize);
 
+    // Visibility change handler to pause RAF when tab is hidden or backgrounded
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        isRunning = false;
+        cancelAnimationFrame(animationFrameId);
+      } else {
+        if (!isRunning && !prefersReducedMotion) {
+          isRunning = true;
+          lastTime = performance.now();
+          animationFrameId = requestAnimationFrame(drawScene);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     // Render loop
     let lastTime = performance.now();
 
     const drawScene = (now: number) => {
+      if (!isRunning) return;
+
+      // On mobile, throttle to max ~55-60fps to prevent battery drain and thermal throttling
+      if (isMobile && now - lastTime < 16) {
+        if (!prefersReducedMotion) {
+          animationFrameId = requestAnimationFrame(drawScene);
+        }
+        return;
+      }
+
       const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
 
@@ -335,22 +373,22 @@ export default function Starfield({
       }
 
       // 4. Render 3D Perspective Ground Grid (Retro-futuristic Vector Wireframe)
-      // Atmospheric horizon glow so the horizon stands out brilliantly
-      if (isDarkMode) {
-        const horizonGlow = ctx.createLinearGradient(0, horizonY - 45, 0, horizonY + 30);
-        horizonGlow.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        horizonGlow.addColorStop(0.55, 'rgba(255, 255, 255, 0.22)');
-        horizonGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = horizonGlow;
-        ctx.fillRect(0, horizonY - 45, width, 75);
-      } else {
-        const horizonGlow = ctx.createLinearGradient(0, horizonY - 30, 0, horizonY + 30);
-        horizonGlow.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        horizonGlow.addColorStop(0.5, 'rgba(0, 0, 0, 0.06)');
-        horizonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = horizonGlow;
-        ctx.fillRect(0, horizonY - 30, width, 60);
+      // Cache atmospheric horizon glow gradient to eliminate 60 allocations/sec GC churn
+      if (cachedHorizonY !== horizonY) {
+        cachedHorizonY = horizonY;
+        cachedGlowDark = ctx.createLinearGradient(0, horizonY - 45, 0, horizonY + 30);
+        cachedGlowDark.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        cachedGlowDark.addColorStop(0.55, 'rgba(255, 255, 255, 0.22)');
+        cachedGlowDark.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        cachedGlowLight = ctx.createLinearGradient(0, horizonY - 30, 0, horizonY + 30);
+        cachedGlowLight.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        cachedGlowLight.addColorStop(0.5, 'rgba(0, 0, 0, 0.06)');
+        cachedGlowLight.addColorStop(1, 'rgba(0, 0, 0, 0)');
       }
+
+      ctx.fillStyle = isDarkMode ? cachedGlowDark! : cachedGlowLight!;
+      ctx.fillRect(0, horizonY - (isDarkMode ? 45 : 30), width, isDarkMode ? 75 : 60);
 
       ctx.save();
       ctx.beginPath();
@@ -367,7 +405,7 @@ export default function Starfield({
       // True 3D perspective formula:
       // z starts at near plane and extends toward the horizon.
       // u(z) = 1 / (1 + 0.32 * z) gives the exact non-linear optical foreshortening from the image!
-      const totalHorizontalLines = 25;
+      const totalHorizontalLines = isMobile ? 13 : 24;
       for (let k = 0; k < totalHorizontalLines; k++) {
         const z = k + (1 - gridOffset);
         if (z < 0) continue;
@@ -388,11 +426,13 @@ export default function Starfield({
       }
 
       // 4b. Longitudinal (Perspective Converging) Grid Lines fanning from vanishing point
-      const bottomSpacing = Math.max(45, Math.min(75, width / 14));
-      const rayCount = Math.ceil(width / bottomSpacing) + 16;
+      const bottomSpacing = isMobile
+        ? Math.max(54, width / 7)
+        : Math.max(45, Math.min(75, width / 14));
+      const rayCount = Math.ceil(width / bottomSpacing) + (isMobile ? 8 : 16);
       const halfRays = Math.ceil(rayCount / 2);
 
-      ctx.lineWidth = isDarkMode ? 1.35 : 1.0;
+      ctx.lineWidth = isDarkMode ? (isMobile ? 1.0 : 1.35) : (isMobile ? 0.8 : 1.0);
       ctx.strokeStyle = `rgba(${gridColorRgb}, ${isDarkMode ? 0.95 : 0.85})`;
 
       for (let j = -halfRays; j <= halfRays; j++) {
@@ -414,7 +454,7 @@ export default function Starfield({
       ctx.restore();
 
       // 5. Cosmic Ripples
-      if (!prefersReducedMotion) {
+      if (!prefersReducedMotion && !isMobile) {
         for (let i = ripples.length - 1; i >= 0; i--) {
           const rip = ripples[i];
           rip.radius += 120 * dt;
@@ -437,7 +477,7 @@ export default function Starfield({
       if (!prefersReducedMotion) {
         if (now > nextMeteorTime) {
           spawnMeteor();
-          nextMeteorTime = now + 5000 + Math.random() * 6000;
+          nextMeteorTime = now + (isMobile ? 7000 : 5000) + Math.random() * (isMobile ? 8000 : 6000);
         }
 
         for (let i = meteors.length - 1; i >= 0; i--) {
@@ -474,7 +514,7 @@ export default function Starfield({
         }
       }
 
-      if (!prefersReducedMotion) {
+      if (!prefersReducedMotion && isRunning) {
         animationFrameId = requestAnimationFrame(drawScene);
       }
     };
@@ -487,6 +527,7 @@ export default function Starfield({
 
     // Re-draw on theme mutation
     const observer = new MutationObserver(() => {
+      cachedHorizonY = -1;
       if (prefersReducedMotion) {
         drawScene(performance.now());
       }
@@ -497,8 +538,10 @@ export default function Starfield({
     });
 
     return () => {
+      isRunning = false;
       cancelAnimationFrame(animationFrameId);
       observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('click', handleWindowClick);
