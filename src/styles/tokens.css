@@ -8,36 +8,6 @@
  * =====================================================================
  */
 
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
 :root,
 html[data-theme="deep-space"],
 html[data-theme="dark"],
@@ -56,18 +26,6 @@ html.theme-deep-space {
   --moon: #FFFFFF;        /* Pure starlight white headings & text */
   --sol-dust: #E2E8F0;    /* Wireframe metallic silver */
   --astrophage: #38BDF8;  /* Cyan telemetry flare */
-
-  /* Wireframe glass gradients */
-  --gradient-main: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(10, 10, 14, 0.75) 100%);
-  --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-  --gradient-accent: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
-  --gradient-beacon: linear-gradient(135deg, #FFFFFF 0%, #38BDF8 100%);
-
-  /* Atmospheric Wireframe Glows */
-  --glow-orbit: 0 0 24px rgba(255, 255, 255, 0.4);
-  --glow-star: 0 0 16px rgba(255, 255, 255, 0.35);
-  --glow-astrophage: 0 0 20px rgba(56, 189, 248, 0.45);
-  --glow-subtle: 0 4px 24px rgba(0, 0, 0, 0.85);
 
   /* Typography */
   --font-display: 'Cormorant Garamond', Georgia, serif;
@@ -104,7 +62,6 @@ html.theme-deep-space {
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Z-Index Layers */
   --z-base: 1;
@@ -114,8 +71,6 @@ html.theme-deep-space {
   --z-modal: 1000;
 
   /* Container Widths */
-  --container-sm: 640px;
-  --container-md: 896px;
   --container-lg: 1200px;
 }
 
@@ -136,14 +91,4 @@ html.light-mode {
   --moon: #000000;        /* Pure black headings & telemetry (21:1 contrast) */
   --sol-dust: #475569;    /* Slate warmth */
   --astrophage: #0284C7;  /* High-contrast blue flare */
-
-  --gradient-main: linear-gradient(180deg, #FFFFFF 0%, #F4F4F6 100%);
-  --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 244, 246, 0.96) 100%);
-  --gradient-accent: linear-gradient(135deg, #000000 0%, #475569 100%);
-  --gradient-beacon: linear-gradient(135deg, #000000 0%, #0284C7 100%);
-
-  --glow-orbit: 0 0 16px rgba(0, 0, 0, 0.2);
-  --glow-star: 0 0 16px rgba(0, 0, 0, 0.15);
-  --glow-astrophage: 0 0 16px rgba(2, 132, 199, 0.22);
-  --glow-subtle: 0 4px 20px rgba(15, 23, 42, 0.08);
 }

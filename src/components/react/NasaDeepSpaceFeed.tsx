@@ -230,17 +230,21 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [copiedCitation, setCopiedCitation] = useState<boolean>(false);
 
-  // Pre-decode and cache all 8 expedition vector assets immediately on mount
+  // Pre-warm adjacent expedition asset on idle for seamless transitions without memory bloat
   useEffect(() => {
-    COSMIC_DISPATCHES.forEach((d) => {
-      const img = new Image();
-      img.src = d.url;
-      if (d.hdurl && d.hdurl !== d.url) {
-        const hd = new Image();
-        hd.src = d.hdurl;
-      }
-    });
-  }, []);
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const handle = (window as any).requestIdleCallback(() => {
+        const nextIndex = (COSMIC_DISPATCHES.findIndex((d) => d.id === currentDispatch.id) + 1) % COSMIC_DISPATCHES.length;
+        const nextImg = new Image();
+        nextImg.src = COSMIC_DISPATCHES[nextIndex].url;
+      });
+      return () => {
+        if ('cancelIdleCallback' in window) {
+          (window as any).cancelIdleCallback(handle);
+        }
+      };
+    }
+  }, [currentDispatch.id]);
 
   // Optical Magnifier / Loupe Inspection State
   const [loupeActive, setLoupeActive] = useState<boolean>(false);
@@ -371,32 +375,27 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
             onClick={() => setLightboxOpen(true)}
             title="Click for Fullscreen HD Observation"
           >
-            {/* Pre-rendered synchronized viewport images for 0ms instantaneous switching */}
-            {COSMIC_DISPATCHES.map((d) => {
-              const isActive = currentDispatch.id === d.id;
-              return (
-                <img
-                  key={d.id}
-                  src={d.url}
-                  alt={d.title}
-                  className={`viewport-img ${isActive ? 'active' : ''}`}
-                  style={{
-                    filter: getFilterStyle(),
-                    opacity: isActive ? 1 : 0,
-                    pointerEvents: isActive ? 'auto' : 'none',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    transition: 'opacity 0.12s ease-in-out',
-                  }}
-                  loading="eager"
-                  decoding="sync"
-                />
-              );
-            })}
+            {/* On-demand active viewport image for high performance & minimal DOM footprint */}
+            <img
+              key={currentDispatch.id}
+              src={currentDispatch.url}
+              alt={currentDispatch.title}
+              className="viewport-img active"
+              style={{
+                filter: getFilterStyle(),
+                opacity: 1,
+                pointerEvents: 'auto',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transition: 'filter 0.2s ease',
+              }}
+              loading="eager"
+              decoding="async"
+            />
 
             {/* Interactive Optical Magnifier Loupe */}
             {loupeActive && (
@@ -552,23 +551,19 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
             >
               ✕
             </button>
-            {COSMIC_DISPATCHES.map((d) => {
-              const isActive = currentDispatch.id === d.id;
-              return (
-                <img
-                  key={`lightbox-${d.id}`}
-                  src={d.hdurl}
-                  alt={d.title}
-                  className="lightbox-img"
-                  style={{
-                    filter: getFilterStyle(),
-                    display: isActive ? 'block' : 'none',
-                  }}
-                  loading="eager"
-                  decoding="sync"
-                />
-              );
-            })}
+            {/* Active expedition fullscreen image on-demand */}
+            <img
+              key={`lightbox-${currentDispatch.id}`}
+              src={currentDispatch.hdurl}
+              alt={currentDispatch.title}
+              className="lightbox-img"
+              style={{
+                filter: getFilterStyle(),
+                display: 'block',
+              }}
+              loading="eager"
+              decoding="async"
+            />
             <div className="lightbox-footer">
               <h4>{currentDispatch.title}</h4>
               <p>
