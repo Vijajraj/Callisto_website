@@ -449,6 +449,7 @@ export default function AvatarBuilder(): React.ReactElement {
 
   return (
     <div
+      className="avatar-builder-card"
       style={{
         backgroundColor: 'var(--deep)',
         border: '1px solid color-mix(in srgb, var(--orbit) 35%, transparent)',
@@ -464,6 +465,140 @@ export default function AvatarBuilder(): React.ReactElement {
         }
         .color-swatch:hover {
           transform: scale(1.1);
+        }
+
+        /* Flight Pass Action Button */
+        .flight-pass-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: #ffffff;
+          color: #000000;
+          border: 1px solid #ffffff;
+          border-radius: var(--radius-sm);
+          font-family: var(--font-mono);
+          font-size: 0.8125rem;
+          font-weight: 700;
+          padding: 0.55rem 1.15rem;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 0 16px rgba(255, 255, 255, 0.35);
+        }
+
+        .flight-pass-btn:hover {
+          background: #f1f5f9;
+          transform: translateY(-2px);
+          box-shadow: 0 0 24px rgba(255, 255, 255, 0.6);
+        }
+
+        .flight-pass-btn.editing {
+          background: transparent;
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          box-shadow: none;
+        }
+
+        .flight-pass-btn.editing:hover {
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+          border-color: #ffffff;
+        }
+
+        /* Light Mode (Solar Flare) Contrast Overrides */
+        html[data-theme="solar-flare"] .avatar-builder-card,
+        html.theme-solar-flare .avatar-builder-card,
+        html.light-mode .avatar-builder-card {
+          background-color: rgba(255, 255, 255, 0.94) !important;
+          border: 1px solid rgba(0, 0, 0, 0.16) !important;
+          box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        html[data-theme="solar-flare"] .flight-pass-btn,
+        html.theme-solar-flare .flight-pass-btn,
+        html.light-mode .flight-pass-btn {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border: 1px solid #000000 !important;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        html[data-theme="solar-flare"] .flight-pass-btn:hover,
+        html.theme-solar-flare .flight-pass-btn:hover,
+        html.light-mode .flight-pass-btn:hover {
+          background: #1e293b !important;
+          border-color: #1e293b !important;
+          color: #ffffff !important;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        html[data-theme="solar-flare"] .flight-pass-btn.editing,
+        html.theme-solar-flare .flight-pass-btn.editing,
+        html.light-mode .flight-pass-btn.editing {
+          background: #ffffff !important;
+          color: #000000 !important;
+          border: 1px solid rgba(0, 0, 0, 0.35) !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        html[data-theme="solar-flare"] .flight-pass-btn.editing:hover,
+        html.theme-solar-flare .flight-pass-btn.editing:hover,
+        html.light-mode .flight-pass-btn.editing:hover {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border-color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .flight-badge-card,
+        html.theme-solar-flare .flight-badge-card,
+        html.light-mode .flight-badge-card {
+          background-color: #ffffff !important;
+          border-color: #000000 !important;
+          box-shadow: 0 4px 24px rgba(15, 23, 42, 0.12) !important;
+        }
+
+        html[data-theme="solar-flare"] .avatar-download-primary,
+        html.theme-solar-flare .avatar-download-primary,
+        html.light-mode .avatar-download-primary {
+          background-color: #000000 !important;
+          color: #ffffff !important;
+          border: 1px solid #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .avatar-download-primary:hover,
+        html.theme-solar-flare .avatar-download-primary:hover,
+        html.light-mode .avatar-download-primary:hover {
+          background-color: #1e293b !important;
+        }
+
+        html[data-theme="solar-flare"] .avatar-download-secondary,
+        html.theme-solar-flare .avatar-download-secondary,
+        html.light-mode .avatar-download-secondary {
+          background-color: #ffffff !important;
+          color: #000000 !important;
+          border: 1px solid rgba(0, 0, 0, 0.35) !important;
+        }
+
+        html[data-theme="solar-flare"] .avatar-download-secondary:hover,
+        html.theme-solar-flare .avatar-download-secondary:hover,
+        html.light-mode .avatar-download-secondary:hover {
+          background-color: #000000 !important;
+          color: #ffffff !important;
+          border-color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .avatar-input,
+        html.theme-solar-flare .avatar-input,
+        html.light-mode .avatar-input {
+          background-color: #ffffff !important;
+          color: #000000 !important;
+          border: 1px solid rgba(0, 0, 0, 0.25) !important;
+        }
+
+        html[data-theme="solar-flare"] .avatar-input:focus,
+        html.theme-solar-flare .avatar-input:focus,
+        html.light-mode .avatar-input:focus {
+          border-color: #000000 !important;
+          box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12) !important;
         }
       `}</style>
 
@@ -495,21 +630,7 @@ export default function AvatarBuilder(): React.ReactElement {
             playTelemetryBeep(1200, 0.08);
             setShowIdCard(!showIdCard);
           }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            background: showIdCard ? 'var(--moon)' : 'linear-gradient(135deg, var(--orbit), var(--dusk))',
-            color: showIdCard ? 'var(--void)' : 'var(--moon)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.8125rem',
-            fontWeight: 700,
-            padding: '0.5rem 1rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-          }}
+          className={`flight-pass-btn ${showIdCard ? 'editing' : ''}`}
         >
           <span>{showIdCard ? 'Edit Customization' : 'Generate Flight Pass'}</span>
         </button>
@@ -518,6 +639,7 @@ export default function AvatarBuilder(): React.ReactElement {
       {showIdCard ? (
         /* Holographic Flight Badge View */
         <div
+          className="flight-badge-card"
           style={{
             maxWidth: '460px',
             margin: '0 auto',
@@ -633,42 +755,14 @@ export default function AvatarBuilder(): React.ReactElement {
             <button
               type="button"
               onClick={handleDownloadImage}
-              style={{
-                padding: '0.65rem 0.5rem',
-                backgroundColor: 'var(--orbit)',
-                color: 'var(--void)',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem',
-              }}
+              className="avatar-download-primary"
             >
               <span>Download Image (.PNG)</span>
             </button>
             <button
               type="button"
               onClick={handleDownloadPdf}
-              style={{
-                padding: '0.65rem 0.5rem',
-                backgroundColor: 'transparent',
-                color: 'var(--moon)',
-                border: '1px solid var(--orbit)',
-                borderRadius: 'var(--radius-sm)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem',
-              }}
+              className="avatar-download-secondary"
             >
               <span>Download PDF Pass</span>
             </button>
@@ -803,34 +897,14 @@ export default function AvatarBuilder(): React.ReactElement {
               <button
                 type="button"
                 onClick={handleDownloadImage}
-                style={{
-                  padding: '0.5rem',
-                  backgroundColor: 'var(--orbit)',
-                  color: 'var(--void)',
-                  border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
+                className="avatar-download-primary"
               >
                 Download Image
               </button>
               <button
                 type="button"
                 onClick={handleDownloadPdf}
-                style={{
-                  padding: '0.5rem',
-                  backgroundColor: 'transparent',
-                  color: 'var(--moon)',
-                  border: '1px solid var(--orbit)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
+                className="avatar-download-secondary"
               >
                 Save as PDF
               </button>
@@ -848,6 +922,7 @@ export default function AvatarBuilder(): React.ReactElement {
                   value={explorerName}
                   onChange={(e) => setExplorerName(e.target.value)}
                   placeholder="Explorer Name"
+                  className="avatar-input"
                   style={inputStyle}
                 />
                 <input
@@ -855,6 +930,7 @@ export default function AvatarBuilder(): React.ReactElement {
                   value={callsign}
                   onChange={(e) => setCallsign(e.target.value)}
                   placeholder="Callsign"
+                  className="avatar-input"
                   style={inputStyle}
                 />
               </div>
