@@ -1350,6 +1350,290 @@ export default function TonightSkyEphemeris(): React.ReactElement {
             min-width: 220px;
           }
         }
+
+        /* ========================================================
+           LIGHT MODE (SOLAR FLARE) CONTRAST & LEGIBILITY OVERRIDES
+           ======================================================== */
+        html[data-theme="solar-flare"] .ephemeris-card,
+        html.theme-solar-flare .ephemeris-card,
+        html.light-mode .ephemeris-card {
+          background: rgba(255, 255, 255, 0.94) !important;
+          border: 1px solid rgba(0, 0, 0, 0.16) !important;
+          box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+        }
+
+        html[data-theme="solar-flare"] .ephemeris-title,
+        html.theme-solar-flare .ephemeris-title,
+        html.light-mode .ephemeris-title {
+          color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .ephemeris-lead,
+        html.theme-solar-flare .ephemeris-lead,
+        html.light-mode .ephemeris-lead {
+          color: #334155 !important;
+        }
+
+        html[data-theme="solar-flare"] .ephemeris-badge,
+        html.theme-solar-flare .ephemeris-badge,
+        html.light-mode .ephemeris-badge {
+          color: #0284c7 !important;
+        }
+
+        /* Conditions Grid Cards in Light Mode */
+        html[data-theme="solar-flare"] .condition-box,
+        html.theme-solar-flare .condition-box,
+        html.light-mode .condition-box {
+          background: #f8fafc !important;
+          border: 1px solid rgba(0, 0, 0, 0.14) !important;
+          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+        }
+
+        html[data-theme="solar-flare"] .cond-label,
+        html.theme-solar-flare .cond-label,
+        html.light-mode .cond-label {
+          color: #475569 !important;
+        }
+
+        html[data-theme="solar-flare"] .cond-val,
+        html.theme-solar-flare .cond-val,
+        html.light-mode .cond-val {
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .cond-val.highlight,
+        html.theme-solar-flare .cond-val.highlight,
+        html.light-mode .cond-val.highlight {
+          color: #0284c7 !important;
+        }
+
+        html[data-theme="solar-flare"] .cond-sub,
+        html.theme-solar-flare .cond-sub,
+        html.light-mode .cond-sub {
+          color: #64748b !important;
+        }
+
+        /* Timeline Astro-Clock Controller in Light Mode */
+        html[data-theme="solar-flare"] .timeline-controller,
+        html.theme-solar-flare .timeline-controller,
+        html.light-mode .timeline-controller {
+          background: #f1f5f9 !important;
+          border: 1px solid rgba(0, 0, 0, 0.14) !important;
+        }
+
+        html[data-theme="solar-flare"] .clock-label,
+        html.theme-solar-flare .clock-label,
+        html.light-mode .clock-label {
+          color: #334155 !important;
+        }
+
+        html[data-theme="solar-flare"] .clock-time,
+        html.theme-solar-flare .clock-time,
+        html.light-mode .clock-time {
+          color: #0284c7 !important;
+        }
+
+        html[data-theme="solar-flare"] .time-chip,
+        html.theme-solar-flare .time-chip,
+        html.light-mode .time-chip {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.22) !important;
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .time-chip:hover,
+        html.theme-solar-flare .time-chip:hover,
+        html.light-mode .time-chip:hover {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border-color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .time-chip.active,
+        html.theme-solar-flare .time-chip.active,
+        html.light-mode .time-chip.active {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border-color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .slider-labels,
+        html.theme-solar-flare .slider-labels,
+        html.light-mode .slider-labels {
+          color: #475569 !important;
+        }
+
+        /* Filter Chips in Light Mode */
+        html[data-theme="solar-flare"] .cat-pill,
+        html.theme-solar-flare .cat-pill,
+        html.light-mode .cat-pill {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.2) !important;
+          color: #1e293b !important;
+        }
+
+        html[data-theme="solar-flare"] .cat-pill:hover,
+        html.theme-solar-flare .cat-pill:hover,
+        html.light-mode .cat-pill:hover {
+          border-color: #000000 !important;
+          color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .cat-pill.active,
+        html.theme-solar-flare .cat-pill.active,
+        html.light-mode .cat-pill.active {
+          background: #000000 !important;
+          border-color: #000000 !important;
+          color: #ffffff !important;
+        }
+
+        /* Table in Light Mode */
+        html[data-theme="solar-flare"] .ephemeris-table-wrap,
+        html.theme-solar-flare .ephemeris-table-wrap,
+        html.light-mode .ephemeris-table-wrap {
+          border: 1px solid rgba(0, 0, 0, 0.16) !important;
+          box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05) !important;
+        }
+
+        html[data-theme="solar-flare"] .ephemeris-table,
+        html.theme-solar-flare .ephemeris-table,
+        html.light-mode .ephemeris-table {
+          background: #ffffff !important;
+        }
+
+        html[data-theme="solar-flare"] .ephemeris-table th,
+        html.theme-solar-flare .ephemeris-table th,
+        html.light-mode .ephemeris-table th {
+          background: #f1f5f9 !important;
+          color: #0f172a !important;
+          font-weight: 700 !important;
+          border-bottom: 2px solid rgba(0, 0, 0, 0.14) !important;
+        }
+
+        html[data-theme="solar-flare"] .target-row:hover,
+        html.theme-solar-flare .target-row:hover,
+        html.light-mode .target-row:hover {
+          background: rgba(241, 245, 249, 0.7) !important;
+        }
+
+        html[data-theme="solar-flare"] .target-row.expanded,
+        html.theme-solar-flare .target-row.expanded,
+        html.light-mode .target-row.expanded {
+          background: rgba(241, 245, 249, 0.95) !important;
+        }
+
+        html[data-theme="solar-flare"] .target-row td,
+        html.theme-solar-flare .target-row td,
+        html.light-mode .target-row td {
+          color: #0f172a !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+
+        html[data-theme="solar-flare"] .body-title,
+        html.theme-solar-flare .body-title,
+        html.light-mode .body-title {
+          color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .body-cat-sub,
+        html.theme-solar-flare .body-cat-sub,
+        html.light-mode .body-cat-sub {
+          color: #64748b !important;
+        }
+
+        html[data-theme="solar-flare"] .const-badge,
+        html.theme-solar-flare .const-badge,
+        html.light-mode .const-badge {
+          background: #f1f5f9 !important;
+          border: 1px solid rgba(0, 0, 0, 0.18) !important;
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .mag-val,
+        html.theme-solar-flare .mag-val,
+        html.light-mode .mag-val {
+          color: #0284c7 !important;
+        }
+
+        html[data-theme="solar-flare"] .elev-badge.below,
+        html.theme-solar-flare .elev-badge.below,
+        html.light-mode .elev-badge.below {
+          background: rgba(100, 116, 139, 0.14) !important;
+          color: #475569 !important;
+          border-color: rgba(100, 116, 139, 0.35) !important;
+        }
+
+        html[data-theme="solar-flare"] .azimuth-text,
+        html.theme-solar-flare .azimuth-text,
+        html.light-mode .azimuth-text {
+          color: #334155 !important;
+        }
+
+        html[data-theme="solar-flare"] .window-text,
+        html.theme-solar-flare .window-text,
+        html.light-mode .window-text {
+          color: #b45309 !important;
+        }
+
+        html[data-theme="solar-flare"] .inspect-btn,
+        html.theme-solar-flare .inspect-btn,
+        html.light-mode .inspect-btn {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.25) !important;
+          color: #0284c7 !important;
+        }
+
+        html[data-theme="solar-flare"] .inspect-btn:hover,
+        html.theme-solar-flare .inspect-btn:hover,
+        html.light-mode .inspect-btn:hover {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border-color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .drawer-content,
+        html.theme-solar-flare .drawer-content,
+        html.light-mode .drawer-content {
+          background: #f8fafc !important;
+          border-left: 3px solid #0284c7 !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.14) !important;
+        }
+
+        html[data-theme="solar-flare"] .meta-label,
+        html.theme-solar-flare .meta-label,
+        html.light-mode .meta-label {
+          color: #0284c7 !important;
+        }
+
+        html[data-theme="solar-flare"] .meta-value,
+        html.theme-solar-flare .meta-value,
+        html.light-mode .meta-value {
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .meta-value.mono,
+        html.theme-solar-flare .meta-value.mono,
+        html.light-mode .meta-value.mono {
+          color: #1e293b !important;
+        }
+
+        html[data-theme="solar-flare"] .drawer-notes,
+        html.theme-solar-flare .drawer-notes,
+        html.light-mode .drawer-notes {
+          border-top: 1px solid rgba(0, 0, 0, 0.12) !important;
+        }
+
+        html[data-theme="solar-flare"] .notes-label,
+        html.theme-solar-flare .notes-label,
+        html.light-mode .notes-label {
+          color: #475569 !important;
+        }
+
+        html[data-theme="solar-flare"] .notes-text,
+        html.theme-solar-flare .notes-text,
+        html.light-mode .notes-text {
+          color: #1e293b !important;
+        }
       `}</style>
     </div>
   );

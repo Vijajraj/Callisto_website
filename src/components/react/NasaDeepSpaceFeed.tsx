@@ -1223,6 +1223,177 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
             justify-content: center;
           }
         }
+
+        /* ========================================================
+           LIGHT MODE (SOLAR FLARE) CONTRAST & LEGIBILITY OVERRIDES
+           ======================================================== */
+        html[data-theme="solar-flare"] .observatory-feed-card,
+        html.theme-solar-flare .observatory-feed-card,
+        html.light-mode .observatory-feed-card {
+          background-color: rgba(255, 255, 255, 0.94) !important;
+          border: 1px solid rgba(0, 0, 0, 0.16) !important;
+          box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        html[data-theme="solar-flare"] .feed-header-bar,
+        html.theme-solar-flare .feed-header-bar,
+        html.light-mode .feed-header-bar {
+          background: #f1f5f9 !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+        }
+
+        html[data-theme="solar-flare"] .brand-title,
+        html.theme-solar-flare .brand-title,
+        html.light-mode .brand-title {
+          color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .brand-badge,
+        html.theme-solar-flare .brand-badge,
+        html.light-mode .brand-badge {
+          color: #0284c7 !important;
+        }
+
+        html[data-theme="solar-flare"] .status-pill.online,
+        html.theme-solar-flare .status-pill.online,
+        html.light-mode .status-pill.online {
+          background: rgba(16, 185, 129, 0.12) !important;
+          color: #047857 !important;
+          border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+
+        html[data-theme="solar-flare"] .station-badge,
+        html.theme-solar-flare .station-badge,
+        html.light-mode .station-badge {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.15) !important;
+          color: #475569 !important;
+        }
+
+        html[data-theme="solar-flare"] .spectral-bar,
+        html.theme-solar-flare .spectral-bar,
+        html.light-mode .spectral-bar {
+          background: #f8fafc !important;
+          border: 1px solid rgba(0, 0, 0, 0.12) !important;
+        }
+
+        html[data-theme="solar-flare"] .spectral-label,
+        html.theme-solar-flare .spectral-label,
+        html.light-mode .spectral-label {
+          color: #475569 !important;
+        }
+
+        html[data-theme="solar-flare"] .spectral-btn,
+        html.theme-solar-flare .spectral-btn,
+        html.light-mode .spectral-btn {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.2) !important;
+          color: #1e293b !important;
+        }
+
+        html[data-theme="solar-flare"] .spectral-btn.active,
+        html.theme-solar-flare .spectral-btn.active,
+        html.light-mode .spectral-btn.active {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border-color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .expeditions-bar,
+        html.theme-solar-flare .expeditions-bar,
+        html.light-mode .expeditions-bar {
+          background: #f8fafc !important;
+          border: 1px solid rgba(0, 0, 0, 0.12) !important;
+        }
+
+        html[data-theme="solar-flare"] .expeditions-title,
+        html.theme-solar-flare .expeditions-title,
+        html.light-mode .expeditions-title {
+          color: #475569 !important;
+        }
+
+        html[data-theme="solar-flare"] .expedition-chip,
+        html.theme-solar-flare .expedition-chip,
+        html.light-mode .expedition-chip {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.2) !important;
+          color: #1e293b !important;
+        }
+
+        html[data-theme="solar-flare"] .expedition-chip:hover,
+        html.theme-solar-flare .expedition-chip:hover,
+        html.light-mode .expedition-chip:hover {
+          border-color: #000000 !important;
+          color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .expedition-chip.active,
+        html.theme-solar-flare .expedition-chip.active,
+        html.light-mode .expedition-chip.active {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border-color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .random-discovery-btn,
+        html.theme-solar-flare .random-discovery-btn,
+        html.light-mode .random-discovery-btn {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.2) !important;
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .meta-card,
+        html.theme-solar-flare .meta-card,
+        html.light-mode .meta-card {
+          background: #f8fafc !important;
+          border: 1px solid rgba(0, 0, 0, 0.14) !important;
+        }
+
+        html[data-theme="solar-flare"] .object-title,
+        html.theme-solar-flare .object-title,
+        html.light-mode .object-title {
+          color: #000000 !important;
+        }
+
+        html[data-theme="solar-flare"] .explanation-prose,
+        html.theme-solar-flare .explanation-prose,
+        html.light-mode .explanation-prose {
+          color: #1e293b !important;
+        }
+
+        html[data-theme="solar-flare"] .spec-item,
+        html.theme-solar-flare .spec-item,
+        html.light-mode .spec-item {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+
+        html[data-theme="solar-flare"] .spec-label,
+        html.theme-solar-flare .spec-label,
+        html.light-mode .spec-label {
+          color: #475569 !important;
+        }
+
+        html[data-theme="solar-flare"] .spec-val,
+        html.theme-solar-flare .spec-val,
+        html.light-mode .spec-val {
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .action-btn.secondary,
+        html.theme-solar-flare .action-btn.secondary,
+        html.light-mode .action-btn.secondary {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.25) !important;
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .credit-text,
+        html.theme-solar-flare .credit-text,
+        html.light-mode .credit-text {
+          color: #64748b !important;
+        }
       `}</style>
     </div>
   );
