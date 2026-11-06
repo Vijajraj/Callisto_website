@@ -74,7 +74,7 @@
   <!-- Telemetry HUD -->
   <g font-family="'Courier New', monospace" font-size="11" fill="#fde047" letter-spacing="1.5">
     <text x="40" y="50">MISSION: JAMES WEBB SPACE TELESCOPE (JWST) // NIRCam F323N</text>
-    <text x="40" y="70">TARGET: SATURN RING SYSTEM & TITAN // 3.23 MICRON METHANE ABSORPTION</text>
+    <text x="40" y="70">TARGET: SATURN RING SYSTEM &amp; TITAN // 3.23 MICRON METHANE ABSORPTION</text>
     <text x="40" y="760">DISTANCE: 1.43 BILLION KM (9.58 AU) // ICE PARTICLES 99% WATER ICE</text>
     <text x="910" y="760">CIT DEEP SKY #JWST-SATURN</text>
   </g>

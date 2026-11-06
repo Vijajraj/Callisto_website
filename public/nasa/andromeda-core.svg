@@ -16,7 +16,7 @@
       <stop offset="100%" stop-color="#140602" stop-opacity="0" />
     </radialGradient>
 
-    <!-- Spiral Arm Disk Gradient (Young Blue Stars & Ionization) -->
+    <!-- Spiral Arm Disk Gradient (Young Blue Stars &amp; Ionization) -->
     <radialGradient id="spiralDisk" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
       <stop offset="40%" stop-color="#79c0ff" stop-opacity="0.45" />
@@ -83,7 +83,7 @@
 
   <!-- Astrophotographic Telemetry HUD -->
   <g font-family="'Courier New', monospace" font-size="11" fill="#79c0ff" letter-spacing="1.5">
-    <text x="40" y="50">SURVEY: HUBBLE & SPITZER JOINT DEEP SKY RECONNAISSANCE</text>
+    <text x="40" y="50">SURVEY: HUBBLE &amp; SPITZER JOINT DEEP SKY RECONNAISSANCE</text>
     <text x="40" y="70">TARGET: ANDROMEDA GALAXY (M31 / NGC 224) // SPIRAL GALAXY CORE</text>
     <text x="40" y="760">DISTANCE: 2.537 MILLION LIGHT-YEARS // APPROACH VELOCITY: ~110 KM/S</text>
     <text x="890" y="760">CIT ARCHIVE: CIT-M31-DEEPCORE</text>

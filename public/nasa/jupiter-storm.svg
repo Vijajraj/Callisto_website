@@ -79,7 +79,7 @@
     <!-- Base Shading -->
     <circle cx="580" cy="400" r="320" fill="url(#jovianSphere)" />
 
-    <!-- Atmospheric Swirling Belts & Zones -->
+    <!-- Atmospheric Swirling Belts &amp; Zones -->
     <!-- North Polar Hood -->
     <path d="M 260 220 Q 580 250 900 220 L 900 80 Q 580 80 260 80 Z" fill="#69432e" opacity="0.6" />
     
@@ -104,7 +104,7 @@
     <!-- South Polar Region -->
     <path d="M 260 560 Q 580 590 900 560 L 900 720 Q 580 720 260 720 Z" fill="#4d2b1b" opacity="0.85" />
 
-    <!-- Turbulent Vortices & Cyclonic Eddies -->
+    <!-- Turbulent Vortices &amp; Cyclonic Eddies -->
     <ellipse cx="440" cy="350" rx="45" ry="12" fill="#cfa57c" opacity="0.7" transform="rotate(-4 440 350)" />
     <ellipse cx="730" cy="360" rx="60" ry="14" fill="#a45229" opacity="0.6" transform="rotate(3 730 360)" />
     <ellipse cx="380" cy="510" rx="35" ry="9" fill="#f0dbbe" opacity="0.8" transform="rotate(-5 380 510)" />
@@ -135,7 +135,7 @@
     <text x="24" y="4" font-family="'Courier New', monospace" font-size="11" fill="#7ee787" letter-spacing="1">CALLISTO (J IV)</text>
   </g>
 
-  <!-- Telemetry HUD & Scientific Watermark -->
+  <!-- Telemetry HUD &amp; Scientific Watermark -->
   <g font-family="'Courier New', monospace" font-size="11" fill="#58a6ff" letter-spacing="1.5">
     <text x="40" y="50">MISSION: NASA JUNO ORBITER // PERIJOVE 62</text>
     <text x="40" y="70">TARGET: JUPITER // GREAT RED SPOT [22.0°S, 130.0°W]</text>

@@ -67,7 +67,7 @@
   <!-- Giant Foreground Star with 8-Point Diffraction Spikes -->
   <g transform="translate(1040, 160)">
     <circle cx="0" cy="0" r="40" fill="url(#starGlow)" />
-    <!-- Horizontal & Vertical Spikes -->
+    <!-- Horizontal &amp; Vertical Spikes -->
     <line x1="-90" y1="0" x2="90" y2="0" stroke="#ffffff" stroke-width="1.8" opacity="0.9" />
     <line x1="0" y1="-90" x2="0" y2="90" stroke="#ffffff" stroke-width="1.8" opacity="0.9" />
     <!-- Diagonal Spikes -->

@@ -31,7 +31,7 @@
     <circle cx="180" cy="670" r="0.9" />
   </g>
 
-  <!-- SAGITTARIUS A* EVENT HORIZON & ACCRETION DISK -->
+  <!-- SAGITTARIUS A* EVENT HORIZON &amp; ACCRETION DISK -->
   <g transform="translate(600, 400)">
     <!-- Broad Accretion Halo -->
     <circle cx="0" cy="0" r="240" fill="url(#accretionGlow)" filter="url(#bhBlur)" />

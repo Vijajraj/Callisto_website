@@ -360,15 +360,12 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
             title="Click for Fullscreen HD Observation"
           >
             <img
+              key={currentDispatch.id}
               src={currentDispatch.url}
               alt={currentDispatch.title}
               className="viewport-img"
               style={{ filter: getFilterStyle() }}
-              loading="lazy"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/logo.png';
-              }}
+              loading="eager"
             />
 
             {/* Interactive Optical Magnifier Loupe */}
@@ -526,6 +523,7 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
               ✕
             </button>
             <img
+              key={`lightbox-${currentDispatch.id}`}
               src={currentDispatch.hdurl}
               alt={currentDispatch.title}
               className="lightbox-img"
