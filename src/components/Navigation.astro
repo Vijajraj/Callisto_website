@@ -42,18 +42,19 @@
 interface NavLink {
   href: string;
   label: string;
+  icon: string;
 }
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 
 const navLinks: NavLink[] = [
-  { href: '/observatory', label: 'Observatory' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '/avatar', label: 'Suit Lab' },
-  { href: '/events', label: 'Events' },
-  { href: '/crew', label: 'Crew' },
-  { href: '/about', label: 'About' },
-  { href: '/join', label: 'Join' },
+  { href: '/observatory', label: 'Observatory', icon: '/icons/icon-observatory.png' },
+  { href: '/avatar', label: 'Suit Lab', icon: '/icons/icon-suit-lab.png' },
+  { href: '/gallery', label: 'Gallery', icon: '/icons/icon-gallery.png' },
+  { href: '/events', label: 'Events', icon: '/icons/icon-events.png' },
+  { href: '/crew', label: 'Crew', icon: '/icons/icon-crew.png' },
+  { href: '/about', label: 'About', icon: '/icons/icon-about.png' },
+  { href: '/join', label: 'Join', icon: '/icons/icon-join.png' },
 ];
 
 const isLinkActive = (href: string): boolean => {
@@ -88,7 +89,15 @@ const isLinkActive = (href: string): boolean => {
                 class:list={['nav-link', { active }]}
                 aria-current={active ? 'page' : undefined}
               >
-                {link.label}
+                <img
+                  src={link.icon}
+                  alt=""
+                  width="16"
+                  height="16"
+                  class="nav-link-icon"
+                  aria-hidden="true"
+                />
+                <span>{link.label}</span>
               </a>
             );
           })
@@ -173,7 +182,15 @@ const isLinkActive = (href: string): boolean => {
                 class:list={['mobile-nav-link', { active }]}
                 aria-current={active ? 'page' : undefined}
               >
-                {link.label}
+                <img
+                  src={link.icon}
+                  alt=""
+                  width="22"
+                  height="22"
+                  class="mobile-nav-link-icon"
+                  aria-hidden="true"
+                />
+                <span>{link.label}</span>
               </a>
             );
           })
@@ -328,9 +345,25 @@ const isLinkActive = (href: string): boolean => {
     text-transform: uppercase;
     color: #FFE5EC; /* Crystal clear high-contrast warm starlight */
     text-decoration: none;
-    padding: 0.5rem 0.35rem;
+    padding: 0.5rem 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     transition: color 0.2s ease, text-shadow 0.2s ease;
     white-space: nowrap;
+  }
+
+  .nav-link-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.45));
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+
+  .nav-link:hover .nav-link-icon {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.85));
   }
 
   /* Subtle Underline Animation */
@@ -571,7 +604,18 @@ const isLinkActive = (href: string): boolean => {
     text-decoration: none;
     position: relative;
     padding: 0.25rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
     transition: color 0.2s ease;
+  }
+
+  .mobile-nav-link-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.45));
+    transition: transform 0.2s ease;
   }
 
   .mobile-nav-link:hover,

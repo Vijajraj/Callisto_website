@@ -69,9 +69,6 @@ import JovianOrrery from '../components/react/JovianOrrery';
           <p>
             Unlike its radiation-seared sibling Europa or volcanic Io, Callisto rests in a calm magnetospheric harbor. For generations of planetary scientists and visionary engineers, it represents the ideal deep-space outpost: an anchor from which humanity can safely observe the outer solar system and gaze deeper into deep cosmic space.
           </p>
-          <div class="blank-slot" aria-label="Club story details to be added in future">
-            <!-- Blank slot kept for user future story details -->
-          </div>
         </div>
       </div>
 
@@ -116,9 +113,6 @@ import JovianOrrery from '../components/react/JovianOrrery';
         <div class="faculty-badge">INSTITUTIONAL OVERSIGHT</div>
         <h3 id="faculty-heading" class="faculty-name">Faculty Coordinator</h3>
         <p class="faculty-status">Official Institutional Appointment To Be Announced</p>
-        <div class="blank-slot" aria-label="Faculty details to be added in future">
-          <!-- Blank slot kept for user future faculty info -->
-        </div>
       </div>
     </section>
   </div>
@@ -197,53 +191,11 @@ import JovianOrrery from '../components/react/JovianOrrery';
   }
 
   /* Blank slots kept for user future information */
-  .blank-slot {
-    min-height: 4rem;
-    border: 1px dashed color-mix(in srgb, var(--steel) 25%, transparent);
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--void) 30%, transparent);
-    margin-top: var(--space-md);
-  }
-
-  .activities-blank-container {
-    min-height: 6rem;
-    border: 1px dashed color-mix(in srgb, var(--steel) 25%, transparent);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--deep) 50%, transparent);
-    margin-top: var(--space-xl);
-  }
-
-  .activities-section {
-    margin-bottom: var(--space-3xl);
-  }
-
-  /* Vision Quote */
-  .vision-section {
-    margin-bottom: var(--space-3xl);
-  }
-
-  .vision-card {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--navy) 40%, var(--deep)), var(--deep));
-    border: 1px solid color-mix(in srgb, var(--orbit) 35%, transparent);
-    border-radius: var(--radius-lg);
-    padding: var(--space-2xl) var(--space-xl);
-    text-align: center;
-  }
-
-  .vision-blank {
-    min-height: 3rem;
-  }
-
-  /* Stats Section */
-  .stats-section {
-    margin-bottom: var(--space-3xl);
-  }
-
-  .stats-blank-grid {
-    min-height: 5rem;
-    border: 1px dashed color-mix(in srgb, var(--steel) 25%, transparent);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--deep) 50%, transparent);
+  .blank-slot,
+  .activities-blank-container:empty,
+  .vision-blank:empty,
+  .stats-blank-grid:empty {
+    display: none;
   }
 
   /* Faculty Section */

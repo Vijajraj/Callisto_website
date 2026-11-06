@@ -142,14 +142,16 @@ canvas[aria-hidden="true"] {
   transform: translateY(-2px);
 }
 
-/* Wireframe Glassmorphism Cards */
-.brief-card,
-.dept-card,
-.department-card,
-.event-card,
-.act-card,
-.story-card,
-.mission-card {
+/* Wireframe Glassmorphism Cards (Deep Space Mode) */
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .brief-card,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .dept-card,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .department-card,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .event-card,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .act-card,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .story-card,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .mission-card,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .faculty-card,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .vision-card {
   background: rgba(8, 8, 12, 0.72) !important;
   border: 1px solid rgba(255, 255, 255, 0.16) !important;
   backdrop-filter: blur(12px) !important;
@@ -158,13 +160,15 @@ canvas[aria-hidden="true"] {
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.brief-card:hover,
-.dept-card:hover,
-.department-card:hover,
-.event-card:hover,
-.act-card:hover,
-.story-card:hover,
-.mission-card:hover {
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .brief-card:hover,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .dept-card:hover,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .department-card:hover,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .event-card:hover,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .act-card:hover,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .story-card:hover,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .mission-card:hover,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .faculty-card:hover,
+html:not([data-theme="solar-flare"]):not(.light-mode):not(.theme-solar-flare) .vision-card:hover {
   border-color: rgba(255, 255, 255, 0.45) !important;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.12) !important;
   transform: translateY(-3px);
@@ -172,6 +176,7 @@ canvas[aria-hidden="true"] {
 
 /* Light Mode Overrides */
 html[data-theme="solar-flare"] .btn-primary,
+html.theme-solar-flare .btn-primary,
 html.light-mode .btn-primary {
   background: rgba(0, 0, 0, 0.08) !important;
   color: #000000 !important;
@@ -180,6 +185,7 @@ html.light-mode .btn-primary {
 }
 
 html[data-theme="solar-flare"] .btn-primary:hover,
+html.theme-solar-flare .btn-primary:hover,
 html.light-mode .btn-primary:hover {
   background: #000000 !important;
   color: #FFFFFF !important;
@@ -206,46 +212,101 @@ html.light-mode .btn-outline:hover {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16) !important;
 }
 
+/* Crisp Light Mode Card Glassmorphism & High-Contrast Typography */
 html[data-theme="solar-flare"] .dept-card,
 html[data-theme="solar-flare"] .department-card,
 html[data-theme="solar-flare"] .brief-card,
 html[data-theme="solar-flare"] .event-card,
+html[data-theme="solar-flare"] .act-card,
+html[data-theme="solar-flare"] .story-card,
+html[data-theme="solar-flare"] .mission-card,
+html[data-theme="solar-flare"] .faculty-card,
+html[data-theme="solar-flare"] .vision-card,
+html.theme-solar-flare .dept-card,
+html.theme-solar-flare .department-card,
+html.theme-solar-flare .brief-card,
+html.theme-solar-flare .event-card,
+html.theme-solar-flare .act-card,
+html.theme-solar-flare .story-card,
+html.theme-solar-flare .mission-card,
+html.theme-solar-flare .faculty-card,
+html.theme-solar-flare .vision-card,
 html.light-mode .dept-card,
 html.light-mode .department-card,
 html.light-mode .brief-card,
-html.light-mode .event-card {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid rgba(0, 0, 0, 0.14) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+html.light-mode .event-card,
+html.light-mode .act-card,
+html.light-mode .story-card,
+html.light-mode .mission-card,
+html.light-mode .faculty-card,
+html.light-mode .vision-card {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(0, 0, 0, 0.16) !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06) !important;
 }
 
-/* Enhanced Light Mode Card & Panel Shadows for Crisp Depth */
-html[data-theme="solar-flare"] .dept-card,
-html[data-theme="light"] .dept-card,
-html.theme-solar-flare .dept-card,
-html.light-mode .dept-card,
-html[data-theme="solar-flare"] .event-card,
-html[data-theme="light"] .event-card,
-html.theme-solar-flare .event-card,
-html.light-mode .event-card,
-html[data-theme="solar-flare"] .brief-card,
-html[data-theme="light"] .brief-card,
-html.theme-solar-flare .brief-card,
-html.light-mode .brief-card,
-html[data-theme="solar-flare"] .act-card,
-html[data-theme="light"] .act-card,
-html.theme-solar-flare .act-card,
-html.light-mode .act-card,
-html[data-theme="solar-flare"] .story-card,
-html[data-theme="light"] .story-card,
-html.theme-solar-flare .story-card,
-html.light-mode .story-card,
-html[data-theme="solar-flare"] .faculty-card,
-html[data-theme="light"] .faculty-card,
-html.theme-solar-flare .faculty-card,
-html.light-mode .faculty-card {
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
-  border-color: rgba(71, 85, 105, 0.22);
+html[data-theme="solar-flare"] .story-card .story-title,
+html.theme-solar-flare .story-card .story-title,
+html.light-mode .story-card .story-title,
+html[data-theme="solar-flare"] .faculty-name,
+html.theme-solar-flare .faculty-name,
+html.light-mode .faculty-name,
+html[data-theme="solar-flare"] .brief-title,
+html.theme-solar-flare .brief-title,
+html.light-mode .brief-title {
+  color: #000000 !important;
+}
+
+html[data-theme="solar-flare"] .story-card p,
+html[data-theme="solar-flare"] .story-prose p,
+html.theme-solar-flare .story-card p,
+html.theme-solar-flare .story-prose p,
+html.light-mode .story-card p,
+html.light-mode .story-prose p,
+html[data-theme="solar-flare"] .brief-desc,
+html.theme-solar-flare .brief-desc,
+html.light-mode .brief-desc {
+  color: #1E293B !important;
+}
+
+html[data-theme="solar-flare"] .story-badge,
+html.theme-solar-flare .story-badge,
+html.light-mode .story-badge,
+html[data-theme="solar-flare"] .faculty-badge,
+html.theme-solar-flare .faculty-badge,
+html.light-mode .faculty-badge {
+  color: #0F172A !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(0, 0, 0, 0.22) !important;
+}
+
+html[data-theme="solar-flare"] .faculty-status,
+html.theme-solar-flare .faculty-status,
+html.light-mode .faculty-status {
+  color: #0284C7 !important;
+}
+
+/* Custom Page & Navigation Icons (Telescope for Observatory, Astronaut for Suit Lab) */
+.nav-link-icon,
+.mobile-nav-link-icon,
+.btn-page-icon {
+  display: inline-block;
+  vertical-align: middle;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+html[data-theme="solar-flare"] .nav-link-icon,
+html[data-theme="solar-flare"] .mobile-nav-link-icon,
+html[data-theme="solar-flare"] .btn-page-icon,
+html.theme-solar-flare .nav-link-icon,
+html.theme-solar-flare .mobile-nav-link-icon,
+html.theme-solar-flare .btn-page-icon,
+html.light-mode .nav-link-icon,
+html.light-mode .mobile-nav-link-icon,
+html.light-mode .btn-page-icon {
+  filter: invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 /* Form Select & Option Cross-Platform Contrast */
