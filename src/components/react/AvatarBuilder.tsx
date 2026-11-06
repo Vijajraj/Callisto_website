@@ -38,7 +38,7 @@
  * =====================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { playTelemetryBeep } from '../../lib/audio';
 
 interface SuitTheme {
@@ -94,8 +94,51 @@ export default function AvatarBuilder(): React.ReactElement {
   const [selectedPatch, setSelectedPatch] = useState(PATCHES[0]);
   const [explorerName, setExplorerName] = useState<string>('Elena Rostova');
   const [callsign, setCallsign] = useState<string>('VANGUARD-01');
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const [userPhotoImg, setUserPhotoImg] = useState<HTMLImageElement | null>(null);
+  const [visorTintEnabled, setVisorTintEnabled] = useState<boolean>(true);
   const [showIdCard, setShowIdCard] = useState<boolean>(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setExportNotice('Selected file must be an image format (JPG, PNG, WEBP).');
+      setTimeout(() => setExportNotice(null), 3500);
+      return;
+    }
+    playTelemetryBeep(1050, 0.08);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setUserPhoto(dataUrl);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        setUserPhotoImg(img);
+        setExportNotice('Cadet face biometric loaded into spacesuit HUD & Flight Pass!');
+        setTimeout(() => setExportNotice(null), 3500);
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handlePhotoFile(file);
+    e.target.value = '';
+  };
+
+  const handleRemovePhoto = () => {
+    playTelemetryBeep(700, 0.06);
+    setUserPhoto(null);
+    setUserPhotoImg(null);
+    setExportNotice('Cadet photo removed. Reverted to polarized visor.');
+    setTimeout(() => setExportNotice(null), 3000);
+  };
 
   const generateCardCanvas = (): HTMLCanvasElement => {
     const canvas = document.createElement('canvas');
@@ -237,6 +280,68 @@ export default function AvatarBuilder(): React.ReactElement {
     visorGrad.addColorStop(0.7, selectedVisor.gradEnd);
     visorGrad.addColorStop(1, selectedTheme.secondaryColor);
 
+    if (userPhotoImg) {
+      ctx.save();
+      ctx.beginPath();
+      if (selectedHelmet === 'tactical') {
+        ctx.moveTo(120, 120);
+        ctx.lineTo(200, 120);
+        ctx.lineTo(215, 160);
+        ctx.lineTo(195, 190);
+        ctx.lineTo(125, 190);
+        ctx.lineTo(105, 160);
+        ctx.closePath();
+      } else {
+        ctx.ellipse(160, 155, 54, 44, 0, 0, Math.PI * 2);
+      }
+      ctx.clip();
+
+      // Dark interior backing behind face
+      ctx.fillStyle = '#060913';
+      ctx.fill();
+
+      // Draw photo centered in visor bounds
+      const vx = 106;
+      const vy = 111;
+      const vw = 108;
+      const vh = 88;
+      const imgAspect = userPhotoImg.width / userPhotoImg.height;
+      const targetAspect = vw / vh;
+      let sx = 0, sy = 0, sw = userPhotoImg.width, sh = userPhotoImg.height;
+      if (imgAspect > targetAspect) {
+        sw = userPhotoImg.height * targetAspect;
+        sx = (userPhotoImg.width - sw) / 2;
+      } else {
+        sh = userPhotoImg.width / targetAspect;
+        sy = (userPhotoImg.height - sh) / 2;
+      }
+      ctx.drawImage(userPhotoImg, sx, sy, sw, sh, vx, vy, vw, vh);
+
+      if (visorTintEnabled) {
+        ctx.fillStyle = visorGrad;
+        ctx.globalAlpha = 0.32;
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+      ctx.restore();
+    } else {
+      ctx.beginPath();
+      if (selectedHelmet === 'tactical') {
+        ctx.moveTo(120, 120);
+        ctx.lineTo(200, 120);
+        ctx.lineTo(215, 160);
+        ctx.lineTo(195, 190);
+        ctx.lineTo(125, 190);
+        ctx.lineTo(105, 160);
+        ctx.closePath();
+      } else {
+        ctx.ellipse(160, 155, 54, 44, 0, 0, Math.PI * 2);
+      }
+      ctx.fillStyle = visorGrad;
+      ctx.fill();
+    }
+
+    // Outer Visor Rim / Glow
     ctx.beginPath();
     if (selectedHelmet === 'tactical') {
       ctx.moveTo(120, 120);
@@ -249,8 +354,6 @@ export default function AvatarBuilder(): React.ReactElement {
     } else {
       ctx.ellipse(160, 155, 54, 44, 0, 0, Math.PI * 2);
     }
-    ctx.fillStyle = visorGrad;
-    ctx.fill();
     ctx.strokeStyle = selectedVisor.glowColor;
     ctx.lineWidth = 2.5;
     ctx.stroke();
@@ -290,14 +393,14 @@ export default function AvatarBuilder(): React.ReactElement {
       { label: 'SUIT REGIME', val: selectedTheme.name },
       { label: 'HELMET CLASS', val: selectedHelmet.toUpperCase() },
       { label: 'VISOR COATING', val: selectedVisor.name },
-      { label: 'RADIATION SHIELD', val: 'CLASS 4 - JOVIAN COMPLIANT' },
+      { label: 'BIOMETRIC ID', val: userPhotoImg ? 'VERIFIED CADET FACE' : 'POLARIZED HELMET' },
       { label: 'FACILITY NODE', val: 'CHENNAI INST. OF TECH (CIT)' },
     ];
 
     specs.forEach((item, idx) => {
       const col = idx % 2;
       const row = Math.floor(idx / 2);
-      const x = 80 + col * 340;
+      const x = 80 + col * 250;
       const y = cardY + 118 + row * 46;
 
       ctx.fillStyle = '#64748b';
@@ -308,6 +411,57 @@ export default function AvatarBuilder(): React.ReactElement {
       ctx.font = '600 13px "JetBrains Mono", monospace';
       ctx.fillText(item.val, x, y + 18);
     });
+
+    // Right-hand Biometric ID Photo Box
+    const bioX = 590;
+    const bioY = cardY + 25;
+    const bioW = 135;
+    const bioH = 160;
+
+    ctx.save();
+    ctx.fillStyle = '#060913';
+    ctx.strokeStyle = userPhotoImg ? '#22c55e' : 'rgba(56, 189, 248, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(bioX, bioY, bioW, bioH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    if (userPhotoImg) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(bioX + 3, bioY + 3, bioW - 6, bioH - 6, 6);
+      ctx.clip();
+      
+      const imgAspect = userPhotoImg.width / userPhotoImg.height;
+      const targetAspect = (bioW - 6) / (bioH - 6);
+      let sx = 0, sy = 0, sw = userPhotoImg.width, sh = userPhotoImg.height;
+      if (imgAspect > targetAspect) {
+        sw = userPhotoImg.height * targetAspect;
+        sx = (userPhotoImg.width - sw) / 2;
+      } else {
+        sh = userPhotoImg.width / targetAspect;
+        sy = (userPhotoImg.height - sh) / 2;
+      }
+      ctx.drawImage(userPhotoImg, sx, sy, sw, sh, bioX + 3, bioY + 3, bioW - 6, bioH - 6);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('BIOMETRIC ID', bioX + bioW / 2, bioY + 70);
+      ctx.fillText('[POLARIZED]', bioX + bioW / 2, bioY + 90);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(bioX + 20, bioY + 35, bioW - 40, bioH - 65);
+    }
+
+    // Biometric label below photo
+    ctx.fillStyle = userPhotoImg ? '#22c55e' : '#94a3b8';
+    ctx.font = '700 9px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(userPhotoImg ? 'VERIFIED FACE ID' : 'EVA CLASS HELMET', bioX + bioW / 2, bioY + bioH + 20);
+    ctx.restore();
 
     // Verification Footer
     ctx.fillStyle = '#22c55e';
@@ -600,6 +754,105 @@ export default function AvatarBuilder(): React.ReactElement {
           border-color: #000000 !important;
           box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12) !important;
         }
+
+        /* Biometric Upload Controls */
+        .biometric-upload-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          background: color-mix(in srgb, var(--orbit) 20%, var(--navy));
+          color: var(--moon);
+          border: 1px solid var(--orbit);
+          border-radius: var(--radius-sm);
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 0.45rem 0.85rem;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .biometric-upload-btn:hover {
+          background: var(--orbit);
+          color: #000000;
+          transform: translateY(-2px);
+          box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+        }
+
+        .biometric-toggle-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          background: color-mix(in srgb, var(--astrophage) 20%, transparent);
+          color: var(--astrophage);
+          border: 1px solid var(--astrophage);
+          border-radius: var(--radius-sm);
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          font-weight: 600;
+          padding: 0.45rem 0.75rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .biometric-toggle-btn:hover {
+          background: var(--astrophage);
+          color: #000000;
+        }
+
+        .biometric-remove-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          background: transparent;
+          color: #f43f5e;
+          border: 1px solid rgba(244, 63, 94, 0.5);
+          border-radius: var(--radius-sm);
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          font-weight: 600;
+          padding: 0.45rem 0.75rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .biometric-remove-btn:hover {
+          background: rgba(244, 63, 94, 0.15);
+          border-color: #f43f5e;
+        }
+
+        html[data-theme="solar-flare"] .biometric-upload-btn,
+        html.theme-solar-flare .biometric-upload-btn,
+        html.light-mode .biometric-upload-btn {
+          background: #000000 !important;
+          color: #ffffff !important;
+          border: 1px solid #000000 !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        html[data-theme="solar-flare"] .biometric-upload-btn:hover,
+        html.theme-solar-flare .biometric-upload-btn:hover,
+        html.light-mode .biometric-upload-btn:hover {
+          background: #1e293b !important;
+          border-color: #1e293b !important;
+          color: #ffffff !important;
+        }
+
+        html[data-theme="solar-flare"] .biometric-toggle-btn,
+        html.theme-solar-flare .biometric-toggle-btn,
+        html.light-mode .biometric-toggle-btn {
+          background: #f1f5f9 !important;
+          color: #0f172a !important;
+          border: 1px solid #94a3b8 !important;
+        }
+
+        html[data-theme="solar-flare"] .biometric-remove-btn,
+        html.theme-solar-flare .biometric-remove-btn,
+        html.light-mode .biometric-remove-btn {
+          background: #fff1f2 !important;
+          color: #e11d48 !important;
+          border: 1px solid #fda4af !important;
+        }
       `}</style>
 
       {/* Top Banner */}
@@ -674,29 +927,58 @@ export default function AvatarBuilder(): React.ReactElement {
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
-            {/* Mini Avatar Portrait */}
+            {/* Cadet Avatar / Biometric Portrait */}
             <div
               style={{
                 width: '80px',
                 height: '80px',
                 borderRadius: 'var(--radius-md)',
                 backgroundColor: 'var(--void)',
-                border: `2px solid ${selectedTheme.trimColor}`,
+                border: `2px solid ${userPhoto ? '#22c55e' : selectedTheme.trimColor}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 overflow: 'hidden',
+                position: 'relative',
+                boxShadow: userPhoto ? '0 0 16px rgba(34, 197, 94, 0.4)' : 'none',
               }}
             >
-              <div
-                style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${selectedVisor.gradStart}, ${selectedVisor.gradEnd})`,
-                  boxShadow: `0 0 12px ${selectedVisor.glowColor}`,
-                }}
-              />
+              {userPhoto ? (
+                <>
+                  <img
+                    src={userPhoto}
+                    alt="Cadet Portrait"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: 'rgba(0, 0, 0, 0.75)',
+                      color: '#22c55e',
+                      fontSize: '8px',
+                      fontFamily: 'var(--font-mono)',
+                      textAlign: 'center',
+                      padding: '1px 0',
+                      fontWeight: 700,
+                    }}
+                  >
+                    BIO VERIFIED
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '50%',
+                    background: `linear-gradient(135deg, ${selectedVisor.gradStart}, ${selectedVisor.gradEnd})`,
+                    boxShadow: `0 0 12px ${selectedVisor.glowColor}`,
+                  }}
+                />
+              )}
             </div>
 
             <div>
@@ -730,7 +1012,7 @@ export default function AvatarBuilder(): React.ReactElement {
             <div>SUIT CLASS: <span style={{ color: 'var(--moon)' }}>{selectedTheme.name}</span></div>
             <div>HELMET: <span style={{ color: 'var(--moon)' }}>{selectedHelmet.toUpperCase()}</span></div>
             <div>VISOR TINT: <span style={{ color: selectedVisor.glowColor }}>{selectedVisor.name}</span></div>
-            <div>STATUS: <span style={{ color: '#4ade80' }}>ACTIVE FLIGHT READY</span></div>
+            <div>BIOMETRICS: <span style={{ color: userPhoto ? '#4ade80' : 'var(--moon)' }}>{userPhoto ? 'VERIFIED (FACE INTEGRATED)' : 'POLARIZED HELMET'}</span></div>
           </div>
 
           {exportNotice && (
@@ -813,6 +1095,13 @@ export default function AvatarBuilder(): React.ReactElement {
                     <stop offset="70%" stopColor={selectedVisor.gradEnd} stopOpacity="0.8" />
                     <stop offset="100%" stopColor={selectedTheme.secondaryColor} stopOpacity="0.5" />
                   </radialGradient>
+                  <clipPath id="interactiveVisorClip">
+                    {selectedHelmet === 'tactical' ? (
+                      <polygon points="120,120 200,120 215,160 195,190 125,190 105,160" />
+                    ) : (
+                      <ellipse cx="160" cy="155" rx="54" ry="44" />
+                    )}
+                  </clipPath>
                 </defs>
 
                 {/* Outer Holographic Guidance Rings */}
@@ -843,11 +1132,63 @@ export default function AvatarBuilder(): React.ReactElement {
                   <circle cx="160" cy="155" r="74" fill={selectedTheme.primaryColor} stroke={selectedTheme.trimColor} strokeWidth="2" />
                 )}
 
-                {/* Visor based on style */}
+                {/* Visor Area: Face Photo or Pure Visor Coating */}
+                {userPhoto ? (
+                  <g>
+                    {/* Interior backing behind face */}
+                    <rect x="85" y="85" width="150" height="150" fill="#060913" clipPath="url(#interactiveVisorClip)" />
+                    {/* Cadet uploaded face */}
+                    <image
+                      href={userPhoto}
+                      x="106"
+                      y="111"
+                      width="108"
+                      height="88"
+                      preserveAspectRatio="xMidYMid slice"
+                      clipPath="url(#interactiveVisorClip)"
+                    />
+                    {/* Translucent visor sheen coating */}
+                    {visorTintEnabled && (
+                      selectedHelmet === 'tactical' ? (
+                        <polygon
+                          points="120,120 200,120 215,160 195,190 125,190 105,160"
+                          fill="url(#interactiveVisor)"
+                          opacity="0.32"
+                        />
+                      ) : (
+                        <ellipse
+                          cx="160"
+                          cy="155"
+                          rx="54"
+                          ry="44"
+                          fill="url(#interactiveVisor)"
+                          opacity="0.32"
+                        />
+                      )
+                    )}
+                  </g>
+                ) : (
+                  selectedHelmet === 'tactical' ? (
+                    <polygon
+                      points="120,120 200,120 215,160 195,190 125,190 105,160"
+                      fill="url(#interactiveVisor)"
+                    />
+                  ) : (
+                    <ellipse
+                      cx="160"
+                      cy="155"
+                      rx="54"
+                      ry="44"
+                      fill="url(#interactiveVisor)"
+                    />
+                  )
+                )}
+
+                {/* Visor Glow Border */}
                 {selectedHelmet === 'tactical' ? (
                   <polygon
                     points="120,120 200,120 215,160 195,190 125,190 105,160"
-                    fill="url(#interactiveVisor)"
+                    fill="none"
                     stroke={selectedVisor.glowColor}
                     strokeWidth="2"
                   />
@@ -857,7 +1198,7 @@ export default function AvatarBuilder(): React.ReactElement {
                     cy="155"
                     rx="54"
                     ry="44"
-                    fill="url(#interactiveVisor)"
+                    fill="none"
                     stroke={selectedVisor.glowColor}
                     strokeWidth="2"
                   />
@@ -871,6 +1212,11 @@ export default function AvatarBuilder(): React.ReactElement {
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--star)', textAlign: 'center' }}>
               <div>{explorerName} // [{callsign}]</div>
               <div style={{ color: 'var(--steel)', fontSize: '0.6875rem' }}>WING: {selectedPatch.label}</div>
+              {userPhoto && (
+                <div style={{ color: '#4ade80', fontSize: '0.6875rem', marginTop: '0.2rem', fontWeight: 600 }}>
+                  [✓] Biometric Face Synced to Helmet
+                </div>
+              )}
             </div>
 
             {exportNotice && (
@@ -936,9 +1282,90 @@ export default function AvatarBuilder(): React.ReactElement {
               </div>
             </div>
 
+            {/* Biometric Face Photo Upload */}
+            <div style={{ marginBottom: 'var(--space-lg)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <span style={sectionLabelStyle}>2. ASTRONAUT BIOMETRIC FACE (GALLERY / MEDIA)</span>
+                {userPhoto && (
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: '#22c55e', fontWeight: 700 }}>
+                    [✓] FACE INTEGRATED
+                  </span>
+                )}
+              </div>
+
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: 'var(--steel)', margin: '0 0 0.6rem 0' }}>
+                Upload your face from device gallery or capture with camera. Your face renders inside the pressurized EVA space helmet and seals on your official Flight Pass.
+              </p>
+
+              {/* Hidden Inputs */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handlePhotoUpload}
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="user"
+                style={{ display: 'none' }}
+                onChange={handlePhotoUpload}
+              />
+
+              <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="biometric-upload-btn"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                  <span>Choose from Gallery / Media</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="biometric-upload-btn"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                  <span>Capture Photo</span>
+                </button>
+
+                {userPhoto && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setVisorTintEnabled(!visorTintEnabled)}
+                      className="biometric-toggle-btn"
+                      title="Toggle translucent visor tint coating over face"
+                    >
+                      <span>Visor Tint: {visorTintEnabled ? 'Tinted Glass' : 'Clear View'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleRemovePhoto}
+                      className="biometric-remove-btn"
+                    >
+                      <span>Remove Photo</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
             {/* Suit Color Scheme */}
             <div style={{ marginBottom: 'var(--space-lg)' }}>
-              <span style={sectionLabelStyle}>2. SUIT COLOR REGIME</span>
+              <span style={sectionLabelStyle}>3. SUIT COLOR REGIME</span>
               <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
                 {SUIT_THEMES.map((theme) => {
                   const isSel = selectedTheme.id === theme.id;
@@ -967,7 +1394,7 @@ export default function AvatarBuilder(): React.ReactElement {
 
             {/* Visor Coating */}
             <div style={{ marginBottom: 'var(--space-lg)' }}>
-              <span style={sectionLabelStyle}>3. VISOR COATING & TINT</span>
+              <span style={sectionLabelStyle}>4. VISOR COATING & TINT</span>
               <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
                 {VISOR_TINTS.map((visor) => {
                   const isSel = selectedVisor.id === visor.id;
@@ -996,7 +1423,7 @@ export default function AvatarBuilder(): React.ReactElement {
 
             {/* Helmet Design */}
             <div style={{ marginBottom: 'var(--space-lg)' }}>
-              <span style={sectionLabelStyle}>4. HELMET PROFILE</span>
+              <span style={sectionLabelStyle}>5. HELMET PROFILE</span>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 'var(--space-xs)' }}>
                 {HELMET_STYLES.map((h) => {
                   const isSel = selectedHelmet === h.id;
@@ -1028,7 +1455,7 @@ export default function AvatarBuilder(): React.ReactElement {
 
             {/* Department Mission Patch */}
             <div>
-              <span style={sectionLabelStyle}>5. DEPARTMENT MISSION PATCH</span>
+              <span style={sectionLabelStyle}>6. DEPARTMENT MISSION PATCH</span>
               <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap' }}>
                 {PATCHES.map((patch) => {
                   const isSel = selectedPatch.id === patch.id;
