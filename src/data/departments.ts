@@ -126,7 +126,7 @@ export const crewOfficers: CrewOfficer[] = [
   {
     id: 'siddiksha',
     name: 'Siddiksha',
-    role: 'Honorary Member',
+    role: 'Operations Lead',
     departmentId: 'event',
     departmentName: 'Event',
     themedName: 'Event Horizon',
@@ -296,7 +296,7 @@ export const departments: Department[] = [
     themedName: 'Event Horizon',
     lead: 'Mahavishnu | Siddiksha',
     roleAssigned: 'Mahavishnu | Siddiksha',
-    role: 'Secretary | Honorary Member',
+    role: 'Secretary | Operations Lead',
     shipModule: 'OPS-05',
     description: 'Organizing rooftop stargazing nights, planetary watch parties, telescope workshops, and national space symposiums.',
     icon: '/icons/dept-event.png',
