@@ -202,12 +202,12 @@ node scripts/test-seo.cjs
 | Route | Division / View | Key Modules |
 |---|---|---|
 | `/` | Mission Control Gateway | `Starfield`, `CrescentLoader`, `EventCountdown`, `SoundHud` |
-| `/observatory` | Virtual Deep Space Observatory | `TonightSkyEphemeris`, `NasaDeepSpaceFeed`, `TelescopeSimulator` |
+| `/observatory` | Virtual Deep Space Observatory | `TonightSkyEphemeris`, `NasaDeepSpaceFeed` |
 | `/expedition` | Jovian Flight Deck | `ExpeditionSimulator`, interactive canvas orrery |
 | `/missions` | Orbital Mechanics & Trajectory | `MissionsConsole`, Hohmann transfer calculator |
 | `/gallery` | Astrophotography Visual Log | `GalleryViewer`, multi-mode photographic matrix |
 | `/events` | Launch Schedule & Celestial Calendar | `EventExplorer`, countdown timers, past logs |
-| `/crew` | Ship Crew Manifest | 11 department stations and lead dossiers |
+| `/crew` | Ship Crew Manifest | `CrewRoster`, 11 department stations and officer dossiers |
 | `/avatar` | Flight Identity & Pass Generator | `AvatarBuilder`, custom suit canvas exporter |
 | `/join` | Flight Crew Recruitment | `JoinForm`, department selection |
 | `/contact` | Ground Station Comms Relay | `ContactForm`, priority transmitter |

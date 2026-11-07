@@ -11,7 +11,6 @@
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import TelescopeSimulator from '../components/react/TelescopeSimulator';
 import NasaDeepSpaceFeed from '../components/react/NasaDeepSpaceFeed';
 import TonightSkyEphemeris from '../components/react/TonightSkyEphemeris';
 
@@ -36,15 +35,10 @@ const preloadedAssets = [
       <SectionHeading
         mono="OBSERVATION LOG"
         title="The Observatory"
-        subtitle="Real-time sky guides, celestial mechanics dispatches, and telescope observations from our rooftop and field arrays."
+        subtitle="Real-time sky guides, celestial mechanics dispatches, and deep space telescope observations."
         align="center"
       />
     </header>
-
-    <!-- Interactive Telescope Eyepiece Simulator Island -->
-    <section class="simulator-section" aria-label="Interactive Optical Telescope Eyepiece">
-      <TelescopeSimulator client:load />
-    </section>
 
     <!-- Live NASA Deep Space & APOD Gateway Island -->
     <section class="nasa-section" aria-label="NASA Deep Space & APOD Feed">
@@ -115,11 +109,6 @@ const preloadedAssets = [
 
   .observatory-header {
     margin-bottom: var(--space-2xl);
-  }
-
-  /* Simulator Section */
-  .simulator-section {
-    margin-bottom: var(--space-3xl);
   }
 
   .nasa-section {

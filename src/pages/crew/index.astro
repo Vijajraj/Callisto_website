@@ -9,43 +9,14 @@
  * =====================================================================
  */
 
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
 import DepartmentCard from '../../components/DepartmentCard.astro';
-import { departments } from '../../data/departments';
+import CrewRoster from '../../components/react/CrewRoster';
+import { departments, crewOfficers } from '../../data/departments';
 ---
 
-<BaseLayout title="Crew Manifest | Callisto Club" description="Meet the 11 specialized ship wings and operational modules driving the Callisto Expedition.">
+<BaseLayout title="Crew Manifest | Callisto Club" description="Meet the 11 specialized ship wings, operational modules, and command officers driving the Callisto Expedition.">
   <div class="crew-page-container">
     <!-- Header -->
     <header class="crew-header">
@@ -74,6 +45,9 @@ import { departments } from '../../data/departments';
         ))}
       </div>
     </section>
+
+    <!-- Command Officers & Personnel Directory Island -->
+    <CrewRoster client:load initialOfficers={crewOfficers} />
 
     <!-- Join CTA Footer -->
     <section class="crew-cta-section" aria-label="Join a Department">

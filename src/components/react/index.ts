@@ -54,6 +54,7 @@ export { default as NasaDeepSpaceFeed } from './NasaDeepSpaceFeed';
 export { default as SoundHud } from './SoundHud';
 export { default as TelescopeSimulator } from './TelescopeSimulator';
 export { default as TonightSkyEphemeris } from './TonightSkyEphemeris';
+export { default as CrewRoster } from './CrewRoster';
 
 export type { StarfieldProps } from './Starfield';
 export type { FlatModeToggleProps } from './FlatModeToggle';

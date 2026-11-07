@@ -9,38 +9,8 @@
  * =====================================================================
  */
 
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { departments, type Department } from '../../data/departments';
+import { departments, getOfficersByDepartment, type Department } from '../../data/departments';
 
 export function getStaticPaths() {
   return departments.map((dept) => ({
@@ -54,6 +24,7 @@ interface Props {
 }
 
 const { dept } = Astro.props;
+const deptOfficers = getOfficersByDepartment(dept.id);
 ---
 
 <BaseLayout
@@ -116,6 +87,53 @@ const { dept } = Astro.props;
             </div>
           )}
         </section>
+
+        {deptOfficers.length > 0 && (
+          <section class="section-card" aria-labelledby="officers-heading">
+            <h2 id="officers-heading" class="card-heading">Station Officers & Flight Leads</h2>
+            <div class="dept-officers-grid">
+              {deptOfficers.map((officer) => (
+                <div class="dept-officer-card">
+                  <div class="dept-officer-header">
+                    <img
+                      src={officer.avatar}
+                      alt={`${officer.name} avatar`}
+                      width="64"
+                      height="64"
+                      class="dept-officer-avatar"
+                      loading="lazy"
+                    />
+                    <div class="dept-officer-info">
+                      <h3 class="dept-officer-name">{officer.name}</h3>
+                      <div class="dept-officer-role-tag">{officer.role}</div>
+                      <div class="dept-officer-term">TERM: {officer.term}</div>
+                    </div>
+                  </div>
+
+                  <p class="dept-officer-desc">{officer.description}</p>
+
+                  <div class="dept-officer-socials" aria-label={`Connect with ${officer.name}`}>
+                    {officer.socialLinks.github && (
+                      <a href={officer.socialLinks.github} target="_blank" rel="noopener noreferrer" class="dept-social-link" title="GitHub" aria-label={`${officer.name} on GitHub`}>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
+                      </a>
+                    )}
+                    {officer.socialLinks.linkedin && (
+                      <a href={officer.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" class="dept-social-link" title="LinkedIn" aria-label={`${officer.name} on LinkedIn`}>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
+                      </a>
+                    )}
+                    {officer.socialLinks.comms && (
+                      <a href={officer.socialLinks.comms} class="dept-social-link" title="Comms" aria-label={`Send comms to ${officer.name}`}>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M0 3v18h24v-18h-24zm21.518 2l-9.518 7.713-9.518-7.713h19.036zm-19.518 14v-11.817l10 8.104 10-8.104v11.817h-20z" /></svg>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <!-- Open Roles Section -->
         <section class="section-card" aria-labelledby="roles-heading">
@@ -442,5 +460,100 @@ const { dept } = Astro.props;
     color: var(--moon);
     font-weight: 500;
     text-align: right;
+  }
+
+  /* Department Officers Styles */
+  .dept-officers-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 640px) {
+    .dept-officers-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+  }
+
+  .dept-officer-card {
+    background: var(--navy);
+    border: 1px solid var(--dusk);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .dept-officer-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+
+  .dept-officer-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dept-officer-name {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--moon);
+    margin: 0 0 2px;
+    line-height: 1.2;
+  }
+
+  .dept-officer-role-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--astrophage);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .dept-officer-term {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--steel);
+    letter-spacing: 0.05em;
+  }
+
+  .dept-officer-desc {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--steel);
+    line-height: 1.5;
+    margin: 0 0 var(--space-md);
+  }
+
+  .dept-officer-socials {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--dusk);
+  }
+
+  .dept-social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--steel) 12%, transparent);
+    color: var(--steel);
+    transition: all 0.2s ease;
+  }
+
+  .dept-social-link:hover {
+    background: var(--astrophage);
+    color: #000000;
+    transform: translateY(-1px);
   }
 </style>
