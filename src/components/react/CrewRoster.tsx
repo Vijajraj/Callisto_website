@@ -140,7 +140,6 @@ export default function CrewRoster({ initialOfficers }: CrewRosterProps): React.
                 </div>
 
                 <div className="officer-badges">
-                  <span className="term-badge">TERM: {officer.term}</span>
                   <span className="wing-badge">{officer.themedName}</span>
                 </div>
               </div>
@@ -449,18 +448,6 @@ export default function CrewRoster({ initialOfficers }: CrewRosterProps): React.
           flex-direction: column;
           align-items: flex-end;
           gap: 4px;
-        }
-
-        .term-badge {
-          font-family: var(--font-mono);
-          font-size: 10px;
-          font-weight: 700;
-          color: var(--astrophage);
-          background: color-mix(in srgb, var(--astrophage) 12%, transparent);
-          border: 1px solid color-mix(in srgb, var(--astrophage) 30%, transparent);
-          padding: 2px 8px;
-          border-radius: var(--radius-sm);
-          letter-spacing: 0.05em;
         }
 
         .wing-badge {

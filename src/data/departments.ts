@@ -15,7 +15,6 @@ export interface CrewOfficer {
   departmentId: string;
   departmentName: string;
   themedName: string;
-  term: string;
   description: string;
   avatar: string;
   socialLinks: {
@@ -41,13 +40,40 @@ export interface Department {
 
 export const crewOfficers: CrewOfficer[] = [
   {
+    id: 'aswin-ponnuraj',
+    name: 'Aswin Ponnuraj',
+    role: 'President',
+    departmentId: 'presidential',
+    departmentName: 'Presidential Committee',
+    themedName: 'Polaris Circle',
+    description: 'Directs overall club vision, institutional governance, mission timelines, and cross-department strategic initiatives.',
+    avatar: '/crew/avatars/aswin-ponnuraj.svg',
+    socialLinks: {
+      linkedin: 'https://www.linkedin.com/in/aswin-ponnuraj-6a4b14409/',
+      comms: 'mailto:president@callisto.club',
+    },
+  },
+  {
+    id: 'lathika-raj',
+    name: 'Lathika Raj S R',
+    role: 'Vice President',
+    departmentId: 'presidential',
+    departmentName: 'Presidential Committee',
+    themedName: 'Polaris Circle',
+    description: 'Coordinates executive operations, inter-wing mission planning, university liaison, and student leadership governance.',
+    avatar: '/crew/avatars/lathika-raj.svg',
+    socialLinks: {
+      linkedin: 'https://www.linkedin.com/in/lathikarajsr/',
+      comms: 'mailto:vicepresident@callisto.club',
+    },
+  },
+  {
     id: 'harshitha',
     name: 'Harshitha',
     role: 'Secretary',
     departmentId: 'international',
     departmentName: 'International Relations',
     themedName: 'Constellation Wing',
-    term: '2024 – 2026',
     description: 'Coordinates international university partnerships, astronomical consortium outreach, and inter-collegiate celestial symposiums.',
     avatar: '/crew/avatars/harshitha.svg',
     socialLinks: {
@@ -62,7 +88,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'social-media',
     departmentName: 'Social Media & Promotions',
     themedName: 'Orbit Wing',
-    term: '2024 – 2026',
     description: 'Drives digital telemetry, public event campaigns, telescope broadcast coverage, and space science communications across social channels.',
     avatar: '/crew/avatars/mirudhula.svg',
     socialLinks: {
@@ -77,7 +102,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'content',
     departmentName: 'Content',
     themedName: 'StarCast',
-    term: '2024 – 2026',
     description: 'Chief editor of StarCast publications, deep-space observatory journals, astrophotography logs, and celestial mechanics dispatches.',
     avatar: '/crew/avatars/mukilan.svg',
     socialLinks: {
@@ -92,7 +116,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'event',
     departmentName: 'Event',
     themedName: 'Event Horizon',
-    term: '2024 – 2026',
     description: 'Directs logistics for major astronomical observation nights, exoplanet hackathons, planetary workshops, and campus rooftop viewings.',
     avatar: '/crew/avatars/mahavishnu.svg',
     socialLinks: {
@@ -107,7 +130,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'event',
     departmentName: 'Event',
     themedName: 'Event Horizon',
-    term: '2024 – 2026',
     description: 'Senior advisor for stargazing expedition operations, community outreach workshops, and aerospace symposium coordination.',
     avatar: '/crew/avatars/siddiksha.svg',
     socialLinks: {
@@ -122,7 +144,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'design',
     departmentName: 'Design & Visual Media',
     themedName: 'Nebula Wing',
-    term: '2024 – 2026',
     description: 'Leads visual design, mission insignia branding, interactive UI assets, and aesthetic direction for all club media.',
     avatar: '/crew/avatars/azmina.svg',
     socialLinks: {
@@ -132,17 +153,16 @@ export const crewOfficers: CrewOfficer[] = [
   },
   {
     id: 'vijayraj',
-    name: 'Vijay Raj',
-    role: 'Honorary Member & Lead Architect',
+    name: 'vijayraj s',
+    role: 'Lead Architect',
     departmentId: 'tech',
     departmentName: 'Technology & Development',
     themedName: 'Tesseract',
-    term: '2024 – 2026',
     description: 'Architect of the Callisto digital platform, Jean Meeus ephemeris orbital algorithms, and interactive telemetry engines.',
     avatar: '/crew/avatars/vijayraj.svg',
     socialLinks: {
       github: 'https://github.com/Vijajraj',
-      linkedin: 'https://linkedin.com',
+      linkedin: 'https://www.linkedin.com/in/vijay-raj33/',
       comms: 'mailto:tech@callisto.club',
     },
   },
@@ -153,7 +173,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'astronomy',
     departmentName: 'Astronomy & Science Engagement',
     themedName: 'LUNAR Society',
-    term: '2024 – 2026',
     description: 'Directs telescope calibration, deep-sky tracking, planetary imaging sessions, and student astrophysics research modules.',
     avatar: '/crew/avatars/guru.svg',
     socialLinks: {
@@ -168,7 +187,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'people',
     departmentName: 'People Management',
     themedName: 'Stellar Path',
-    term: '2024 – 2026',
     description: 'Oversees crew onboarding, department talent allocation, internal flight wing coordination, and member welfare.',
     avatar: '/crew/avatars/aishmica.svg',
     socialLinks: {
@@ -183,7 +201,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'people',
     departmentName: 'People Management',
     themedName: 'Stellar Path',
-    term: '2024 – 2026',
     description: 'Manages member engagement, cross-department collaboration workflows, and training initiatives for incoming space cadets.',
     avatar: '/crew/avatars/sheetal.svg',
     socialLinks: {
@@ -198,7 +215,6 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'research',
     departmentName: 'Research & Development',
     themedName: 'Aether Wing',
-    term: '2024 – 2026',
     description: 'Spearheads theoretical astrophysics papers, Jovian magnetosphere simulation projects, and exoplanet data analysis pipelines.',
     avatar: '/crew/avatars/mridula.svg',
     socialLinks: {
@@ -226,9 +242,9 @@ export const departments: Department[] = [
     id: 'presidential',
     name: 'Presidential Committee',
     themedName: 'Polaris Circle',
-    lead: 'Executive Committee',
-    roleAssigned: '',
-    role: 'Executive Council',
+    lead: 'Aswin Ponnuraj | Lathika Raj S R',
+    roleAssigned: 'Aswin Ponnuraj | Lathika Raj S R',
+    role: 'President | Vice President',
     shipModule: 'CMD-01',
     description: 'Directs overall club vision, institutional governance, mission timelines, and cross-department strategic initiatives.',
     icon: '/icons/dept-presidential.png',
@@ -304,9 +320,9 @@ export const departments: Department[] = [
     id: 'tech',
     name: 'Technology & Development',
     themedName: 'Tesseract',
-    lead: 'Vijay Raj',
-    roleAssigned: 'Vijay Raj',
-    role: 'Honorary Member',
+    lead: 'vijayraj s',
+    roleAssigned: 'vijayraj s',
+    role: 'Lead Architect',
     shipModule: 'ENG-07',
     description: 'Engineering the digital backbone of the club: astronomical calculation engines, web platforms, and automated observational tools.',
     icon: '/icons/dept-tech.png',

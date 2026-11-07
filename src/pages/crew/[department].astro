@@ -106,7 +106,6 @@ const deptOfficers = getOfficersByDepartment(dept.id);
                     <div class="dept-officer-info">
                       <h3 class="dept-officer-name">{officer.name}</h3>
                       <div class="dept-officer-role-tag">{officer.role}</div>
-                      <div class="dept-officer-term">TERM: {officer.term}</div>
                     </div>
                   </div>
 
@@ -513,14 +512,7 @@ const deptOfficers = getOfficersByDepartment(dept.id);
     font-size: 11px;
     color: var(--astrophage);
     font-weight: 600;
-    margin-bottom: 2px;
-  }
-
-  .dept-officer-term {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--steel);
-    letter-spacing: 0.05em;
+    margin-bottom: var(--space-xs);
   }
 
   .dept-officer-desc {

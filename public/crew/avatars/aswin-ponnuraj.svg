@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <radialGradient id="bg-aswin-ponnuraj" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#090D16" />
+    </radialGradient>
+    <linearGradient id="ring-aswin-ponnuraj" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+    <linearGradient id="visor-aswin-ponnuraj" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.85" />
+      <stop offset="60%" stop-color="#0284C7" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Ring Badge -->
+  <circle cx="60" cy="60" r="56" fill="url(#bg-aswin-ponnuraj)" stroke="url(#ring-aswin-ponnuraj)" stroke-width="2.5" />
+  
+  <!-- Subtly Textured Starlight Orbit -->
+  <circle cx="60" cy="60" r="49" fill="none" stroke="#F59E0B" stroke-opacity="0.25" stroke-dasharray="3 3" />
+
+  <!-- Astronaut Suit Shoulders -->
+  <path d="M 26 102 C 32 82, 88 82, 94 102 C 84 109, 36 109, 26 102 Z" fill="#334155" stroke="#475569" stroke-width="1.5" />
+  
+  <!-- Astronaut Collar Ring -->
+  <path d="M 40 85 C 48 90, 72 90, 80 85 C 76 89, 44 89, 40 85 Z" fill="#64748B" />
+
+  <!-- Astronaut Helmet Outer Shell -->
+  <ellipse cx="60" cy="54" rx="27" ry="29" fill="#F1F5F9" stroke="#94A3B8" stroke-width="2" />
+  
+  <!-- Outer Helmet Ear Modules / Comms Antenna -->
+  <rect x="30" y="48" width="4" height="12" rx="2" fill="#64748B" />
+  <rect x="86" y="48" width="4" height="12" rx="2" fill="#64748B" />
+
+  <!-- Visor Aperture -->
+  <ellipse cx="60" cy="53" rx="21" ry="19" fill="url(#visor-aswin-ponnuraj)" stroke="#0F172A" stroke-width="1.5" />
+  
+  <!-- Visor Reflection Highlight Glint -->
+  <path d="M 46 43 C 54 39, 66 39, 74 43 C 71 45, 50 45, 46 43 Z" fill="#FFFFFF" fill-opacity="0.65" />
+  <ellipse cx="50" cy="49" rx="3" ry="1.5" fill="#FFFFFF" fill-opacity="0.45" />
+
+  <!-- Officer Initials Telemetry Tag -->
+  <rect x="47" y="93" width="26" height="13" rx="3" fill="#090D16" stroke="#F59E0B" stroke-width="1" />
+  <text x="60" y="103" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="700" fill="#F59E0B" letter-spacing="0.5">AP</text>
+</svg>
