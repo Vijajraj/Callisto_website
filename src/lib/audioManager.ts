@@ -86,12 +86,16 @@ let reverbNode: ConvolverNode | null = null;
 let musicEnabled: boolean = false;
 let musicVolume: number = parseFloat(getStorageItem(STORAGE_KEYS.MUSIC_VOLUME, '0.32'));
 
-// HTML5 Native Audio for MP3 Soundtrack
+// HTML5 Native Audio for MP3/WAV Soundtrack
 let audioElement: HTMLAudioElement | null = null;
 let isUsingHtmlAudio: boolean = false;
 let audioTrackStatus: 'idle' | 'loading' | 'playing' | 'paused' | 'error' = 'idle';
 let audioErrorMessage: string | null = null;
-const SOUNDTRACK_SRC = '/audio/callisto-soundtrack.mp3';
+const SOUNDTRACK_SOURCES: string[] = [
+  '/audio/callisto-soundtrack.mp3',
+  '/audio/callisto-soundtrack.wav',
+];
+let currentTrackSourceIndex: number = 0;
 
 // Conductor / Score State
 let isPlayingScore: boolean = false;
@@ -490,7 +494,8 @@ function getAudioElement(): HTMLAudioElement | null {
   if (typeof window === 'undefined') return null;
   if (!audioElement) {
     audioElement = new Audio();
-    audioElement.src = SOUNDTRACK_SRC;
+    currentTrackSourceIndex = 0;
+    audioElement.src = SOUNDTRACK_SOURCES[0];
     audioElement.loop = true;
     audioElement.preload = 'metadata';
     audioElement.volume = musicVolume;
@@ -510,17 +515,36 @@ function getAudioElement(): HTMLAudioElement | null {
     });
 
     audioElement.addEventListener('error', () => {
-      // If MP3 file not available, fall back to procedural audio engine seamlessly!
-      isUsingHtmlAudio = false;
-      audioTrackStatus = 'error';
-      audioErrorMessage = 'MP3 track not found; fell back to procedural synthesis.';
-      if (musicEnabled && !isPlayingScore) {
-        startProceduralScore();
+      // If primary track fails/not found, try next candidate before procedural synthesis
+      if (currentTrackSourceIndex < SOUNDTRACK_SOURCES.length - 1) {
+        currentTrackSourceIndex++;
+        if (audioElement) {
+          audioElement.src = SOUNDTRACK_SOURCES[currentTrackSourceIndex];
+          if (musicEnabled) {
+            const retryPromise = audioElement.play();
+            if (retryPromise !== undefined) {
+              retryPromise.catch(() => {
+                fallbackToProcedural();
+              });
+            }
+          }
+          return;
+        }
       }
-      dispatchAudioStateEvent();
+      fallbackToProcedural();
     });
   }
   return audioElement;
+}
+
+function fallbackToProcedural() {
+  isUsingHtmlAudio = false;
+  audioTrackStatus = 'error';
+  audioErrorMessage = 'Soundtrack file not found; fell back to procedural synthesis.';
+  if (musicEnabled && !isPlayingScore) {
+    startProceduralScore();
+  }
+  dispatchAudioStateEvent();
 }
 
 function startProceduralScore() {

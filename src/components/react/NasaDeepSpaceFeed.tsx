@@ -1338,6 +1338,21 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
           color: #0f172a !important;
         }
 
+        html[data-theme="solar-flare"] .viewport-scrim,
+        html.theme-solar-flare .viewport-scrim,
+        html.light-mode .viewport-scrim {
+          background: rgba(255, 255, 255, 0.92) !important;
+          border: 1px solid rgba(0, 0, 0, 0.2) !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        html[data-theme="solar-flare"] .scrim-text,
+        html.theme-solar-flare .scrim-text,
+        html.light-mode .scrim-text {
+          color: #0284c7 !important;
+          font-weight: 700 !important;
+        }
+
         html[data-theme="solar-flare"] .meta-card,
         html.theme-solar-flare .meta-card,
         html.light-mode .meta-card {
@@ -1357,23 +1372,82 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
           color: #1e293b !important;
         }
 
-        html[data-theme="solar-flare"] .spec-item,
-        html.theme-solar-flare .spec-item,
-        html.light-mode .spec-item {
-          background: #ffffff !important;
-          border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        html[data-theme="solar-flare"] .meta-category,
+        html.theme-solar-flare .meta-category,
+        html.light-mode .meta-category {
+          color: #0284c7 !important;
+          font-weight: 700 !important;
         }
 
+        html[data-theme="solar-flare"] .meta-date,
+        html.theme-solar-flare .meta-date,
+        html.light-mode .meta-date {
+          color: #475569 !important;
+          font-weight: 600 !important;
+        }
+
+        html[data-theme="solar-flare"] .telemetry-grid,
+        html.theme-solar-flare .telemetry-grid,
+        html.light-mode .telemetry-grid {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.14) !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        html[data-theme="solar-flare"] .chip-label,
+        html.theme-solar-flare .chip-label,
+        html.light-mode .chip-label,
         html[data-theme="solar-flare"] .spec-label,
         html.theme-solar-flare .spec-label,
         html.light-mode .spec-label {
           color: #475569 !important;
+          font-weight: 700 !important;
         }
 
+        html[data-theme="solar-flare"] .chip-val,
+        html.theme-solar-flare .chip-val,
+        html.light-mode .chip-val,
         html[data-theme="solar-flare"] .spec-val,
         html.theme-solar-flare .spec-val,
         html.light-mode .spec-val {
           color: #0f172a !important;
+          font-weight: 600 !important;
+        }
+
+        html[data-theme="solar-flare"] .chip-val.highlight,
+        html.theme-solar-flare .chip-val.highlight,
+        html.light-mode .chip-val.highlight {
+          color: #0284c7 !important;
+          font-weight: 700 !important;
+        }
+
+        html[data-theme="solar-flare"] .chip-val.mono,
+        html.theme-solar-flare .chip-val.mono,
+        html.light-mode .chip-val.mono {
+          color: #1e293b !important;
+          font-weight: 600 !important;
+        }
+
+        html[data-theme="solar-flare"] .explanation-heading,
+        html.theme-solar-flare .explanation-heading,
+        html.light-mode .explanation-heading {
+          color: #0284c7 !important;
+          font-weight: 700 !important;
+        }
+
+        html[data-theme="solar-flare"] .action-btn.primary,
+        html.theme-solar-flare .action-btn.primary,
+        html.light-mode .action-btn.primary {
+          background: #0284c7 !important;
+          border: 1px solid #0284c7 !important;
+          color: #ffffff !important;
+        }
+
+        html[data-theme="solar-flare"] .action-btn.primary:hover,
+        html.theme-solar-flare .action-btn.primary:hover,
+        html.light-mode .action-btn.primary:hover {
+          background: #0369a1 !important;
+          border-color: #0369a1 !important;
         }
 
         html[data-theme="solar-flare"] .action-btn.secondary,
@@ -1382,6 +1456,12 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
           background: #ffffff !important;
           border: 1px solid rgba(0, 0, 0, 0.25) !important;
           color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .credit-footer,
+        html.theme-solar-flare .credit-footer,
+        html.light-mode .credit-footer {
+          border-top: 1px solid rgba(0, 0, 0, 0.12) !important;
         }
 
         html[data-theme="solar-flare"] .credit-text,
