@@ -55,6 +55,7 @@ export { default as NasaDeepSpaceFeed } from './NasaDeepSpaceFeed';
 export { default as SoundHud } from './SoundHud';
 export { default as TelescopeSimulator } from './TelescopeSimulator';
 export { default as TonightSkyEphemeris } from './TonightSkyEphemeris';
+export { default as CosmicCinemaTerminal } from './CosmicCinemaTerminal';
 export { default as CrewRoster } from './CrewRoster';
 export { default as PodcastTransmission } from './PodcastTransmission';
 

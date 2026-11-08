@@ -316,6 +316,7 @@ export default function TonightSkyEphemeris(): React.ReactElement {
   const [simulatedHour, setSimulatedHour] = useState<number | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [expandedTarget, setExpandedTarget] = useState<string | null>(null);
+  const [isRadarOpen, setIsRadarOpen] = useState<boolean>(false);
 
   // Live Clock Ticker (updates every 15 seconds)
   useEffect(() => {
@@ -517,8 +518,30 @@ export default function TonightSkyEphemeris(): React.ReactElement {
         </div>
       </div>
 
-      {/* Interactive Time Scrubber / Diurnal Timeline */}
-      <div className="timeline-controller">
+      {/* Radar Expansion Control Banner */}
+      <div className="radar-toggle-bar">
+        <div className="radar-status-summary">
+          <span className="live-dot-pulse"></span>
+          <span className="radar-status-text">
+            <strong>{computedCatalog.filter(t => t.horizontal.altitudeDeg > 0).length} OF {computedCatalog.length} CELESTIAL TARGETS</strong> OBSERVABLE TONIGHT
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsRadarOpen(prev => !prev)}
+          className={`btn-radar-toggle ${isRadarOpen ? 'active' : ''}`}
+          aria-expanded={isRadarOpen}
+        >
+          <span>{isRadarOpen ? '▲ COLLAPSE EPHEMERIS RADAR' : '▼ EXPAND LIVE EPHEMERIS & TELESCOPE RADAR'}</span>
+          <span className="toggle-badge">{isRadarOpen ? 'HIDE' : `${computedCatalog.length} TARGETS`}</span>
+        </button>
+      </div>
+
+      {isRadarOpen && (
+        <>
+          {/* Interactive Time Scrubber / Diurnal Timeline */}
+          <div className="timeline-controller">
         <div className="timeline-header">
           <div className="time-indicator">
             <span className={`live-pulse-dot ${simulatedHour === null ? 'live' : 'sim'}`}></span>
@@ -760,6 +783,8 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           </tbody>
         </table>
       </div>
+      </>
+      )}
 
       {/* High-Contrast Responsive Stylesheet */}
       <style>{`
@@ -776,6 +801,85 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           .ephemeris-card {
             padding: 2.25rem;
           }
+        }
+
+        /* Radar Expansion Toggle Bar */
+        .radar-toggle-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 1rem;
+          margin-top: 0.5rem;
+          margin-bottom: 1.5rem;
+          padding: 1rem 1.25rem;
+          background: rgba(15, 23, 42, 0.7);
+          border: 1px solid rgba(56, 189, 248, 0.28);
+          border-radius: var(--radius-md, 10px);
+        }
+
+        .radar-status-summary {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75rem;
+          color: var(--moon, #ffffff);
+          letter-spacing: 0.04em;
+        }
+
+        .live-dot-pulse {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #10b981;
+          box-shadow: 0 0 10px #10b981;
+          display: inline-block;
+        }
+
+        .btn-radar-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.65rem;
+          background: linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(2, 132, 199, 0.28) 100%);
+          border: 1.5px solid #38bdf8;
+          color: #ffffff;
+          padding: 0.55rem 1.15rem;
+          border-radius: var(--radius-sm, 6px);
+          font-family: var(--font-mono, monospace);
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
+        }
+
+        .btn-radar-toggle:hover {
+          background: #38bdf8;
+          color: #020617;
+          box-shadow: 0 0 22px rgba(56, 189, 248, 0.6);
+          transform: translateY(-1px);
+        }
+
+        .btn-radar-toggle.active {
+          background: rgba(15, 23, 42, 0.95);
+          border-color: rgba(148, 163, 184, 0.45);
+          color: #94a3b8;
+          box-shadow: none;
+        }
+
+        .toggle-badge {
+          background: rgba(56, 189, 248, 0.25);
+          color: #38bdf8;
+          font-size: 0.62rem;
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+        }
+
+        .btn-radar-toggle:hover .toggle-badge {
+          background: rgba(2, 6, 23, 0.8);
+          color: #38bdf8;
         }
 
         .ephemeris-header {
@@ -1378,6 +1482,33 @@ export default function TonightSkyEphemeris(): React.ReactElement {
           background: rgba(255, 255, 255, 0.94) !important;
           border: 1px solid rgba(0, 0, 0, 0.16) !important;
           box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+        }
+
+        html[data-theme="solar-flare"] .radar-toggle-bar,
+        html.theme-solar-flare .radar-toggle-bar,
+        html.light-mode .radar-toggle-bar {
+          background: #f8fafc !important;
+          border-color: rgba(0, 0, 0, 0.15) !important;
+        }
+
+        html[data-theme="solar-flare"] .radar-status-summary,
+        html.theme-solar-flare .radar-status-summary,
+        html.light-mode .radar-status-summary {
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .btn-radar-toggle,
+        html.theme-solar-flare .btn-radar-toggle,
+        html.light-mode .btn-radar-toggle {
+          background: #0284c7 !important;
+          color: #ffffff !important;
+          border-color: #0284c7 !important;
+        }
+
+        html[data-theme="solar-flare"] .btn-radar-toggle:hover,
+        html.theme-solar-flare .btn-radar-toggle:hover,
+        html.light-mode .btn-radar-toggle:hover {
+          background: #0369a1 !important;
         }
 
         html[data-theme="solar-flare"] .ephemeris-title,

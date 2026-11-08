@@ -85,6 +85,7 @@ if (missingViewport === 0) {
 console.log('\n--- Component Mobile Breakpoints & Touch Handlers Audit ---');
 const componentsToCheck = [
   { file: 'src/components/react/TonightSkyEphemeris.tsx', name: 'TonightSkyEphemeris' },
+  { file: 'src/components/react/CosmicCinemaTerminal.tsx', name: 'CosmicCinemaTerminal' },
   { file: 'src/components/react/NasaDeepSpaceFeed.tsx', name: 'NasaDeepSpaceFeed' },
   { file: 'src/components/react/SoundHud.tsx', name: 'SoundHud' },
   { file: 'src/components/react/PodcastTransmission.tsx', name: 'PodcastTransmission' },
