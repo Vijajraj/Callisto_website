@@ -252,8 +252,7 @@ export default function SolarSystemOrrery(): React.ReactElement {
   const [selectedBody, setSelectedBody] = useState<SolarSystemBody>(SOLAR_BODIES[3]); // Default to Earth
   const [speedMultiplier, setSpeedMultiplier] = useState<number>(1.0);
   const [viewScope, setViewScope] = useState<'full' | 'inner'>('full');
-  const [showOrbits, setShowOrbits] = useState<boolean>(true);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [showOrbits, setShowOrbits] = useState<boolean>(false);
 
   // Orbital angles storage
   const anglesRef = useRef<{ [key: string]: number }>({
@@ -268,7 +267,7 @@ export default function SolarSystemOrrery(): React.ReactElement {
   });
 
   const speedRef = useRef(speedMultiplier);
-  speedRef.current = isPaused ? 0 : speedMultiplier;
+  speedRef.current = speedMultiplier;
 
   const viewScopeRef = useRef(viewScope);
   viewScopeRef.current = viewScope;
@@ -780,19 +779,6 @@ export default function SolarSystemOrrery(): React.ReactElement {
             aria-label="Toggle view scope"
           >
             {viewScope === 'full' ? 'INNER PLANETS ZOOM' : 'FULL SYSTEM VIEW'}
-          </button>
-
-          {/* Pause / Play */}
-          <button
-            onClick={() => {
-              setIsPaused((prev) => !prev);
-              playTelemetryBeep(isPaused ? 800 : 500, 0.05);
-            }}
-            className="solar-ctrl-btn"
-            title={isPaused ? 'Resume orbital simulation' : 'Pause orbital simulation'}
-            aria-label={isPaused ? 'Resume simulation' : 'Pause simulation'}
-          >
-            {isPaused ? 'RESUME' : 'PAUSE'}
           </button>
 
           {/* Speed Multiplier */}
