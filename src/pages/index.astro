@@ -45,6 +45,7 @@ import DepartmentCard from '../components/DepartmentCard.astro';
 import CrescentLoader from '../components/react/CrescentLoader';
 import EventCountdown from '../components/react/EventCountdown';
 import SolarSystemOrrery from '../components/react/SolarSystemOrrery';
+import PodcastTransmission from '../components/react/PodcastTransmission';
 import { departments } from '../data/departments';
 import { getUpcomingEvents } from '../data/events';
 import { getSolCount } from '../lib/utils';
@@ -252,6 +253,19 @@ const previewDepartments = departments.slice(0, 5);
           <span>Explore All 11 Departments &rarr;</span>
         </a>
       </div>
+    </div>
+  </section>
+
+  <!-- Cosmic Podcast Audio Broadcast Section -->
+  <section class="podcast-broadcast-section" aria-label="Whispers of the Universe Podcast">
+    <div class="content-wrapper">
+      <SectionHeading
+        mono="AUDIO TRANSMISSION // STARCAST RADIO"
+        title="Whispers of the Universe"
+        subtitle="Tune into Callisto's official astrophysics podcast hosted by Sanjay V V. Streaming deep-space cosmological investigations from our orbital transceiver."
+        align="left"
+      />
+      <PodcastTransmission client:load />
     </div>
   </section>
 
@@ -818,6 +832,11 @@ const previewDepartments = departments.slice(0, 5);
 
   .orrery-island-wrapper {
     margin-top: var(--space-2xl);
+  }
+  /* Podcast Broadcast Section */
+  .podcast-broadcast-section {
+    padding: var(--space-3xl) 0 0;
+    position: relative;
   }
 </style>
 

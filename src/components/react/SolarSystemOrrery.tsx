@@ -696,10 +696,10 @@ export default function SolarSystemOrrery(): React.ReactElement {
           color: var(--void) !important;
         }
         .solar-join-badge-img {
-          width: 22px;
-          height: 22px;
+          width: 26px;
+          height: 26px;
           border-radius: 50%;
-          object-fit: cover;
+          object-fit: contain;
           display: block;
         }
         .solar-join-text {
@@ -709,7 +709,7 @@ export default function SolarSystemOrrery(): React.ReactElement {
           letter-spacing: 0.12em;
           color: var(--orbit);
           line-height: 1;
-          margin-top: 2px;
+          margin-top: 3px;
           transition: color 0.18s ease;
         }
 
@@ -917,10 +917,10 @@ export default function SolarSystemOrrery(): React.ReactElement {
             aria-label="Join Callisto Space Club"
           >
             <img
-              src="/icons/starfield-badge.png"
+              src="/icons/starfield-badge.svg"
               alt="Starfield Badge"
-              width="22"
-              height="22"
+              width="26"
+              height="26"
               className="solar-join-badge-img"
             />
             <span className="solar-join-text">JOIN</span>
@@ -1261,11 +1261,11 @@ export default function SolarSystemOrrery(): React.ReactElement {
             title="Join Callisto Space Club"
           >
             <img
-              src="/icons/starfield-badge.png"
+              src="/icons/starfield-badge.svg"
               alt="Starfield Badge"
               width="36"
               height="36"
-              style={{ objectFit: 'cover', borderRadius: '50%' }}
+              style={{ objectFit: 'contain', borderRadius: '50%' }}
             />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--moon)', letterSpacing: '0.05em' }}>

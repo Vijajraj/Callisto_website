@@ -56,6 +56,7 @@ export { default as SoundHud } from './SoundHud';
 export { default as TelescopeSimulator } from './TelescopeSimulator';
 export { default as TonightSkyEphemeris } from './TonightSkyEphemeris';
 export { default as CrewRoster } from './CrewRoster';
+export { default as PodcastTransmission } from './PodcastTransmission';
 
 export type { StarfieldProps } from './Starfield';
 export type { FlatModeToggleProps } from './FlatModeToggle';

@@ -133,9 +133,9 @@ if (brokenLinks.length === 0) {
 // 3. Verify interactive client islands are included
 console.log('\n--- Interactive Astro Islands Check ---');
 const clientIslandPages = [
-  { page: 'observatory/index.html', islands: ['TonightSkyEphemeris', 'NasaDeepSpaceFeed'] },
+  { page: 'observatory/index.html', islands: ['TonightSkyEphemeris', 'NasaDeepSpaceFeed', 'PodcastTransmission'] },
   { page: 'avatar/index.html', islands: ['AvatarBuilder'] },
-  { page: 'index.html', islands: ['Starfield', 'SoundHud', 'EventCountdown'] },
+  { page: 'index.html', islands: ['Starfield', 'SoundHud', 'EventCountdown', 'PodcastTransmission'] },
 ];
 
 for (const check of clientIslandPages) {

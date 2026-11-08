@@ -87,6 +87,7 @@ const componentsToCheck = [
   { file: 'src/components/react/TonightSkyEphemeris.tsx', name: 'TonightSkyEphemeris' },
   { file: 'src/components/react/NasaDeepSpaceFeed.tsx', name: 'NasaDeepSpaceFeed' },
   { file: 'src/components/react/SoundHud.tsx', name: 'SoundHud' },
+  { file: 'src/components/react/PodcastTransmission.tsx', name: 'PodcastTransmission' },
   { file: 'src/pages/404.astro', name: 'Custom 404 Page' },
   { file: 'src/styles/global.css', name: 'Global Stylesheet' },
 ];

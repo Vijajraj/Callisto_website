@@ -197,6 +197,21 @@ export default function CrewRoster({ initialOfficers }: CrewRosterProps): React.
                       </svg>
                     </a>
                   )}
+                  {officer.socialLinks.spotify && (
+                    <a
+                      href={officer.socialLinks.spotify}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="social-btn"
+                      aria-label={`Listen to ${officer.name}'s Podcast on Spotify`}
+                      title="Listen on Spotify"
+                      style={{ color: '#1ed760' }}
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.494 17.306c-.215.353-.674.464-1.027.249-2.812-1.718-6.352-2.107-10.523-1.154-.403.092-.806-.16-.898-.563-.092-.403.16-.806.563-.898 4.568-1.044 8.487-.6 11.636 1.339.353.215.464.674.249 1.027zm1.468-3.264c-.27.44-.847.579-1.287.31-3.219-1.978-8.125-2.55-11.932-1.393-.497.151-1.025-.133-1.176-.63-.151-.497.133-1.025.63-1.176 4.35-1.32 9.757-.68 13.455 1.593.44.27.579.847.31 1.287zm.126-3.411c-3.86-2.292-10.223-2.503-13.886-1.391-.592.18-1.222-.154-1.402-.746-.18-.592.154-1.222.746-1.402 4.225-1.283 11.237-1.037 15.684 1.603.533.316.707 1.009.391 1.542-.316.533-1.009.707-1.542.391z" />
+                      </svg>
+                    </a>
+                  )}
                 </div>
 
                 <a href={`/crew/${officer.departmentId}`} className="dept-station-link">

@@ -77,7 +77,7 @@ export default function SoundHud(): React.ReactElement {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 0.45rem;
+          gap: 0.55rem;
           background: transparent;
           border: none;
           padding: 0;
@@ -92,26 +92,27 @@ export default function SoundHud(): React.ReactElement {
 
         .rocket-badge-wrapper {
           position: relative;
-          width: 64px;
-          height: 64px;
+          width: 66px;
+          height: 66px;
           border-radius: 50%;
-          background: #213250;
-          border: 1.5px solid rgba(56, 189, 248, 0.4);
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 189, 248, 0.4);
+          background: #182A48;
+          border: none;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 18px rgba(56, 189, 248, 0.35);
           display: flex;
           align-items: center;
           justify-content: center;
           transition: transform 0.25s ease, box-shadow 0.25s ease;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .rocket-badge-img {
           width: 100%;
           height: 100%;
           border-radius: 50%;
-          object-fit: cover;
+          object-fit: contain;
           display: block;
           pointer-events: none;
+          filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
         }
 
         .rocket-label-pill {
@@ -288,7 +289,7 @@ export default function SoundHud(): React.ReactElement {
       >
         <div className="rocket-badge-wrapper">
           <img
-            src="/icons/starfield-rocket-badge.png"
+            src="/icons/starfield-badge.svg"
             alt="Callisto Starfield Insignia"
             className="rocket-badge-img"
             width="66"

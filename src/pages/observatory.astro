@@ -13,6 +13,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import NasaDeepSpaceFeed from '../components/react/NasaDeepSpaceFeed';
 import TonightSkyEphemeris from '../components/react/TonightSkyEphemeris';
+import PodcastTransmission from '../components/react/PodcastTransmission';
 
 // Preload primary featured expedition asset without flooding mobile network
 const preloadedAssets = [
@@ -74,6 +75,11 @@ const preloadedAssets = [
           <span class="full-article-note">Full scientific publication releasing in Callisto Journal Vol. IV</span>
         </div>
       </div>
+    </section>
+
+    <!-- Sub-Space Radio Transmission Section -->
+    <section class="observatory-podcast-section" aria-label="Whispers of the Universe Sub-Space Radio">
+      <PodcastTransmission client:load />
     </section>
 
     <!-- Join Content Team CTA -->

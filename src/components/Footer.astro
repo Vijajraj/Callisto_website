@@ -50,6 +50,7 @@ const observatoryLinks: FooterLink[] = [
   { href: '/observatory', label: 'Virtual Telescope & Ephemeris' },
   { href: '/gallery', label: 'Astrophotography Gallery' },
   { href: '/avatar', label: 'Suit Lab & Fabricator' },
+  { href: 'https://open.spotify.com/episode/7Cua98anBVaMCRzlCHi60D?si=E8OqIumUTTqXjRt5iAQHcA', label: 'Whispers of the Universe (Podcast)' },
 ];
 
 const operationsLinks: FooterLink[] = [
@@ -92,7 +93,12 @@ const operationsLinks: FooterLink[] = [
           {
             observatoryLinks.map((item) => (
               <li>
-                <a href={item.href} class="footer-link">
+                <a
+                  href={item.href}
+                  class="footer-link"
+                  target={item.href.startsWith('http') ? '_blank' : undefined}
+                  rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                >
                   {item.label}
                 </a>
               </li>

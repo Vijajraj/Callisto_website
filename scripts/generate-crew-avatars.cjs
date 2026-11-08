@@ -22,6 +22,7 @@ const officers = [
   { id: 'harshitha', name: 'Harshitha Leoamarnath', accent: '#38BDF8', glow: 'rgba(56, 189, 248, 0.4)', initials: 'HL' },
   { id: 'mirudhula', name: 'Mirudhula Madhu', accent: '#A855F7', glow: 'rgba(168, 85, 247, 0.4)', initials: 'MM' },
   { id: 'mukilan', name: 'Mukilan', accent: '#F59E0B', glow: 'rgba(245, 158, 11, 0.4)', initials: 'MU' },
+  { id: 'sanjay-vv', name: 'Sanjay V V', accent: '#1ED760', glow: 'rgba(30, 215, 96, 0.4)', initials: 'SV' },
   { id: 'mahavishnu', name: 'Mahavishnu', accent: '#06B6D4', glow: 'rgba(6, 182, 212, 0.4)', initials: 'MV' },
   { id: 'siddiksha', name: 'Siddiksha', accent: '#EC4899', glow: 'rgba(236, 72, 153, 0.4)', initials: 'SI' },
   { id: 'azmina', name: 'Azmina', accent: '#F43F5E', glow: 'rgba(244, 63, 94, 0.4)', initials: 'AZ' },
