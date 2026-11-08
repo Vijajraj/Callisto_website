@@ -145,7 +145,7 @@ export const crewOfficers: CrewOfficer[] = [
     departmentName: 'Design & Visual Media',
     themedName: 'Nebula Wing',
     description: 'Leads visual design, mission insignia branding, interactive UI assets, and aesthetic direction for all club media.',
-    avatar: '/crew/avatars/azmina.svg',
+    avatar: '/crew/avatars/azmina.jpg',
     socialLinks: {
       linkedin: 'https://linkedin.com',
       comms: 'mailto:design@callisto.club',
