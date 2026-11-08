@@ -442,6 +442,26 @@ a:hover {
     contain: layout style;
   }
 
+  /* Content visibility optimizations for long mobile views */
+  .activities-section,
+  .departments-section,
+  .next-launch-section,
+  .brief-section,
+  .story-section,
+  .cta-section,
+  .officers-grid {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 400px;
+  }
+
+  /* Optimize officer cards, telemetry and orrery containers on mobile */
+  .officer-card,
+  .solar-dossier,
+  .solar-system-orrery-container {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   .nav-bar {
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;

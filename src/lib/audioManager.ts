@@ -497,7 +497,7 @@ function getAudioElement(): HTMLAudioElement | null {
     currentTrackSourceIndex = 0;
     audioElement.src = SOUNDTRACK_SOURCES[0];
     audioElement.loop = true;
-    audioElement.preload = 'metadata';
+    audioElement.preload = 'none';
     audioElement.volume = musicVolume;
 
     audioElement.addEventListener('playing', () => {

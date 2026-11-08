@@ -285,6 +285,13 @@ export default function SolarSystemOrrery(): React.ReactElement {
     let animationId: number;
     let lastTime = performance.now();
 
+    let cachedCenterX = -1;
+    let cachedCenterY = -1;
+    let cachedSunRadius = -1;
+    let cachedSunGrad: CanvasGradient | null = null;
+    let cachedCoronaGradDark: CanvasGradient | null = null;
+    let cachedCoronaGradLight: CanvasGradient | null = null;
+
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -345,37 +352,59 @@ export default function SolarSystemOrrery(): React.ReactElement {
       const sunRadius = isInner ? 22 : 17;
       bodyPositionsRef.current['sun'] = { x: centerX, y: centerY, r: sunRadius };
 
+      if (cachedCenterX !== centerX || cachedCenterY !== centerY || cachedSunRadius !== sunRadius) {
+        cachedCenterX = centerX;
+        cachedCenterY = centerY;
+        cachedSunRadius = sunRadius;
+
+        cachedCoronaGradDark = ctx.createRadialGradient(
+          centerX,
+          centerY,
+          sunRadius,
+          centerX,
+          centerY,
+          sunRadius + 18
+        );
+        cachedCoronaGradDark.addColorStop(0, 'rgba(251, 191, 36, 0.38)');
+        cachedCoronaGradDark.addColorStop(1, 'transparent');
+
+        cachedCoronaGradLight = ctx.createRadialGradient(
+          centerX,
+          centerY,
+          sunRadius,
+          centerX,
+          centerY,
+          sunRadius + 18
+        );
+        cachedCoronaGradLight.addColorStop(0, 'rgba(245, 158, 11, 0.42)');
+        cachedCoronaGradLight.addColorStop(1, 'transparent');
+
+        cachedSunGrad = ctx.createRadialGradient(
+          centerX - 4,
+          centerY - 4,
+          2,
+          centerX,
+          centerY,
+          sunRadius
+        );
+        cachedSunGrad.addColorStop(0, '#FEF08A');
+        cachedSunGrad.addColorStop(0.35, '#F59E0B');
+        cachedSunGrad.addColorStop(0.85, '#D97706');
+        cachedSunGrad.addColorStop(1, '#B45309');
+      }
+
       // Sun Outer Corona Pulse
-      const sunPulse = Math.sin(time * 0.003) * 3;
-      const coronaGrad = ctx.createRadialGradient(
-        centerX,
-        centerY,
-        sunRadius,
-        centerX,
-        centerY,
-        sunRadius + 14 + sunPulse
-      );
-      coronaGrad.addColorStop(0, isLight ? 'rgba(245, 158, 11, 0.4)' : 'rgba(251, 191, 36, 0.35)');
-      coronaGrad.addColorStop(1, 'transparent');
-      ctx.fillStyle = coronaGrad;
+      const sunPulse = 1.0 + Math.sin(time * 0.003) * 0.15;
+      ctx.save();
+      ctx.globalAlpha = sunPulse;
+      ctx.fillStyle = (isLight ? cachedCoronaGradLight : cachedCoronaGradDark) || '#F59E0B';
       ctx.beginPath();
-      ctx.arc(centerX, centerY, sunRadius + 14 + sunPulse, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, sunRadius + 18, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
 
       // Sun Core Body
-      const sunGrad = ctx.createRadialGradient(
-        centerX - 4,
-        centerY - 4,
-        2,
-        centerX,
-        centerY,
-        sunRadius
-      );
-      sunGrad.addColorStop(0, '#FEF08A');
-      sunGrad.addColorStop(0.35, '#F59E0B');
-      sunGrad.addColorStop(0.85, '#D97706');
-      sunGrad.addColorStop(1, '#B45309');
-      ctx.fillStyle = sunGrad;
+      ctx.fillStyle = cachedSunGrad || '#F59E0B';
       ctx.beginPath();
       ctx.arc(centerX, centerY, sunRadius, 0, Math.PI * 2);
       ctx.fill();
