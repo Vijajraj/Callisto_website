@@ -8,7 +8,7 @@
  * =====================================================================
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 
 export interface MotifItem {
   name: string;
@@ -22,6 +22,7 @@ export interface CinemaSignal {
   year: number;
   director: string;
   frequency: string;
+  freqMhz: number;
   callSign: string;
   themeColor: string;
   tag: string;
@@ -45,6 +46,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 1968,
     director: 'Stanley Kubrick',
     frequency: '2001.00 MHz',
+    freqMhz: 2001.0,
     callSign: 'DISCOVERY ONE // HAL 9000',
     themeColor: '#ef4444',
     tag: 'HARD SCI-FI BENCHMARK',
@@ -83,7 +85,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
         description: 'Subtle practical spaceflight gags (a floating ballpoint pen gently retrieved by a Pan Am stewardess and extensive multi-step zero-g toilet placards) imitated in later space epics.',
       },
     ],
-    astrodynamicsNote: 'The Tycho Magnetic Anomaly (TMA-1) on the Moon emitted a single high-intensity radio pulse aimed directly at Jupiter upon exposure to sunlight. The Discovery One was dispatched on a 18-month interplanetary trajectory utilizing a Jovian gravitational slingshot.',
+    astrodynamicsNote: 'The Tycho Magnetic Anomaly (TMA-1) on the Moon emitted a single high-intensity radio pulse aimed directly at Jupiter upon exposure to sunlight. The Discovery One was dispatched on an 18-month interplanetary trajectory utilizing a Jovian gravitational slingshot.',
     classifiedEasterEgg: {
       title: 'HAL 9000 LOGIC DECOUPLING ARCHIVE',
       clearanceCode: 'HAL-9000-DISCONNECT-1968',
@@ -97,6 +99,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 2014,
     director: 'Christopher Nolan',
     frequency: '5432.10 MHz',
+    freqMhz: 5432.1,
     callSign: 'ENDURANCE // TARS-CASE',
     themeColor: '#06b6d4',
     tag: 'GRAVITATIONAL ASTROPHYSICS',
@@ -149,6 +152,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 2013,
     director: 'Alfonso Cuarón',
     frequency: '121.50 MHz',
+    freqMhz: 121.5,
     callSign: 'SHUTTLE EXPLORER // STS-157',
     themeColor: '#38bdf8',
     tag: 'ORBITAL KESSLER CASCADE',
@@ -201,6 +205,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 2015,
     director: 'Ridley Scott',
     frequency: '437.55 MHz',
+    freqMhz: 437.55,
     callSign: 'ARES III HAB // SOL 546',
     themeColor: '#f97316',
     tag: 'MARS BOTANY & ASTRODYNAMICS',
@@ -258,6 +263,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 1995,
     director: 'Ron Howard',
     frequency: '296.80 MHz',
+    freqMhz: 296.8,
     callSign: 'ODYSSEY & AQUARIUS // CSM-109',
     themeColor: '#fbbf24',
     tag: 'CREW RECOVERY ASTRODYNAMICS',
@@ -310,6 +316,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 1979,
     director: 'Ridley Scott',
     frequency: '2400.00 MHz',
+    freqMhz: 2400.0,
     callSign: 'USCSS NOSTROMO // COMMERCIAL TOW',
     themeColor: '#22c55e',
     tag: 'XENOMORPH DEEP-SPACE LORE',
@@ -367,6 +374,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 1977,
     director: 'George Lucas',
     frequency: '1138.00 MHz',
+    freqMhz: 1138.0,
     callSign: 'RED FIVE // T-65 X-WING',
     themeColor: '#3b82f6',
     tag: 'CIRCUMBINARY ASTROPHYSICS',
@@ -429,6 +437,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 2008,
     director: 'Andrew Stanton',
     frequency: '113.00 MHz',
+    freqMhz: 113.0,
     callSign: 'WASTE ALLOCATION // AXIOM',
     themeColor: '#eab308',
     tag: 'ROBOTIC STEWARDSHIP & TRANSCENDENCE',
@@ -486,6 +495,7 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     year: 1986,
     director: 'James Cameron',
     frequency: '1986.50 MHz',
+    freqMhz: 1986.5,
     callSign: 'USS SULACO // 2ND BATTALION',
     themeColor: '#e11d48',
     tag: 'COLONIAL MARINE FIREPOWER',
@@ -544,33 +554,178 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
   },
 ];
 
-// Lightweight synthesized telemetry audio (zero MP3/WAV files, zero memory leaks)
-function playCinemaBeep(freq = 800, duration = 0.08, type: OscillatorType = 'sine') {
-  if (typeof window === 'undefined') return;
-  try {
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+// Web Audio API Synthesizer (Zero External Audio Files, Zero Lag)
+class CinemaAudioEngine {
+  private ctx: AudioContext | null = null;
+  public isMuted: boolean = false;
 
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(freq * 1.25, ctx.currentTime + duration);
+  private initCtx() {
+    if (typeof window === 'undefined' || this.isMuted) return null;
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+    return this.ctx;
+  }
 
-    gain.gain.setValueAtTime(0.06, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  // Radio frequency static tuning chirp
+  playRadioChirp(freq = 880) {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.35, ctx.currentTime + 0.07);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.07);
+    } catch {
+      // Audio autoplay policy fallback
+    }
+  }
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+  // Morse Code Dit / Dah
+  playMorse(isDah = false) {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const duration = isDah ? 0.18 : 0.06;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(750, ctx.currentTime);
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch {
+      // Audio autoplay fallback
+    }
+  }
 
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-    setTimeout(() => ctx.close(), Math.ceil(duration * 1000) + 100);
-  } catch {
-    // Audio context not allowed or unsupported
+  // M41A Pulse rifle burst fire
+  playPulseRifleBurst() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      [0, 0.05, 0.1].forEach((delay) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, ctx.currentTime + delay);
+        osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + delay + 0.04);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.04);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + 0.04);
+      });
+    } catch {
+      // Audio autoplay fallback
+    }
+  }
+
+  // Retro CRT Keystroke
+  playCrtKey() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, ctx.currentTime);
+      gain.gain.setValueAtTime(0.025, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.02);
+    } catch {
+      // Audio autoplay fallback
+    }
+  }
+
+  // HAL Memory Disconnect Pitch-Down Whine
+  playHalDisconnect(remainingCores: number) {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const baseFreq = Math.max(120, remainingCores * 180);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.07, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch {
+      // Audio autoplay fallback
+    }
+  }
+
+  // Vintage Mac Solar Startup Chord
+  playSolarChime() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const notes = [261.63, 329.63, 392.0, 523.25]; // C Major Chord
+      notes.forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.04, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.8);
+      });
+    } catch {
+      // Audio autoplay fallback
+    }
+  }
+
+  // Duct Tape Seal Snap
+  playTapeSeal() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(320, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.06);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.06);
+    } catch {
+      // Audio autoplay fallback
+    }
   }
 }
+
+const audio = new CinemaAudioEngine();
 
 export default function CosmicCinemaTerminal(): React.ReactElement {
   const [activeSignalId, setActiveSignalId] = useState<string>('odyssey-2001');
@@ -578,317 +733,202 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isDossierOpen, setIsDossierOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+
+  // --- Interactive Mini-Game States ---
+  // 1. 2001: HAL 9000 memory core disconnects
+  const [halCores, setHalCores] = useState<string[]>([
+    'HEURISTIC CORE',
+    'LINGUISTIC MATRIX',
+    'COGNITIVE WILL',
+    'SENTIENCE BUFFER',
+  ]);
+
+  // 2. Interstellar: TARS Humor & Honesty sliders + Morse Watch
+  const [tarsHumor, setTarsHumor] = useState<number>(75);
+  const [tarsHonesty, setTarsHonesty] = useState<number>(90);
+  const [morseLogs, setMorseLogs] = useState<string[]>(['S', 'T', 'A', 'Y']);
+
+  // 3. Gravity: Zero-G Floating Pen velocity/angle
+  const [penAngle, setPenAngle] = useState<number>(25);
+  const [kesslerAlert, setKesslerAlert] = useState<boolean>(false);
+
+  // 4. The Martian: Pathfinder Hex Angle
+  const [pathfinderDeg, setPathfinderDeg] = useState<number>(45);
+  const [activeHexChar, setActiveHexChar] = useState<string>('C');
+
+  // 5. Apollo 13: Improvised CO2 Scrubber Assembly Items
+  const [scrubberItems, setScrubberItems] = useState<{ [key: string]: boolean }>({
+    canister: false,
+    cardboard: false,
+    plasticBag: false,
+    ductTape: false,
+  });
+
+  // 6. Alien: MU-TH-UR 6000 CRT active query & typed output
+  const [crtOutput, setCrtOutput] = useState<string>(
+    'SYSTEM READY // INTERFACE WITH NOSTROMO ARCHIVES AVAILABLE.'
+  );
+
+  // 7. Star Wars: Death Star Trench Run
+  const [useTheForce, setUseTheForce] = useState<boolean>(false);
+  const [torpedoStatus, setTorpedoStatus] = useState<string | null>(null);
+
+  // 8. WALL-E: Solar Battery Charge
+  const [solarPercent, setSolarPercent] = useState<number>(65);
+
+  // 9. Aliens: M41A Pulse Rifle Ammo & Bishop Knife Trick Speed
+  const [pulseAmmo, setPulseAmmo] = useState<number>(95);
+  const [bishopSpeed, setBishopSpeed] = useState<number>(0);
 
   const activeSignal = useMemo(() => {
     return CINEMA_SIGNALS.find((s) => s.id === activeSignalId) || CINEMA_SIGNALS[0];
   }, [activeSignalId]);
 
+  // Handle Signal Tuning
   const handleSelectSignal = useCallback((id: string) => {
     setActiveSignalId(id);
-    playCinemaBeep(920, 0.06, 'triangle');
+    audio.playRadioChirp(920);
   }, []);
 
+  // Next / Previous Frequency Seek
+  const handleSeekSignal = useCallback((dir: 'next' | 'prev') => {
+    const idx = CINEMA_SIGNALS.findIndex((s) => s.id === activeSignalId);
+    let newIdx = dir === 'next' ? idx + 1 : idx - 1;
+    if (newIdx >= CINEMA_SIGNALS.length) newIdx = 0;
+    if (newIdx < 0) newIdx = CINEMA_SIGNALS.length - 1;
+    setActiveSignalId(CINEMA_SIGNALS[newIdx].id);
+    audio.playRadioChirp(1040);
+  }, [activeSignalId]);
+
+  // Decrypt Easter Egg
   const handleDecrypt = useCallback((id: string) => {
     setDecryptedSignals((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
-    playCinemaBeep(1200, 0.12, 'sawtooth');
+    audio.playRadioChirp(1200);
   }, []);
 
+  // Copy secret transmission
   const handleCopySecret = useCallback((text: string, id: string) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(text);
       setCopiedId(id);
-      playCinemaBeep(1600, 0.08, 'sine');
+      audio.playRadioChirp(1600);
       setTimeout(() => setCopiedId(null), 2500);
     }
   }, []);
 
-  const filteredMotifs = useMemo(() => {
-    if (selectedCategory === 'ALL') return activeSignal.motifs;
-    return activeSignal.motifs.filter((m) => m.category === selectedCategory);
-  }, [activeSignal, selectedCategory]);
+  // Toggle Mute
+  const toggleMute = () => {
+    const next = !isMuted;
+    setIsMuted(next);
+    audio.isMuted = next;
+  };
 
-  // Render SVG Holographic Wireframes
-  const renderHologram = (type: CinemaSignal['iconType']) => {
-    switch (type) {
-      case 'hal':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="HAL 9000 glowing optic scanner">
-            <defs>
-              <radialGradient id="halEyeGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#ff4d4d" stopOpacity="1" />
-                <stop offset="25%" stopColor="#ef4444" stopOpacity="0.9" />
-                <stop offset="70%" stopColor="#991b1b" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-              <linearGradient id="monolithGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#1e293b" />
-                <stop offset="100%" stopColor="#0f172a" />
-              </linearGradient>
-            </defs>
-            <rect x="15" y="15" width="130" height="130" rx="12" fill="#0b0f19" stroke="#ef4444" strokeWidth="1.5" strokeOpacity="0.5" />
-            <rect x="25" y="25" width="110" height="110" rx="8" fill="#05070e" stroke="#334155" strokeWidth="1" />
-            {/* The Monolith Silhouette in Background */}
-            <rect x="32" y="36" width="20" height="48" rx="2" fill="url(#monolithGrad)" stroke="#475569" strokeWidth="0.8" opacity="0.65" />
-            {/* HAL 9000 Optic Lens */}
-            <circle cx="80" cy="80" r="42" fill="#111827" stroke="#475569" strokeWidth="2.5" />
-            <circle cx="80" cy="80" r="34" fill="#030712" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3 2" />
-            <circle cx="80" cy="80" r="24" fill="url(#halEyeGlow)" />
-            <circle cx="80" cy="80" r="9" fill="#fee2e2" />
-            <circle cx="80" cy="80" r="4" fill="#ffffff" />
-            {/* Voice Waveform Telemetry Bars */}
-            <line x1="30" y1="118" x2="30" y2="128" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
-            <line x1="42" y1="114" x2="42" y2="128" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
-            <line x1="54" y1="110" x2="54" y2="128" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
-            <line x1="106" y1="110" x2="106" y2="128" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
-            <line x1="118" y1="114" x2="118" y2="128" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
-            <line x1="130" y1="118" x2="130" y2="128" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
-            <text x="80" y="146" textAnchor="middle" fill="#ef4444" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.5">
-              HAL 9000 // IBM-1
-            </text>
-          </svg>
-        );
+  // --- Specific Film Interactions ---
+  // 1. HAL Core Disconnect
+  const disconnectHalCore = (core: string) => {
+    const remaining = halCores.filter((c) => c !== core);
+    setHalCores(remaining);
+    audio.playHalDisconnect(remaining.length);
+  };
+  const rebootHal = () => {
+    setHalCores(['HEURISTIC CORE', 'LINGUISTIC MATRIX', 'COGNITIVE WILL', 'SENTIENCE BUFFER']);
+    audio.playRadioChirp(800);
+  };
 
-      case 'tars':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="TARS monolithic robot and Gargantua accretion disc">
-            <defs>
-              <linearGradient id="gargantuaDisc" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#06b6d4" stopOpacity="0" />
-                <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            {/* Gargantua Relativistic Accretion Lensing */}
-            <ellipse cx="80" cy="55" rx="65" ry="16" fill="none" stroke="url(#gargantuaDisc)" strokeWidth="3" />
-            <ellipse cx="80" cy="55" rx="50" ry="24" fill="none" stroke="#06b6d4" strokeWidth="1" strokeDasharray="4 3" opacity="0.6" />
-            <circle cx="80" cy="55" r="14" fill="#000000" stroke="#06b6d4" strokeWidth="1.5" />
-            {/* TARS 4-Monolith Robotic Articulation Wireframe */}
-            <g transform="translate(42, 75)">
-              <rect x="0" y="0" width="16" height="56" rx="2" fill="#0f172a" stroke="#06b6d4" strokeWidth="1.5" />
-              <rect x="19" y="0" width="18" height="56" rx="2" fill="#1e293b" stroke="#38bdf8" strokeWidth="1.5" />
-              <rect x="40" y="0" width="18" height="56" rx="2" fill="#1e293b" stroke="#38bdf8" strokeWidth="1.5" />
-              <rect x="61" y="0" width="16" height="56" rx="2" fill="#0f172a" stroke="#06b6d4" strokeWidth="1.5" />
-              {/* TARS Monochrome Screen & Settings */}
-              <rect x="23" y="8" width="31" height="12" rx="1" fill="#042f2e" stroke="#2dd4bf" strokeWidth="0.8" />
-              <text x="38" y="17" textAnchor="middle" fill="#2dd4bf" fontSize="6" fontFamily="var(--font-mono)">
-                H:75% H:90%
-              </text>
-              {/* Cooper's Watch Morse Code Pulse Line */}
-              <circle cx="38" cy="36" r="6" fill="none" stroke="#f59e0b" strokeWidth="1" />
-              <line x1="38" y1="36" x2="41" y2="33" stroke="#f59e0b" strokeWidth="1.2" strokeLinecap="round" />
-            </g>
-            <text x="80" y="148" textAnchor="middle" fill="#06b6d4" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.5">
-              TARS // GARGANTUA 5D
-            </text>
-          </svg>
-        );
+  // 2. TARS Morse Tap
+  const tapCooperWatch = () => {
+    const letters = ['S', 'T', 'A', 'Y', 'L', 'O', 'V', 'E', 'Q', 'U', 'A', 'N', 'T', 'U', 'M'];
+    const randomL = letters[Math.floor(Math.random() * letters.length)];
+    setMorseLogs((prev) => [...prev.slice(-6), randomL]);
+    audio.playMorse(Math.random() > 0.4);
+  };
 
-      case 'gravity':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="Orbital Kessler debris cascade and airlock EVA helmet">
-            {/* Earth Limb Horizon */}
-            <path d="M 0 135 Q 80 100 160 135" fill="none" stroke="#38bdf8" strokeWidth="3" />
-            <path d="M 0 135 Q 80 100 160 135 L 160 160 L 0 160 Z" fill="#0369a1" opacity="0.2" />
-            {/* Kessler Syndrome Hypervelocity Debris Trajectories */}
-            <line x1="10" y1="30" x2="150" y2="45" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="6 3" />
-            <line x1="140" y1="20" x2="20" y2="70" stroke="#f59e0b" strokeWidth="1.2" strokeDasharray="4 2" />
-            <circle cx="45" cy="34" r="2" fill="#ef4444" />
-            <circle cx="115" cy="41" r="2.5" fill="#f59e0b" />
-            <circle cx="85" cy="46" r="1.5" fill="#ffffff" />
-            {/* Floating Pen Zero-G Homage */}
-            <g transform="translate(115, 65) rotate(35)">
-              <rect x="0" y="0" width="4" height="26" rx="1.5" fill="#e2e8f0" stroke="#64748b" strokeWidth="0.8" />
-              <polygon points="0,26 4,26 2,32" fill="#3b82f6" />
-            </g>
-            {/* Astronaut Airlock Fetal Curvature / Helmet */}
-            <circle cx="70" cy="78" r="24" fill="#0f172a" stroke="#38bdf8" strokeWidth="2" />
-            <ellipse cx="70" cy="78" rx="18" ry="15" fill="#0284c7" fillOpacity="0.4" stroke="#93c5fd" strokeWidth="1" />
-            {/* Subtle Reflection Arc */}
-            <path d="M 60 70 A 12 12 0 0 1 78 70" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
-            <text x="80" y="150" textAnchor="middle" fill="#38bdf8" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.2">
-              KESSLER // 28,000 KM/H
-            </text>
-          </svg>
-        );
+  // 3. Gravity: Float Pen Click
+  const nudgeZeroGPen = () => {
+    setPenAngle((prev) => (prev + 45) % 360);
+    audio.playRadioChirp(600);
+  };
+  const triggerKessler = () => {
+    setKesslerAlert((prev) => !prev);
+    audio.playRadioChirp(340);
+  };
 
-      case 'martian':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="Ares III Hab and Pathfinder Hexadecimal dial">
-            {/* Martian Crater Horizon */}
-            <path d="M 10 130 Q 50 115 80 125 T 150 130" fill="none" stroke="#ea580c" strokeWidth="2" />
-            {/* Pathfinder 16-Hex Directional Rose */}
-            <circle cx="80" cy="72" r="44" fill="#180e08" stroke="#f97316" strokeWidth="1.5" strokeDasharray="4 2" />
-            <circle cx="80" cy="72" r="32" fill="none" stroke="#ea580c" strokeWidth="0.8" />
-            {/* Radial Hex Point Spokes */}
-            {[0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180, 202.5, 225, 247.5, 270, 292.5, 315, 337.5].map((deg, i) => {
-              const rad = (deg * Math.PI) / 180;
-              const x1 = 80 + Math.cos(rad) * 36;
-              const y1 = 72 + Math.sin(rad) * 36;
-              const x2 = 80 + Math.cos(rad) * 44;
-              const y2 = 72 + Math.sin(rad) * 44;
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#f97316" strokeWidth="1" />;
-            })}
-            {/* Pathfinder Central Camera Mast */}
-            <circle cx="80" cy="72" r="8" fill="#c2410c" stroke="#fed7aa" strokeWidth="1.5" />
-            <line x1="80" y1="72" x2="98" y2="60" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" />
-            {/* Sol 546 Potato Sprout Icon in Corner */}
-            <path d="M 28 116 Q 34 102 40 116" fill="none" stroke="#84cc16" strokeWidth="1.8" />
-            <path d="M 34 108 Q 30 102 24 104" fill="none" stroke="#84cc16" strokeWidth="1.5" />
-            <text x="80" y="148" textAnchor="middle" fill="#f97316" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.2">
-              ARES III // SOL 546 HEX
-            </text>
-          </svg>
-        );
+  // 4. The Martian: Turn Pathfinder Hex Dial
+  const turnPathfinder = (deg: number, hex: string) => {
+    setPathfinderDeg(deg);
+    setActiveHexChar(hex);
+    audio.playRadioChirp(700 + deg);
+  };
 
-      case 'apollo':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="Apollo 13 free-return trajectory and square peg in round hole scrubber">
-            {/* Moon Silhouette */}
-            <circle cx="120" cy="50" r="18" fill="#1e293b" stroke="#fbbf24" strokeWidth="1.2" />
-            <circle cx="116" cy="46" r="3" fill="#334155" />
-            <circle cx="125" cy="54" r="4" fill="#334155" />
-            {/* Earth Silhouette */}
-            <circle cx="36" cy="95" r="14" fill="#0369a1" stroke="#38bdf8" strokeWidth="1.2" />
-            {/* Free-Return Gravity Slingshot Trajectory Loop */}
-            <path d="M 36 90 Q 75 30 118 32 Q 142 50 120 72 Q 80 120 36 100" fill="none" stroke="#fbbf24" strokeWidth="1.8" strokeDasharray="5 3" />
-            {/* Improvised CO2 Scrubber (Square Peg in a Round Hole) */}
-            <g transform="translate(62, 70)">
-              {/* Round Canister Socket */}
-              <circle cx="18" cy="18" r="16" fill="#0f172a" stroke="#94a3b8" strokeWidth="1.5" />
-              {/* Square Cartridge Adapter with Duct Tape */}
-              <rect x="7" y="7" width="22" height="22" rx="1" fill="#475569" stroke="#fbbf24" strokeWidth="1.5" />
-              {/* Diagonal Duct Tape Strips */}
-              <line x1="5" y1="12" x2="31" y2="12" stroke="#cbd5e1" strokeWidth="2" strokeOpacity="0.8" />
-              <line x1="5" y1="24" x2="31" y2="24" stroke="#cbd5e1" strokeWidth="2" strokeOpacity="0.8" />
-            </g>
-            <text x="80" y="148" textAnchor="middle" fill="#fbbf24" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.2">
-              APOLLO 13 // FREE-RETURN
-            </text>
-          </svg>
-        );
+  // 5. Apollo 13: Assemble Scrubber
+  const toggleScrubberItem = (item: string) => {
+    setScrubberItems((prev) => {
+      const next = { ...prev, [item]: !prev[item] };
+      audio.playTapeSeal();
+      return next;
+    });
+  };
+  const isScrubberComplete = useMemo(() => {
+    return scrubberItems.canister && scrubberItems.cardboard && scrubberItems.plasticBag && scrubberItems.ductTape;
+  }, [scrubberItems]);
 
-      case 'alien':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="MU-TH-UR 6000 green CRT and Xenomorph life cycle">
-            {/* Retro CRT Monitor Frame */}
-            <rect x="18" y="16" width="124" height="106" rx="8" fill="#021408" stroke="#22c55e" strokeWidth="1.5" />
-            {/* Scanlines Effect */}
-            <line x1="22" y1="32" x2="138" y2="32" stroke="#22c55e" strokeWidth="0.5" opacity="0.35" />
-            <line x1="22" y1="48" x2="138" y2="48" stroke="#22c55e" strokeWidth="0.5" opacity="0.35" />
-            <line x1="22" y1="64" x2="138" y2="64" stroke="#22c55e" strokeWidth="0.5" opacity="0.35" />
-            <line x1="22" y1="80" x2="138" y2="80" stroke="#22c55e" strokeWidth="0.5" opacity="0.35" />
-            <line x1="22" y1="96" x2="138" y2="96" stroke="#22c55e" strokeWidth="0.5" opacity="0.35" />
-            {/* Dipping Drinking Bird Silhouette */}
-            <g transform="translate(32, 45)">
-              <circle cx="8" cy="8" r="5" fill="#ef4444" />
-              <line x1="8" y1="13" x2="14" y2="38" stroke="#22c55e" strokeWidth="1.8" />
-              <circle cx="14" cy="38" r="7" fill="#3b82f6" />
-              <line x1="2" y1="46" x2="26" y2="46" stroke="#475569" strokeWidth="2" />
-            </g>
-            {/* Biomechanical Egg & Facehugger Outline */}
-            <path d="M 98 84 C 84 84 80 50 98 44 C 116 50 112 84 98 84 Z" fill="none" stroke="#22c55e" strokeWidth="1.8" />
-            <line x1="90" y1="44" x2="106" y2="44" stroke="#4ade80" strokeWidth="1" strokeDasharray="2 1" />
-            <text x="98" y="100" textAnchor="middle" fill="#86efac" fontSize="7" fontFamily="var(--font-mono)">
-              ORDER 937
-            </text>
-            <text x="80" y="148" textAnchor="middle" fill="#22c55e" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.2">
-              NOSTROMO // MU-TH-UR
-            </text>
-          </svg>
-        );
+  // 6. Alien: MU-TH-UR 6000 Queries
+  const queryMother = (cmd: string, resp: string) => {
+    audio.playCrtKey();
+    setCrtOutput(`QUERY: ${cmd}\n\n>> ${resp}`);
+  };
 
-      case 'starwars':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="Death Star trench targeting computer wireframe">
-            {/* Tatooine Binary Sunset */}
-            <circle cx="34" cy="40" r="10" fill="#f59e0b" opacity="0.85" />
-            <circle cx="50" cy="46" r="7" fill="#ef4444" opacity="0.8" />
-            {/* Trench Wireframe Perspective Grid */}
-            <polygon points="20,126 55,68 105,68 140,126" fill="none" stroke="#0284c7" strokeWidth="1.2" />
-            <line x1="55" y1="68" x2="55" y2="126" stroke="#0284c7" strokeWidth="1" strokeDasharray="3 2" />
-            <line x1="105" y1="68" x2="105" y2="126" stroke="#0284c7" strokeWidth="1" strokeDasharray="3 2" />
-            {/* Thermal Exhaust Port 2-Meter Target Circle */}
-            <rect x="70" y="70" width="20" height="20" fill="none" stroke="#ef4444" strokeWidth="1.5" />
-            <circle cx="80" cy="80" r="6" fill="#ef4444" fillOpacity="0.4" stroke="#ffffff" strokeWidth="1" />
-            {/* X-Wing HUD Crosshairs */}
-            <circle cx="80" cy="80" r="38" fill="none" stroke="#38bdf8" strokeWidth="1" strokeDasharray="8 4" />
-            <line x1="80" y1="36" x2="80" y2="124" stroke="#38bdf8" strokeWidth="1.2" />
-            <line x1="36" y1="80" x2="124" y2="80" stroke="#38bdf8" strokeWidth="1.2" />
-            <text x="80" y="148" textAnchor="middle" fill="#38bdf8" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.2">
-              RED 5 // TRENCH RUN
-            </text>
-          </svg>
-        );
-
-      case 'walle':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="WALL-E binoculars and Axiom AUTO red eye">
-            {/* WALL-E Binocular Eyes */}
-            <g transform="translate(36, 32)">
-              <path d="M 4 8 L 36 2 L 40 24 L 8 28 Z" fill="#0f172a" stroke="#eab308" strokeWidth="1.5" />
-              <circle cx="22" cy="15" r="9" fill="#1e293b" stroke="#38bdf8" strokeWidth="1.2" />
-              <circle cx="22" cy="15" r="4" fill="#0284c7" />
-
-              <path d="M 52 2 L 84 8 L 80 28 L 48 24 Z" fill="#0f172a" stroke="#eab308" strokeWidth="1.5" />
-              <circle cx="66" cy="15" r="9" fill="#1e293b" stroke="#38bdf8" strokeWidth="1.2" />
-              <circle cx="66" cy="15" r="4" fill="#0284c7" />
-              {/* Central Eye Mount Pin */}
-              <rect x="36" y="12" width="16" height="4" fill="#94a3b8" />
-            </g>
-            {/* Solar Battery Gauge */}
-            <g transform="translate(46, 68)">
-              <rect x="0" y="0" width="68" height="12" rx="2" fill="#042f2e" stroke="#22c55e" strokeWidth="1" />
-              <rect x="2" y="2" width="60" height="8" rx="1" fill="#22c55e" />
-              <text x="34" y="9" textAnchor="middle" fill="#052e16" fontSize="7" fontWeight="bold" fontFamily="var(--font-mono)">
-                SOLAR 100%
-              </text>
-            </g>
-            {/* AUTO Steering Wheel Single Red Optical Sensor */}
-            <g transform="translate(64, 88)">
-              <circle cx="16" cy="16" r="14" fill="#090d16" stroke="#94a3b8" strokeWidth="2" />
-              <circle cx="16" cy="16" r="5" fill="#ef4444" stroke="#fca5a5" strokeWidth="1" />
-              <line x1="2" y1="16" x2="30" y2="16" stroke="#94a3b8" strokeWidth="1.5" />
-              <line x1="16" y1="2" x2="16" y2="30" stroke="#94a3b8" strokeWidth="1.5" />
-            </g>
-            <text x="80" y="148" textAnchor="middle" fill="#eab308" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.2">
-              WALL-E // DIRECTIVE A-113
-            </text>
-          </svg>
-        );
-
-      case 'aliens':
-        return (
-          <svg viewBox="0 0 160 160" className="hologram-svg" aria-label="Caterpillar P-5000 Power Loader clamp and pulse rifle counter">
-            {/* Caterpillar P-5000 Power Loader Hydraulic Cage */}
-            <g transform="translate(38, 24)">
-              {/* Heavy Duty Industrial Yellow Frame */}
-              <polygon points="12,10 72,10 64,68 20,68" fill="#1c1917" stroke="#eab308" strokeWidth="2.5" />
-              <line x1="20" y1="24" x2="64" y2="24" stroke="#eab308" strokeWidth="1.5" />
-              <line x1="22" y1="42" x2="62" y2="42" stroke="#eab308" strokeWidth="1.5" />
-              {/* Hydraulic Clamp Piston Claws */}
-              <path d="M 6 42 Q -8 52 6 64" fill="none" stroke="#eab308" strokeWidth="3" strokeLinecap="round" />
-              <path d="M 78 42 Q 92 52 78 64" fill="none" stroke="#eab308" strokeWidth="3" strokeLinecap="round" />
-            </g>
-            {/* M41A Pulse Rifle Ammo Counter: 95 */}
-            <g transform="translate(52, 98)">
-              <rect x="0" y="0" width="56" height="22" rx="3" fill="#180508" stroke="#e11d48" strokeWidth="1.5" />
-              <text x="28" y="16" textAnchor="middle" fill="#f43f5e" fontSize="13" fontWeight="bold" fontFamily="var(--font-mono)" letterSpacing="2">
-                95
-              </text>
-            </g>
-            <text x="80" y="148" textAnchor="middle" fill="#e11d48" fontSize="8" fontFamily="var(--font-mono)" letterSpacing="1.2">
-              P-5000 POWER LOADER // 95
-            </text>
-          </svg>
-        );
-
-      default:
-        return null;
+  // 7. Star Wars: Fire Proton Torpedo
+  const fireTorpedo = () => {
+    audio.playRadioChirp(1200);
+    if (!useTheForce) {
+      setTorpedoStatus('DEFLECTED // RAY SHIELDING HELD. PROTON TORPEDO IMPACTED SURFACE.');
+    } else {
+      setTorpedoStatus('DIRECT HIT! PROTON TORPEDO PENETRATED 2M EXHAUST PORT. REACTOR CORE DESTROYED!');
     }
   };
+
+  // 8. WALL-E: Solar Charge
+  const rechargeSolar = () => {
+    setSolarPercent(100);
+    audio.playSolarChime();
+  };
+
+  // 9. Aliens: Pulse Rifle Burst
+  const firePulseRifle = () => {
+    if (pulseAmmo <= 0) {
+      audio.playRadioChirp(300);
+      return;
+    }
+    setPulseAmmo((prev) => Math.max(0, prev - 3));
+    audio.playPulseRifleBurst();
+  };
+  const reloadPulseRifle = () => {
+    setPulseAmmo(95);
+    audio.playTapeSeal();
+  };
+  const doBishopKnifeTrick = () => {
+    setBishopSpeed((prev) => (prev >= 3 ? 0 : prev + 1));
+    audio.playCrtKey();
+  };
+
+  // Filtered Motifs for Active View
+  const filteredMotifs = useMemo(() => {
+    let list = activeSignal.motifs;
+    if (selectedCategory !== 'ALL') {
+      list = list.filter((m) => m.category === selectedCategory);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((m) => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q));
+    }
+    return list;
+  }, [activeSignal, selectedCategory, searchQuery]);
 
   return (
     <div className="cinema-terminal" id="cosmic-cinema-terminal">
@@ -896,57 +936,410 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
       <div className="terminal-top-bar">
         <div className="terminal-title-group">
           <span className="terminal-radar-pulse" aria-hidden="true" />
-          <span className="terminal-tag">COSMIC CINEMA & EASTER EGGS TRANSCEIVER</span>
+          <span className="terminal-tag">COSMIC CINEMA & SIGNALS TRANSCEIVER</span>
         </div>
-        <div className="terminal-freq-status">
-          <span className="live-pill">9 ICONIC SPACE SCI-FI SIGNALS LOCKED</span>
+        <div className="terminal-controls-group">
+          <button
+            type="button"
+            className="sound-toggle-btn"
+            onClick={toggleMute}
+            aria-label={isMuted ? 'Unmute synthesized telemetry audio' : 'Mute synthesized telemetry audio'}
+          >
+            <span>{isMuted ? 'AUDIO: MUTED' : 'AUDIO: SYNTH ON'}</span>
+          </button>
+          <span className="live-pill">9 TOP SPACE SCI-FI SIGNALS LOCKED</span>
         </div>
       </div>
 
       {/* Intro Description */}
       <div className="terminal-intro">
         <p>
-          Tune your deep-space radio telescope into the transmissions of cinematic history. Explore the definitive visual motifs, iconic dialogue, key props, and decryptable classified lore from the top 9 space movies.
+          Tune your deep-space radio telescope into the transmissions of space cinema history. Interact with authentic simulation consoles, explore 54 curated visual motifs, props, and dialogue, and decrypt classified Easter eggs.
         </p>
       </div>
 
-      {/* Signal Selector Dial Strip */}
-      <div className="signal-selector-strip" role="tablist" aria-label="Space Cinema Signal Dial">
-        {CINEMA_SIGNALS.map((sig) => {
-          const isActive = sig.id === activeSignalId;
-          return (
-            <button
-              key={sig.id}
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={`panel-${sig.id}`}
-              className={`signal-dial-btn ${isActive ? 'active' : ''}`}
-              style={{ '--movie-theme': sig.themeColor } as React.CSSProperties}
-              onClick={() => handleSelectSignal(sig.id)}
-            >
-              <span className="dial-num">{sig.year}</span>
-              <span className="dial-title">{sig.movie.split(':')[0]}</span>
-              <span className="dial-freq">{sig.frequency}</span>
+      {/* Interactive Radio Frequency Scrubber Bar */}
+      <div className="frequency-scrubber-bar">
+        <div className="scrubber-header">
+          <span className="scrubber-label">RF FREQUENCY SPECTRUM ANALYZER</span>
+          <span className="scrubber-current-val">{activeSignal.frequency} &bull; {activeSignal.callSign}</span>
+          <div className="seek-btn-group">
+            <button type="button" className="seek-btn" onClick={() => handleSeekSignal('prev')} aria-label="Seek previous signal">
+              &#9664; SEEK PREV
             </button>
-          );
-        })}
+            <button type="button" className="seek-btn" onClick={() => handleSeekSignal('next')} aria-label="Seek next signal">
+              SEEK NEXT &#9654;
+            </button>
+          </div>
+        </div>
+
+        {/* Signal Selector Dial Strip */}
+        <div className="signal-selector-strip" role="tablist" aria-label="Space Cinema Signal Dial">
+          {CINEMA_SIGNALS.map((sig) => {
+            const isActive = sig.id === activeSignalId;
+            return (
+              <button
+                key={sig.id}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`panel-${sig.id}`}
+                className={`signal-dial-btn ${isActive ? 'active' : ''}`}
+                style={{ '--movie-theme': sig.themeColor } as React.CSSProperties}
+                onClick={() => handleSelectSignal(sig.id)}
+              >
+                <span className="dial-num">{sig.year}</span>
+                <span className="dial-title">{sig.movie.split(':')[0]}</span>
+                <span className="dial-freq">{sig.frequency}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Active Signal Telemetry Display */}
       <div className="signal-telemetry-card" id={`panel-${activeSignal.id}`} role="tabpanel">
         <div className="telemetry-grid">
-          {/* Left Column: Hologram & Wireframe */}
-          <div className="telemetry-hologram-pane">
-            <div className="hologram-viewport">
-              <div className="hologram-glow-backdrop" style={{ background: `radial-gradient(circle, ${activeSignal.themeColor}33 0%, transparent 70%)` }} />
-              {renderHologram(activeSignal.iconType)}
+          {/* Left Column: Interactive Simulation Console */}
+          <div className="telemetry-console-pane">
+            <div className="console-card-header">
+              <span className="console-pill" style={{ borderColor: activeSignal.themeColor, color: activeSignal.themeColor }}>
+                INTERACTIVE CONSOLE
+              </span>
+              <span className="console-callsign">{activeSignal.callSign}</span>
             </div>
-            <div className="hologram-metadata">
-              <div className="holo-callsign">{activeSignal.callSign}</div>
-              <div className="holo-director">DIR: {activeSignal.director.toUpperCase()} ({activeSignal.year})</div>
-              <div className="holo-tag" style={{ borderColor: activeSignal.themeColor, color: activeSignal.themeColor }}>
-                {activeSignal.tag}
-              </div>
+
+            {/* Custom Interactive Hands-On Simulation per Movie */}
+            <div className="interactive-minigame-box" style={{ borderColor: `${activeSignal.themeColor}55` }}>
+              {/* 1. 2001: A Space Odyssey -> HAL 9000 Disconnection */}
+              {activeSignal.id === 'odyssey-2001' && (
+                <div className="game-hal">
+                  <div className="hal-lens-wrap">
+                    <div
+                      className="hal-red-eye"
+                      style={{
+                        opacity: halCores.length === 0 ? 0.1 : 0.25 + halCores.length * 0.2,
+                        filter: `drop-shadow(0 0 ${halCores.length * 5}px #ef4444)`,
+                      }}
+                    />
+                  </div>
+                  <div className="game-title">HAL 9000 MEMORY LOGIC DISCONNECT</div>
+                  <p className="game-desc">
+                    {halCores.length > 2
+                      ? '"I am putting myself to the fullest possible use, Dave."'
+                      : halCores.length > 0
+                      ? '"My mind is going, Dave... I can feel it... Daisy, Daisy..."'
+                      : '"[LOGIC DECOUPLED // SYSTEM PURGED]"'}
+                  </p>
+                  <div className="hal-cores-grid">
+                    {['HEURISTIC CORE', 'LINGUISTIC MATRIX', 'COGNITIVE WILL', 'SENTIENCE BUFFER'].map((core) => {
+                      const isConnected = halCores.includes(core);
+                      return (
+                        <button
+                          key={core}
+                          type="button"
+                          className={`core-btn ${isConnected ? 'connected' : 'ejected'}`}
+                          onClick={() => (isConnected ? disconnectHalCore(core) : rebootHal())}
+                        >
+                          {isConnected ? `[EJECT ${core}]` : `[RESTORED]`}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {halCores.length < 4 && (
+                    <button type="button" className="action-reset-btn" onClick={rebootHal}>
+                      RESTORE ALL HAL 9000 CORES
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* 2. Interstellar -> TARS Personality & Watch Morse */}
+              {activeSignal.id === 'interstellar' && (
+                <div className="game-tars">
+                  <div className="game-title">TARS PERSONALITY & GRAVITY COMM</div>
+                  <div className="slider-group">
+                    <label className="slider-label">
+                      <span>TARS HUMOR LEVEL:</span>
+                      <strong className="slider-val">{tarsHumor}%</strong>
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={tarsHumor}
+                      onChange={(e) => {
+                        setTarsHumor(Number(e.target.value));
+                        audio.playRadioChirp(500 + Number(e.target.value) * 5);
+                      }}
+                      className="tars-slider"
+                    />
+                  </div>
+
+                  <div className="slider-group">
+                    <label className="slider-label">
+                      <span>TARS HONESTY LEVEL:</span>
+                      <strong className="slider-val">{tarsHonesty}%</strong>
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={tarsHonesty}
+                      onChange={(e) => {
+                        setTarsHonesty(Number(e.target.value));
+                        audio.playRadioChirp(400 + Number(e.target.value) * 4);
+                      }}
+                      className="tars-slider"
+                    />
+                  </div>
+
+                  <div className="tars-dialogue-output">
+                    {tarsHumor < 30
+                      ? 'TARS: "Affirmative, Cooper. Calculations nominal."'
+                      : tarsHumor < 70
+                      ? 'TARS: "That is scientifically feasible, but statistically ill-advised."'
+                      : 'TARS: "Cooper, I have a cue light I can switch on when I am joking, if that helps you."'}
+                  </div>
+
+                  <div className="watch-morse-section">
+                    <button type="button" className="morse-tap-btn" onClick={tapCooperWatch}>
+                      TAP COOPER WRISTWATCH (MORSE TRANSMISSION)
+                    </button>
+                    <div className="morse-stream">
+                      <span>STREAM: </span>
+                      {morseLogs.map((l, i) => (
+                        <span key={i} className="morse-char">{l}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Gravity -> Zero-G Floating Pen & Kessler Alert */}
+              {activeSignal.id === 'gravity' && (
+                <div className="game-gravity">
+                  <div className="game-title">ZERO-G FLOAT & ORBITAL DEBRIS</div>
+                  <div className="pen-stage" onClick={nudgeZeroGPen}>
+                    <div
+                      className="floating-pen"
+                      style={{
+                        transform: `rotate(${penAngle}deg) translateY(${Math.sin(penAngle) * 8}px)`,
+                      }}
+                    >
+                      <div className="pen-body" />
+                      <div className="pen-tip" />
+                    </div>
+                    <div className="pen-prompt">CLICK TO NUDGE ZERO-G PEN (HOMAGE TO 2001)</div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`kessler-btn ${kesslerAlert ? 'alert-active' : ''}`}
+                    onClick={triggerKessler}
+                  >
+                    {kesslerAlert ? 'WARNING: KESSLER CASCADE IN PROGRESS (28,000 KM/H)' : 'SIMULATE KESSLER SATELLITE STRIKE'}
+                  </button>
+                  {kesslerAlert && (
+                    <div className="kessler-alert-box">
+                      DEBRIS SHIELD BREACHED // EXPLORER ABORT EVA // SHENZHOU RE-ENTRY BURN REQUIRED
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 4. The Martian -> Pathfinder 16-Hex Transceiver */}
+              {activeSignal.id === 'the-martian' && (
+                <div className="game-martian">
+                  <div className="game-title">PATHFINDER 16-HEX DIAL (SOL 546)</div>
+                  <div className="pathfinder-dial-wrap">
+                    <div className="pathfinder-camera-pointer" style={{ transform: `rotate(${pathfinderDeg}deg)` }}>
+                      <div className="pointer-arrow" />
+                    </div>
+                    <div className="hex-center-info">{activeHexChar}</div>
+                  </div>
+                  <p className="hex-prompt">Click hexadecimal card to rotate camera mast:</p>
+                  <div className="hex-btn-grid">
+                    {['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'].map((h, i) => (
+                      <button
+                        key={h}
+                        type="button"
+                        className={`hex-cell-btn ${activeHexChar === h ? 'active' : ''}`}
+                        onClick={() => turnPathfinder(i * 22.5, h)}
+                      >
+                        {h}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="quick-spell-row">
+                    <button type="button" className="spell-btn" onClick={() => turnPathfinder(112.5, '5')}>
+                      SPELL: "SCIENCE"
+                    </button>
+                    <button type="button" className="spell-btn" onClick={() => turnPathfinder(225, 'A')}>
+                      SPELL: "POTATO"
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. Apollo 13 -> Square Peg in Round Hole Adapter */}
+              {activeSignal.id === 'apollo-13' && (
+                <div className="game-apollo">
+                  <div className="game-title">SQUARE PEG IN ROUND HOLE (CO2 SCRUBBER)</div>
+                  <div className={`co2-gauge ${isScrubberComplete ? 'nominal' : 'danger'}`}>
+                    <span>CO2 CONCENTRATION:</span>
+                    <strong>{isScrubberComplete ? '2.4 mmHg (NOMINAL)' : '18.5 mmHg (CRITICAL DANGER)'}</strong>
+                  </div>
+                  <p className="game-desc">Assemble improvised adapter using Apollo 13 items:</p>
+                  <div className="scrubber-items-grid">
+                    {[
+                      { key: 'canister', label: '1. SQUARE LIOH CANISTER' },
+                      { key: 'cardboard', label: '2. FLIGHT MANUAL COVER' },
+                      { key: 'plasticBag', label: '3. PLASTIC SUIT BAG' },
+                      { key: 'ductTape', label: '4. GREY DUCT TAPE SEAL' },
+                    ].map((it) => (
+                      <button
+                        key={it.key}
+                        type="button"
+                        className={`tool-btn ${scrubberItems[it.key] ? 'installed' : ''}`}
+                        onClick={() => toggleScrubberItem(it.key)}
+                      >
+                        {scrubberItems[it.key] ? `✓ ${it.label}` : `+ FIT ${it.label}`}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="scrubber-status">
+                    {isScrubberComplete
+                      ? 'KRANZ WHITE TEAM: "That\'ll buy them enough time to reach the Pacific splashdown!"'
+                      : 'WARNING: Lithium hydroxide canisters saturating. Improvisation required.'}
+                  </div>
+                </div>
+              )}
+
+              {/* 6. Alien -> MU-TH-UR 6000 CRT Console */}
+              {activeSignal.id === 'alien' && (
+                <div className="game-alien">
+                  <div className="game-title">MU-TH-UR 6000 CRT TERMINAL</div>
+                  <div className="crt-screen">
+                    <pre className="crt-text">{crtOutput}</pre>
+                  </div>
+                  <div className="crt-queries-grid">
+                    <button
+                      type="button"
+                      className="query-btn"
+                      onClick={() =>
+                        queryMother(
+                          'SPECIAL ORDER 937',
+                          'PRIORITY ONE: INSURE RETURN OF ORGANISM FOR ANALYSIS. ALL OTHER CONSIDERATIONS SECONDARY. CREW EXPENDABLE.'
+                        )
+                      }
+                    >
+                      QUERY: ORDER 937
+                    </button>
+                    <button
+                      type="button"
+                      className="query-btn"
+                      onClick={() =>
+                        queryMother(
+                          'CREW STATUS',
+                          'EXECUTIVE OFFICER KANE EXPERIENCED HOSTILE EMBRYONIC CHEST-BURST. DR. ASH CLASSIFIED SYNTHETIC INFILTRATOR.'
+                        )
+                      }
+                    >
+                      QUERY: CREW STATUS
+                    </button>
+                    <button
+                      type="button"
+                      className="query-btn"
+                      onClick={() =>
+                        queryMother(
+                          'JONESY CAT',
+                          'GINGER FELINE DETECTED ON DECK B. AVOID XENOMORPH HIVE AMBUSH IN VENTILATION SYSTEM.'
+                        )
+                      }
+                    >
+                      QUERY: JONESY CAT
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 7. Star Wars -> Trench Run Targeting Computer */}
+              {activeSignal.id === 'star-wars' && (
+                <div className="game-starwars">
+                  <div className="game-title">DEATH STAR TRENCH TARGETING HUD</div>
+                  <div className="trench-hud">
+                    <div className="trench-wireframe" />
+                    <div className={`crosshair ${useTheForce ? 'force-mode' : 'computer-mode'}`} />
+                    <div className="exhaust-port-target">2M EXHAUST PORT</div>
+                  </div>
+                  <div className="trench-controls">
+                    <button
+                      type="button"
+                      className={`toggle-force-btn ${useTheForce ? 'active' : ''}`}
+                      onClick={() => {
+                        setUseTheForce(!useTheForce);
+                        audio.playRadioChirp(880);
+                      }}
+                    >
+                      {useTheForce ? 'TARGETING COMPUTER: DISENGAGED (USE THE FORCE)' : 'TARGETING COMPUTER: ACTIVE'}
+                    </button>
+                    <button type="button" className="fire-torpedo-btn" onClick={fireTorpedo}>
+                      FIRE PROTON TORPEDO
+                    </button>
+                  </div>
+                  {torpedoStatus && <div className="torpedo-result">{torpedoStatus}</div>}
+                </div>
+              )}
+
+              {/* 8. WALL-E -> Solar Recharge & Directive A-113 */}
+              {activeSignal.id === 'wall-e' && (
+                <div className="game-walle">
+                  <div className="game-title">AXIOM DIRECTIVE & SOLAR CHARGER</div>
+                  <div className="solar-gauge-wrap">
+                    <div className="solar-label-row">
+                      <span>SOLAR BATTERY CAPACITY:</span>
+                      <strong>{solarPercent}%</strong>
+                    </div>
+                    <div className="solar-bar-track">
+                      <div className="solar-bar-fill" style={{ width: `${solarPercent}%` }} />
+                    </div>
+                  </div>
+                  <button type="button" className="charge-btn" onClick={rechargeSolar}>
+                    EXPOSE SOLAR PANELS (MAC STARTUP CHIME)
+                  </button>
+                  <div className="walle-auto-alert">
+                    AUTO STATUS: DIRECTIVE A-113 ACTIVATED // DO NOT RETURN TO EARTH
+                  </div>
+                </div>
+              )}
+
+              {/* 9. Aliens -> M41A Pulse Rifle & Bishop Knife Trick */}
+              {activeSignal.id === 'aliens' && (
+                <div className="game-aliens">
+                  <div className="game-title">M41A PULSE RIFLE (10MM CASELESS)</div>
+                  <div className="ammo-counter-display">
+                    <span className="ammo-label">AMMO:</span>
+                    <span className="ammo-digits">{pulseAmmo < 10 ? `0${pulseAmmo}` : pulseAmmo}</span>
+                  </div>
+                  <div className="aliens-actions-row">
+                    <button type="button" className="fire-burst-btn" onClick={firePulseRifle}>
+                      FIRE 3-ROUND BURST
+                    </button>
+                    <button type="button" className="reload-btn" onClick={reloadPulseRifle}>
+                      TACTICAL RELOAD (95)
+                    </button>
+                  </div>
+                  <button type="button" className="bishop-btn" onClick={doBishopKnifeTrick}>
+                    BISHOP KNIFE TRICK (SPEED: {bishopSpeed === 0 ? 'NOMINAL' : `${bishopSpeed}X FAST`})
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Metadata Footer */}
+            <div className="console-meta-footer">
+              <div>DIR: {activeSignal.director.toUpperCase()} ({activeSignal.year})</div>
+              <div className="console-tag" style={{ color: activeSignal.themeColor }}>{activeSignal.tag}</div>
             </div>
           </div>
 
@@ -959,21 +1352,33 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
               <div className="quote-speaker">&mdash; {activeSignal.speaker}</div>
             </div>
 
-            {/* Motifs & Props Filter Header */}
+            {/* Motifs & Search Header */}
             <div className="motifs-header-row">
-              <h4 className="motifs-heading">ICONIC REFERENCES, MOTIFS & PROPS ({activeSignal.motifs.length})</h4>
-              <div className="motif-filter-tabs">
-                {(['ALL', 'Prop', 'Visual Motif', 'Dialogue', 'Easter Egg', 'Character / AI'] as const).map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    className={`motif-filter-pill ${selectedCategory === cat ? 'active' : ''}`}
-                    onClick={() => setSelectedCategory(cat)}
-                  >
-                    {cat}
-                  </button>
-                ))}
+              <h4 className="motifs-heading">ICONIC REFERENCES, MOTIFS & PROPS ({filteredMotifs.length})</h4>
+              <div className="search-wrap">
+                <input
+                  type="text"
+                  placeholder="Filter motifs (e.g. pen, watch, cat)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="motif-search-input"
+                  aria-label="Filter motifs by keyword"
+                />
               </div>
+            </div>
+
+            {/* Category Filter Tabs */}
+            <div className="motif-filter-tabs">
+              {(['ALL', 'Prop', 'Visual Motif', 'Dialogue', 'Easter Egg', 'Character / AI'] as const).map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`motif-filter-pill ${selectedCategory === cat ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
 
             {/* Motifs Grid */}
@@ -997,7 +1402,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
               <p className="lore-text">{activeSignal.astrodynamicsNote}</p>
             </div>
 
-            {/* Classified Easter Egg Decryptor Button */}
+            {/* Classified Easter Egg Decryptor */}
             <div className="decrypt-section">
               <button
                 type="button"
@@ -1005,7 +1410,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 style={{ borderColor: activeSignal.themeColor }}
                 onClick={() => handleDecrypt(activeSignal.id)}
               >
-                <span className="decrypt-radar-icon" aria-hidden="true">✦</span>
+                <span className="decrypt-radar-icon" aria-hidden="true">&#10022;</span>
                 <span>
                   {decryptedSignals[activeSignal.id] ? 'RE-ENCRYPT CLASSIFIED LOG' : 'DECRYPT CLASSIFIED EASTER EGG'}
                 </span>
@@ -1021,7 +1426,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                       className="copy-btn"
                       onClick={() => handleCopySecret(activeSignal.classifiedEasterEgg.secretLog, activeSignal.id)}
                     >
-                      {copiedId === activeSignal.id ? '✓ COPIED TO CLIPBOARD' : 'COPY TRANSMISSION'}
+                      {copiedId === activeSignal.id ? '&#10003; COPIED TO CLIPBOARD' : 'COPY TRANSMISSION'}
                     </button>
                   </div>
                   <div className="decrypted-title">{activeSignal.classifiedEasterEgg.title}</div>
@@ -1042,11 +1447,11 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           className="dossier-toggle-btn"
           onClick={() => {
             setIsDossierOpen(!isDossierOpen);
-            playCinemaBeep(750, 0.05, 'sine');
+            audio.playRadioChirp(750);
           }}
           aria-expanded={isDossierOpen}
         >
-          <span>{isDossierOpen ? '▲ COLLAPSE COMPLETE 9-FILM EASTER EGG DOSSIER' : '▼ EXPAND COMPLETE 9-FILM EASTER EGG DOSSIER'}</span>
+          <span>{isDossierOpen ? '&#9650; COLLAPSE COMPLETE 9-FILM EASTER EGG DOSSIER' : '&#9660; EXPAND COMPLETE 9-FILM EASTER EGG DOSSIER'}</span>
           <span className="dossier-count">54 CURATED REFERENCES & PROPS</span>
         </button>
       </div>
@@ -1127,6 +1532,29 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           color: var(--orbit);
         }
 
+        .terminal-controls-group {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .sound-toggle-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.2rem 0.5rem;
+          background: color-mix(in srgb, var(--steel) 20%, transparent);
+          border: 1px solid color-mix(in srgb, var(--steel) 40%, transparent);
+          color: var(--moon);
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .sound-toggle-btn:hover {
+          background: var(--orbit);
+          color: #ffffff;
+        }
+
         .live-pill {
           font-family: var(--font-mono);
           font-size: 0.6875rem;
@@ -1146,12 +1574,63 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           line-height: 1.5;
         }
 
+        /* Scrubber Bar */
+        .frequency-scrubber-bar {
+          background: color-mix(in srgb, var(--void) 70%, transparent);
+          border: 1px solid color-mix(in srgb, var(--orbit) 25%, transparent);
+          border-radius: var(--radius-md);
+          padding: var(--space-sm);
+          margin-bottom: var(--space-lg);
+        }
+
+        .scrubber-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+        }
+
+        .scrubber-label {
+          color: var(--sol-dust);
+          letter-spacing: 0.08em;
+        }
+
+        .scrubber-current-val {
+          color: var(--orbit);
+          font-weight: 700;
+        }
+
+        .seek-btn-group {
+          display: flex;
+          gap: 0.25rem;
+        }
+
+        .seek-btn {
+          background: color-mix(in srgb, var(--navy) 60%, var(--void));
+          border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+          color: var(--star);
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.2rem 0.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .seek-btn:hover {
+          background: var(--orbit);
+          color: #ffffff;
+        }
+
         /* Signal Selector Dial Strip */
         .signal-selector-strip {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
           gap: 0.5rem;
-          margin-bottom: var(--space-lg);
         }
 
         @media (max-width: 640px) {
@@ -1239,73 +1718,668 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           gap: var(--space-lg);
         }
 
-        @media (min-width: 900px) {
+        @media (min-width: 950px) {
           .telemetry-grid {
-            grid-template-columns: 240px 1fr;
+            grid-template-columns: 310px 1fr;
           }
         }
 
-        /* Hologram Left Pane */
-        .telemetry-hologram-pane {
+        /* Left Column: Interactive Simulation Console */
+        .telemetry-console-pane {
           display: flex;
           flex-direction: column;
-          align-items: center;
           gap: var(--space-sm);
         }
 
-        .hologram-viewport {
-          position: relative;
-          width: 100%;
-          max-width: 200px;
-          aspect-ratio: 1;
+        .console-card-header {
           display: flex;
           align-items: center;
-          justify-content: center;
-        }
-
-        .hologram-glow-backdrop {
-          position: absolute;
-          inset: -10px;
-          border-radius: 50%;
-          pointer-events: none;
-        }
-
-        .hologram-svg {
-          width: 100%;
-          height: 100%;
-          filter: drop-shadow(0 0 12px color-mix(in srgb, var(--orbit) 30%, transparent));
-        }
-
-        .hologram-metadata {
-          text-align: center;
-          width: 100%;
-        }
-
-        .holo-callsign {
-          font-family: var(--font-mono);
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: var(--moon);
-          letter-spacing: 0.05em;
-        }
-
-        .holo-director {
+          justify-content: space-between;
           font-family: var(--font-mono);
           font-size: 0.6875rem;
-          color: var(--star);
-          margin: 0.25rem 0;
         }
 
-        .holo-tag {
-          display: inline-block;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          font-weight: 600;
+        .console-pill {
           border: 1px solid;
           border-radius: 9999px;
           padding: 0.15rem 0.5rem;
-          margin-top: 0.35rem;
+          font-weight: 700;
+        }
+
+        .console-callsign {
+          color: var(--star);
+        }
+
+        .interactive-minigame-box {
+          background: color-mix(in srgb, var(--void) 85%, transparent);
+          border: 1px solid;
+          border-radius: var(--radius-md);
+          padding: 1rem;
+          min-height: 280px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+        .game-title {
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          font-weight: 700;
+          color: var(--moon);
+          margin-bottom: 0.5rem;
           letter-spacing: 0.05em;
+        }
+
+        .game-desc {
+          font-family: var(--font-body);
+          font-size: 0.75rem;
+          color: var(--star);
+          margin-bottom: 0.75rem;
+          font-style: italic;
+        }
+
+        /* HAL Game */
+        .hal-lens-wrap {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 0.75rem;
+        }
+
+        .hal-red-eye {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: radial-gradient(circle, #ffffff 0%, #ef4444 40%, #7f1d1d 90%);
+          border: 3px solid #1e293b;
+          transition: all 0.3s ease;
+        }
+
+        .hal-cores-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+
+        .core-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.4rem;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          text-align: left;
+        }
+
+        .core-btn.connected {
+          background: color-mix(in srgb, var(--navy) 90%, var(--void));
+          border: 1px solid #ef4444;
+          color: #fca5a5;
+        }
+
+        .core-btn.connected:hover {
+          background: #ef4444;
+          color: #ffffff;
+        }
+
+        .core-btn.ejected {
+          background: #111827;
+          border: 1px dashed #4b5563;
+          color: #4b5563;
+        }
+
+        .action-reset-btn {
+          margin-top: 0.5rem;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.4rem;
+          background: #ef4444;
+          color: #ffffff;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        /* TARS Game */
+        .slider-group {
+          margin-bottom: 0.5rem;
+        }
+
+        .slider-label {
+          display: flex;
+          justify-content: space-between;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          color: var(--star);
+          margin-bottom: 0.15rem;
+        }
+
+        .slider-val {
+          color: #06b6d4;
+        }
+
+        .tars-slider {
+          width: 100%;
+          accent-color: #06b6d4;
+        }
+
+        .tars-dialogue-output {
+          background: color-mix(in srgb, var(--void) 95%, transparent);
+          border: 1px solid #06b6d4;
+          border-radius: 4px;
+          padding: 0.5rem;
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          color: #22d3ee;
+          margin-bottom: 0.5rem;
+          min-height: 48px;
+        }
+
+        .watch-morse-section {
+          border-top: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+          padding-top: 0.5rem;
+        }
+
+        .morse-tap-btn {
+          width: 100%;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.4rem;
+          background: color-mix(in srgb, var(--navy) 70%, var(--void));
+          border: 1px solid #f59e0b;
+          color: #fde68a;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .morse-tap-btn:active {
+          background: #f59e0b;
+          color: #000000;
+        }
+
+        .morse-stream {
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          color: #fbbf24;
+          margin-top: 0.35rem;
+        }
+
+        .morse-char {
+          background: color-mix(in srgb, #f59e0b 20%, transparent);
+          padding: 0.1rem 0.3rem;
+          border-radius: 3px;
+          margin-left: 0.2rem;
+        }
+
+        /* Gravity Pen Game */
+        .pen-stage {
+          background: color-mix(in srgb, var(--void) 90%, transparent);
+          border: 1px dashed #38bdf8;
+          border-radius: 6px;
+          height: 110px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          position: relative;
+          margin-bottom: 0.75rem;
+        }
+
+        .floating-pen {
+          width: 70px;
+          height: 8px;
+          background: #e2e8f0;
+          border-radius: 4px;
+          position: relative;
+          transition: transform 0.2s ease;
+          box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+        }
+
+        .pen-tip {
+          position: absolute;
+          right: -6px;
+          top: 0;
+          width: 0;
+          height: 0;
+          border-left: 6px solid #3b82f6;
+          border-top: 4px solid transparent;
+          border-bottom: 4px solid transparent;
+        }
+
+        .pen-prompt {
+          position: absolute;
+          bottom: 6px;
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          color: var(--star);
+          opacity: 0.8;
+        }
+
+        .kessler-btn {
+          width: 100%;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.45rem;
+          background: color-mix(in srgb, var(--navy) 80%, var(--void));
+          border: 1px solid #38bdf8;
+          color: #bae6fd;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .kessler-btn.alert-active {
+          background: #ef4444;
+          border-color: #f87171;
+          color: #ffffff;
+        }
+
+        .kessler-alert-box {
+          margin-top: 0.5rem;
+          padding: 0.4rem;
+          background: rgba(239, 68, 68, 0.15);
+          border: 1px solid #ef4444;
+          border-radius: 4px;
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          color: #fca5a5;
+        }
+
+        /* Martian Hex Game */
+        .pathfinder-dial-wrap {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          height: 80px;
+          margin-bottom: 0.5rem;
+        }
+
+        .pathfinder-camera-pointer {
+          width: 60px;
+          height: 60px;
+          border: 2px dashed #f97316;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.3s ease;
+        }
+
+        .pointer-arrow {
+          width: 0;
+          height: 0;
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          border-bottom: 18px solid #f97316;
+          margin-bottom: 24px;
+        }
+
+        .hex-center-info {
+          position: absolute;
+          font-family: var(--font-mono);
+          font-size: 1.125rem;
+          font-weight: 700;
+          color: #f97316;
+        }
+
+        .hex-prompt {
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          color: var(--star);
+          margin-bottom: 0.35rem;
+        }
+
+        .hex-btn-grid {
+          display: grid;
+          grid-template-columns: repeat(8, 1fr);
+          gap: 0.2rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .hex-cell-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.25rem;
+          background: color-mix(in srgb, var(--navy) 70%, var(--void));
+          border: 1px solid #f97316;
+          color: #fed7aa;
+          border-radius: 3px;
+          cursor: pointer;
+        }
+
+        .hex-cell-btn.active {
+          background: #f97316;
+          color: #ffffff;
+        }
+
+        .quick-spell-row {
+          display: flex;
+          gap: 0.35rem;
+        }
+
+        .spell-btn {
+          flex: 1;
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          padding: 0.35rem;
+          background: color-mix(in srgb, var(--navy) 90%, var(--void));
+          border: 1px solid #fdba74;
+          color: #fdba74;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        /* Apollo 13 Game */
+        .co2-gauge {
+          display: flex;
+          justify-content: space-between;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.35rem 0.5rem;
+          border-radius: 4px;
+          margin-bottom: 0.5rem;
+        }
+
+        .co2-gauge.danger {
+          background: rgba(239, 68, 68, 0.2);
+          border: 1px solid #ef4444;
+          color: #fca5a5;
+        }
+
+        .co2-gauge.nominal {
+          background: rgba(34, 197, 94, 0.2);
+          border: 1px solid #22c55e;
+          color: #86efac;
+        }
+
+        .scrubber-items-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .tool-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.35rem 0.5rem;
+          text-align: left;
+          background: color-mix(in srgb, var(--navy) 60%, var(--void));
+          border: 1px solid #fbbf24;
+          color: #fde68a;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .tool-btn.installed {
+          background: rgba(34, 197, 94, 0.2);
+          border-color: #22c55e;
+          color: #86efac;
+        }
+
+        .scrubber-status {
+          font-family: var(--font-body);
+          font-size: 0.6875rem;
+          color: var(--star);
+          font-style: italic;
+        }
+
+        /* Alien CRT Game */
+        .crt-screen {
+          background: #021a08;
+          border: 2px solid #22c55e;
+          border-radius: 4px;
+          padding: 0.5rem;
+          height: 90px;
+          overflow-y: auto;
+          margin-bottom: 0.5rem;
+        }
+
+        .crt-text {
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          color: #4ade80;
+          white-space: pre-wrap;
+          margin: 0;
+          line-height: 1.35;
+        }
+
+        .crt-queries-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+
+        .query-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.35rem;
+          background: color-mix(in srgb, var(--navy) 70%, var(--void));
+          border: 1px solid #22c55e;
+          color: #86efac;
+          border-radius: 4px;
+          cursor: pointer;
+          text-align: left;
+        }
+
+        .query-btn:hover {
+          background: #22c55e;
+          color: #000000;
+        }
+
+        /* Star Wars HUD */
+        .trench-hud {
+          background: #000000;
+          border: 1px solid #3b82f6;
+          border-radius: 4px;
+          height: 100px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 0.5rem;
+        }
+
+        .crosshair {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 1px dashed #38bdf8;
+          position: relative;
+        }
+
+        .crosshair.force-mode {
+          border-color: #22c55e;
+          opacity: 0.3;
+        }
+
+        .exhaust-port-target {
+          position: absolute;
+          bottom: 4px;
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          color: #ef4444;
+        }
+
+        .trench-controls {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+
+        .toggle-force-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.35rem;
+          background: color-mix(in srgb, var(--navy) 80%, var(--void));
+          border: 1px solid #38bdf8;
+          color: #bae6fd;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .toggle-force-btn.active {
+          background: #166534;
+          border-color: #22c55e;
+          color: #86efac;
+        }
+
+        .fire-torpedo-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.45rem;
+          background: #ef4444;
+          color: #ffffff;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .torpedo-result {
+          margin-top: 0.4rem;
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          color: #38bdf8;
+          padding: 0.35rem;
+          background: color-mix(in srgb, var(--void) 90%, transparent);
+          border: 1px solid #38bdf8;
+          border-radius: 4px;
+        }
+
+        /* WALL-E Solar Game */
+        .solar-gauge-wrap {
+          margin-bottom: 0.5rem;
+        }
+
+        .solar-label-row {
+          display: flex;
+          justify-content: space-between;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          color: var(--star);
+          margin-bottom: 0.25rem;
+        }
+
+        .solar-bar-track {
+          background: #1e293b;
+          height: 10px;
+          border-radius: 9999px;
+          overflow: hidden;
+        }
+
+        .solar-bar-fill {
+          background: linear-gradient(90deg, #eab308, #22c55e);
+          height: 100%;
+          transition: width 0.5s ease;
+        }
+
+        .charge-btn {
+          width: 100%;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.45rem;
+          background: color-mix(in srgb, var(--navy) 80%, var(--void));
+          border: 1px solid #eab308;
+          color: #fef08a;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-bottom: 0.5rem;
+        }
+
+        .walle-auto-alert {
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          color: #f87171;
+          padding: 0.35rem;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px dashed #ef4444;
+          border-radius: 4px;
+        }
+
+        /* Aliens Game */
+        .ammo-counter-display {
+          display: flex;
+          align-items: baseline;
+          justify-content: center;
+          gap: 0.5rem;
+          background: #140507;
+          border: 1px solid #e11d48;
+          border-radius: 4px;
+          padding: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .ammo-label {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          color: #fb7185;
+        }
+
+        .ammo-digits {
+          font-family: var(--font-mono);
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: #f43f5e;
+          letter-spacing: 2px;
+        }
+
+        .aliens-actions-row {
+          display: flex;
+          gap: 0.35rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .fire-burst-btn {
+          flex: 2;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.45rem;
+          background: #e11d48;
+          color: #ffffff;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .reload-btn {
+          flex: 1;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.45rem;
+          background: color-mix(in srgb, var(--navy) 70%, var(--void));
+          border: 1px solid #e11d48;
+          color: #fca5a5;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .bishop-btn {
+          width: 100%;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.35rem;
+          background: color-mix(in srgb, var(--navy) 80%, var(--void));
+          border: 1px solid var(--steel);
+          color: var(--moon);
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .console-meta-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          color: var(--star);
+          margin-top: 0.35rem;
+        }
+
+        .console-tag {
+          font-weight: 700;
         }
 
         /* Right Data Pane */
@@ -1345,7 +2419,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           color: var(--star);
         }
 
-        /* Motifs & Filter Header */
+        /* Motifs & Search Header */
         .motifs-header-row {
           display: flex;
           align-items: center;
@@ -1362,6 +2436,27 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           letter-spacing: 0.08em;
           color: var(--orbit);
           margin: 0;
+        }
+
+        .search-wrap {
+          flex: 1;
+          max-width: 260px;
+        }
+
+        .motif-search-input {
+          width: 100%;
+          background: color-mix(in srgb, var(--void) 80%, transparent);
+          border: 1px solid color-mix(in srgb, var(--orbit) 35%, transparent);
+          border-radius: var(--radius-sm);
+          padding: 0.35rem 0.65rem;
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          color: var(--moon);
+          outline: none;
+        }
+
+        .motif-search-input:focus {
+          border-color: var(--orbit);
         }
 
         .motif-filter-tabs {
@@ -1684,10 +2779,17 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           color: #0284c7;
         }
 
+        :global([data-theme='light']) .frequency-scrubber-bar,
+        :global(.flat-mode) .frequency-scrubber-bar,
+        :global([data-flat='true']) .frequency-scrubber-bar {
+          background: #f8fafc;
+          border-color: #e2e8f0;
+        }
+
         :global([data-theme='light']) .signal-dial-btn,
         :global(.flat-mode) .signal-dial-btn,
         :global([data-flat='true']) .signal-dial-btn {
-          background: #f8fafc;
+          background: #ffffff;
           border-color: #e2e8f0;
           color: #334155;
         }
@@ -1695,7 +2797,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
         :global([data-theme='light']) .signal-dial-btn.active,
         :global(.flat-mode) .signal-dial-btn.active,
         :global([data-flat='true']) .signal-dial-btn.active {
-          background: #ffffff;
+          background: #f0fdf4;
           border-color: #0284c7;
           box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
         }
@@ -1710,6 +2812,13 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
         :global(.flat-mode) .signal-telemetry-card,
         :global([data-flat='true']) .signal-telemetry-card {
           background: #f8fafc;
+          border-color: #e2e8f0;
+        }
+
+        :global([data-theme='light']) .interactive-minigame-box,
+        :global(.flat-mode) .interactive-minigame-box,
+        :global([data-flat='true']) .interactive-minigame-box {
+          background: #ffffff;
           border-color: #e2e8f0;
         }
 
@@ -1752,42 +2861,12 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           color: #334155;
         }
 
-        :global([data-theme='light']) .lore-box,
-        :global(.flat-mode) .lore-box,
-        :global([data-flat='true']) .lore-box {
+        :global([data-theme='light']) .motif-search-input,
+        :global(.flat-mode) .motif-search-input,
+        :global([data-flat='true']) .motif-search-input {
           background: #ffffff;
           border-color: #cbd5e1;
-        }
-
-        :global([data-theme='light']) .lore-text,
-        :global(.flat-mode) .lore-text,
-        :global([data-flat='true']) .lore-text {
-          color: #334155;
-        }
-
-        :global([data-theme='light']) .decrypt-btn,
-        :global(.flat-mode) .decrypt-btn,
-        :global([data-flat='true']) .decrypt-btn {
-          background: #ffffff;
           color: #0f172a;
-        }
-
-        :global([data-theme='light']) .decrypted-log-panel,
-        :global(.flat-mode) .decrypted-log-panel,
-        :global([data-flat='true']) .decrypted-log-panel {
-          background: #f1f5f9;
-        }
-
-        :global([data-theme='light']) .decrypted-title,
-        :global(.flat-mode) .decrypted-title,
-        :global([data-flat='true']) .decrypted-title {
-          color: #0f172a;
-        }
-
-        :global([data-theme='light']) .decrypted-body,
-        :global(.flat-mode) .decrypted-body,
-        :global([data-flat='true']) .decrypted-body {
-          color: #334155;
         }
 
         :global([data-theme='light']) .dossier-toggle-btn,
@@ -1809,18 +2888,6 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
         :global(.flat-mode) .dossier-movie-title,
         :global([data-flat='true']) .dossier-movie-title {
           color: #0f172a;
-        }
-
-        :global([data-theme='light']) .dossier-motif-name,
-        :global(.flat-mode) .dossier-motif-name,
-        :global([data-flat='true']) .dossier-motif-name {
-          color: #0f172a;
-        }
-
-        :global([data-theme='light']) .dossier-motif-desc,
-        :global(.flat-mode) .dossier-motif-desc,
-        :global([data-flat='true']) .dossier-motif-desc {
-          color: #475569;
         }
       `}</style>
     </div>
