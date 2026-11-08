@@ -492,17 +492,17 @@ const isLinkActive = (href: string): boolean => {
     display: inline-flex !important;
   }
 
-  /* When in Deep Space: button indicates option to engage Solar Flare */
+  /* When in Dark Mode (Default on all devices) */
   :global(html[data-theme="deep-space"]) .mode-label::before,
   :global(html:not(.theme-solar-flare):not(.light-mode)) .mode-label::before {
-    content: 'SOLAR FLARE';
+    content: 'DARK MODE';
   }
 
-  /* When in Solar Flare: button indicates option to engage Deep Space */
+  /* When in Light Mode */
   :global(html[data-theme="solar-flare"]) .mode-label::before,
   :global(html.theme-solar-flare) .mode-label::before,
   :global(html.light-mode) .mode-label::before {
-    content: 'DEEP SPACE';
+    content: 'LIGHT MODE';
   }
 
   /* Mobile Hamburger Toggle */
@@ -678,13 +678,13 @@ const isLinkActive = (href: string): boolean => {
   /* Mobile mode text mirrors the desktop label */
   :global(html[data-theme="deep-space"]) .mobile-mode-text::before,
   :global(html:not(.theme-solar-flare):not(.light-mode)) .mobile-mode-text::before {
-    content: 'Switch to Solar Flare';
+    content: 'Dark Mode (Active)';
   }
 
   :global(html[data-theme="solar-flare"]) .mobile-mode-text::before,
   :global(html.theme-solar-flare) .mobile-mode-text::before,
   :global(html.light-mode) .mobile-mode-text::before {
-    content: 'Switch to Deep Space';
+    content: 'Light Mode (Active)';
   }
 
   /* Desktop Breakpoint */
@@ -721,13 +721,12 @@ const isLinkActive = (href: string): boolean => {
     const btn = target?.closest('[data-flat-toggle]');
     if (!btn) return;
 
-    const isCurrentlySolar =
-      document.documentElement.classList.contains('theme-solar-flare') ||
+    const isCurrentlyLight =
       document.documentElement.classList.contains('light-mode') ||
       document.documentElement.getAttribute('data-theme') === 'solar-flare';
-    const nextIsSolar = !isCurrentlySolar;
+    const nextIsLight = !isCurrentlyLight;
 
-    if (nextIsSolar) {
+    if (nextIsLight) {
       document.documentElement.classList.add('theme-solar-flare');
       document.documentElement.classList.add('light-mode');
       document.documentElement.classList.remove('theme-deep-space');
@@ -740,15 +739,15 @@ const isLinkActive = (href: string): boolean => {
     }
 
     try {
-      localStorage.setItem('callisto-theme', nextIsSolar ? 'solar-flare' : 'deep-space');
+      localStorage.setItem('callisto-theme', nextIsLight ? 'light' : 'deep-space');
     } catch (e) {
       /* LocalStorage fallback */
     }
 
     // Sync all toggle buttons on the page
     document.querySelectorAll('[data-flat-toggle]').forEach((b) => {
-      b.setAttribute('aria-label', nextIsSolar ? 'Switch to Deep Space Wireframe mode' : 'Switch to Solar mode');
-      b.setAttribute('title', nextIsSolar ? 'Switch to Deep Space Wireframe mode' : 'Switch to Solar mode');
+      b.setAttribute('aria-label', nextIsLight ? 'Switch to Dark Mode' : 'Switch to Light Mode');
+      b.setAttribute('title', nextIsLight ? 'Switch to Dark Mode' : 'Switch to Light Mode');
     });
   });
 

@@ -205,8 +205,17 @@ const deptOfficers = getOfficersByDepartment(dept.id);
 <style>
   .dept-page-container {
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
-    padding: var(--space-xl) var(--space-md) var(--space-3xl);
+    padding: var(--space-lg) var(--space-xs) var(--space-3xl);
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  @media (min-width: 480px) {
+    .dept-page-container {
+      padding: var(--space-xl) var(--space-md) var(--space-3xl);
+    }
   }
 
   @media (min-width: 768px) {

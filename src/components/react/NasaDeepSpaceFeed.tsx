@@ -996,6 +996,8 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
           font-weight: 600;
           color: #e2e8f0;
           line-height: 1.3;
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
 
         .chip-val.highlight {
@@ -1167,9 +1169,17 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
 
         /* Responsive Mobile Breakpoints */
         @media (max-width: 768px) {
+          .observatory-feed-card {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+          }
           .feed-content-grid {
-            padding: 1rem;
+            padding: 1rem 0.75rem;
             gap: 1.25rem;
+            width: 100%;
+            box-sizing: border-box;
           }
           .feed-header-bar {
             padding: 0.85rem 1rem;
@@ -1179,10 +1189,18 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
           }
           .meta-card {
             padding: 1.15rem;
+            width: 100%;
+            box-sizing: border-box;
           }
         }
 
         @media (max-width: 640px) {
+          .observatory-feed-card {
+            border-radius: var(--radius-md, 10px);
+          }
+          .feed-content-grid {
+            padding: 0.85rem 0.5rem;
+          }
           .feed-header-bar {
             flex-direction: column;
             align-items: flex-start;

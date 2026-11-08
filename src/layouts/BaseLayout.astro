@@ -36,7 +36,7 @@ const ogImageUrl = ogImage
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="deep-space" class="theme-deep-space">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -81,15 +81,16 @@ const ogImageUrl = ogImage
     <!-- Astro 5 Client Router for seamless persistent page transitions -->
     <ClientRouter />
 
-    <!-- Prevent flash of unstyled theme / Deep Space Wireframe Default preference script -->
+    <!-- Prevent flash of unstyled theme / Strict Dark Mode Default preference script -->
     <script is:inline>
       (function () {
         function applyTheme() {
           try {
             var savedTheme = localStorage.getItem('callisto-theme');
-            // Default to Deep Space Wireframe (#000000 + 3D Grid) unless user explicitly chose Solar Flare
-            var isSolar = savedTheme === 'solar-flare' || savedTheme === 'light';
-            if (isSolar) {
+            // Strict Dark Mode default across all mobile and desktop devices
+            // Only engage Solar Flare (Light) if explicitly requested as 'light'
+            var isLight = savedTheme === 'light' || savedTheme === 'solar-flare-light';
+            if (isLight) {
               document.documentElement.classList.add('theme-solar-flare');
               document.documentElement.classList.add('light-mode');
               document.documentElement.classList.remove('theme-deep-space');

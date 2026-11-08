@@ -278,8 +278,9 @@ export default function CrewRoster({ initialOfficers }: CrewRosterProps): React.
         }
 
         .roster-search-container {
-          min-width: 280px;
+          min-width: 0;
           width: 100%;
+          max-width: 100%;
         }
 
         @media (min-width: 768px) {
@@ -582,6 +583,56 @@ export default function CrewRoster({ initialOfficers }: CrewRosterProps): React.
           border-radius: var(--radius-md);
           font-weight: 700;
           cursor: pointer;
+        }
+
+        @media (max-width: 640px) {
+          .crew-roster-section {
+            margin-top: var(--space-xl);
+            margin-bottom: var(--space-xl);
+            width: 100%;
+            overflow-x: hidden;
+          }
+          .roster-header-bar {
+            gap: var(--space-sm);
+          }
+          .roster-heading {
+            font-size: var(--text-2xl);
+          }
+          .roster-search-container {
+            min-width: 0 !important;
+            width: 100% !important;
+          }
+          .officers-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            width: 100%;
+          }
+          .officer-card {
+            padding: 1.15rem 1rem;
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+          }
+          .officer-avatar-box {
+            width: 60px;
+            height: 60px;
+          }
+          .officer-name {
+            font-size: 1.25rem;
+            word-break: break-word;
+          }
+          .wing-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            white-space: normal;
+            text-align: right;
+            max-width: 140px;
+            word-break: break-word;
+          }
+          .officer-footer {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+          }
         }
       `}</style>
     </section>

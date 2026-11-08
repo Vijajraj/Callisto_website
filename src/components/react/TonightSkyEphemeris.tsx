@@ -1288,33 +1288,44 @@ export default function TonightSkyEphemeris(): React.ReactElement {
         /* Mobile & Tablet Responsiveness */
         @media (max-width: 768px) {
           .ephemeris-card {
-            padding: 1.25rem;
+            padding: 1rem 0.75rem;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
           }
           .ephemeris-header {
-            gap: 1.25rem;
-            margin-bottom: 1.5rem;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
           }
           .drawer-meta-grid {
             grid-template-columns: 1fr;
           }
           .drawer-content {
-            padding: 1rem;
+            padding: 0.85rem 0.75rem;
+          }
+          .meta-value {
+            word-break: break-word;
+            overflow-wrap: break-word;
           }
         }
 
         @media (max-width: 640px) {
+          .ephemeris-card {
+            padding: 0.85rem 0.5rem;
+            border-radius: var(--radius-md, 10px);
+          }
           .conditions-grid {
             width: 100%;
             display: grid;
             grid-template-columns: 1fr;
             gap: 0.5rem;
           }
-          .condition-box {
-            min-width: 0;
-            width: 100%;
-          }
+          .condition-box,
           .moon-box {
-            min-width: 0;
+            min-width: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box;
           }
           .timeline-header {
             flex-direction: column;
@@ -1347,7 +1358,14 @@ export default function TonightSkyEphemeris(): React.ReactElement {
             display: none;
           }
           .col-target-name {
-            min-width: 220px;
+            min-width: 170px;
+            word-break: break-word;
+          }
+          .drawer-notes {
+            word-break: break-word;
+          }
+          .notes-text {
+            word-break: break-word;
           }
         }
 
