@@ -159,7 +159,7 @@ export const crewOfficers: CrewOfficer[] = [
     departmentName: 'Technology & Development',
     themedName: 'Tesseract',
     description: 'Architect of the Callisto digital platform, Jean Meeus ephemeris orbital algorithms, and interactive telemetry engines.',
-    avatar: '/crew/avatars/vijayraj.svg',
+    avatar: '/crew/avatars/vijayraj.jpg',
     socialLinks: {
       github: 'https://github.com/Vijajraj',
       linkedin: 'https://www.linkedin.com/in/vijay-raj33/',
