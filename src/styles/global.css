@@ -467,3 +467,19 @@ a:hover {
     -webkit-backdrop-filter: blur(8px) !important;
   }
 }
+
+/* Hardware-accelerated GPU compositing for ultra-smooth 60-120fps motion */
+#starfield-canvas,
+.nav-bar,
+.callisto-join-rocket-hud,
+.hero-logo-frame {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Fluid scroll physics and touch acceleration */
+html {
+  -webkit-overflow-scrolling: touch;
+  text-rendering: optimizeLegibility;
+}

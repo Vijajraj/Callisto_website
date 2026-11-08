@@ -279,15 +279,15 @@ export default function Starfield({
     const drawScene = (now: number) => {
       if (!isRunning) return;
 
-      // On mobile, throttle to max ~55-60fps to prevent battery drain and thermal throttling
-      if (isMobile && now - lastTime < 16) {
+      // Allow fluid native display refresh rates (60Hz, 90Hz, 120Hz) without frame hitching
+      if (now - lastTime < 7) {
         if (!prefersReducedMotion) {
           animationFrameId = requestAnimationFrame(drawScene);
         }
         return;
       }
 
-      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
 
       // Detect current theme mode: Default is Deep Space (#000000 Wireframe)

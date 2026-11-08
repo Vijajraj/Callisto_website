@@ -130,7 +130,7 @@ export default defineConfig({
   },
   prefetch: {
     prefetchAll: true,
-    defaultStrategy: 'hover',
+    defaultStrategy: 'viewport',
   },
   markdown: {
     syntaxHighlight: 'shiki',

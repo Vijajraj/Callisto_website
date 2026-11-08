@@ -87,12 +87,12 @@ export default function CrescentLoader(): React.ReactElement | null {
     const hasVisited = Boolean(sessionStorage.getItem('callisto_visited'));
 
     if (prefersReducedMotion || hasVisited) {
-      // Fast path: show completed state briefly, then fade out
+      // Fast path: show completed state briefly, then fade out immediately
       setStage(4);
       setTypedChars(fullText.length);
       const fastTimer = window.setTimeout(() => {
         finishSequence();
-      }, 500);
+      }, 150);
       timerRefs.current.push(fastTimer);
       sessionStorage.setItem('callisto_visited', 'true');
       return () => clearAllTimers();
@@ -100,44 +100,43 @@ export default function CrescentLoader(): React.ReactElement | null {
 
     sessionStorage.setItem('callisto_visited', 'true');
 
-    // Stage 0: 0 -> 1000ms: Crescent arc draws itself
+    // Stage 0: 0 -> 450ms: Crescent arc draws itself
     setStage(0);
 
-    // Stage 1: 1000ms -> 1500ms: Crescent fills in
+    // Stage 1: 450ms -> 750ms: Crescent fills in
     const t1 = window.setTimeout(() => {
       setStage(1);
-    }, 1000);
+    }, 450);
     timerRefs.current.push(t1);
 
-    // Stage 2: 1500ms -> 2000ms: Four-point star fades in and scales
+    // Stage 2: 750ms -> 1050ms: Four-point star fades in and scales
     const t2 = window.setTimeout(() => {
       setStage(2);
-    }, 1500);
+    }, 750);
     timerRefs.current.push(t2);
 
-    // Stage 3: 2000ms -> 2500ms: Orbit ring spins up
+    // Stage 3: 1050ms -> 1350ms: Orbit ring spins up
     const t3 = window.setTimeout(() => {
       setStage(3);
-    }, 2000);
+    }, 1050);
     timerRefs.current.push(t3);
 
-    // Stage 4: 2500ms -> 3000ms: Typewriter for "Systems nominal"
+    // Stage 4: 1350ms -> 1700ms: Typewriter for "Systems nominal"
     const t4 = window.setTimeout(() => {
       setStage(4);
-      // Typewriter effect across 500ms for 15 characters (~33ms per char)
       for (let i = 1; i <= fullText.length; i++) {
         const typeTimer = window.setTimeout(() => {
           setTypedChars(i);
-        }, (i * 500) / fullText.length);
+        }, (i * 280) / fullText.length);
         timerRefs.current.push(typeTimer);
       }
-    }, 2500);
+    }, 1350);
     timerRefs.current.push(t4);
 
-    // Stage 5: 3000ms -> 3500ms: Exit sequence (fade and slide up)
+    // Stage 5: 1700ms -> Exit sequence
     const t5 = window.setTimeout(() => {
       finishSequence();
-    }, 3000);
+    }, 1700);
     timerRefs.current.push(t5);
 
     // Escape key listener for fast skip
