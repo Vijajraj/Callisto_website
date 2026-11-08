@@ -38,7 +38,7 @@
  * =====================================================================
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { playTelemetryBeep } from '../../lib/audio';
 
 interface SuitTheme {
@@ -100,8 +100,94 @@ export default function AvatarBuilder(): React.ReactElement {
   const [showIdCard, setShowIdCard] = useState<boolean>(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
 
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [cameraLoading, setCameraLoading] = useState<boolean>(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('user');
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const nativeCameraInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Stop camera tracks on unmount or when stream changes
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [cameraStream]);
+
+  // Attach live stream to video element once opened
+  useEffect(() => {
+    if (isCameraActive && cameraStream && videoRef.current) {
+      videoRef.current.srcObject = cameraStream;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [isCameraActive, cameraStream]);
+
+  /**
+   * Memory-optimized client-side downscaler.
+   * Compresses large photos (e.g. 12-48MP from phones or cameras) down to 800px max.
+   * Completely eliminates Android Chrome "Unable to complete previous operation due to low memory".
+   */
+  const downscaleAndProcessImage = (srcUrl: string, isObjectUrl: boolean = false) => {
+    const tempImg = new Image();
+    tempImg.crossOrigin = 'anonymous';
+    tempImg.onload = () => {
+      try {
+        const maxDim = 800;
+        let w = tempImg.naturalWidth || tempImg.width || 800;
+        let h = tempImg.naturalHeight || tempImg.height || 800;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(tempImg, 0, 0, w, h);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          if (isObjectUrl) {
+            URL.revokeObjectURL(srcUrl);
+          }
+          setUserPhoto(compressedDataUrl);
+          const finalImg = new Image();
+          finalImg.crossOrigin = 'anonymous';
+          finalImg.onload = () => {
+            setUserPhotoImg(finalImg);
+            setExportNotice('Cadet face biometric loaded into spacesuit HUD & Flight Pass!');
+            setTimeout(() => setExportNotice(null), 3500);
+          };
+          finalImg.src = compressedDataUrl;
+          return;
+        }
+      } catch (err) {
+        console.warn('Canvas optimization fallback:', err);
+      }
+      // Direct fallback
+      setUserPhoto(srcUrl);
+      setUserPhotoImg(tempImg);
+      setExportNotice('Cadet face biometric loaded into spacesuit HUD & Flight Pass!');
+      setTimeout(() => setExportNotice(null), 3500);
+    };
+    tempImg.onerror = () => {
+      if (isObjectUrl) {
+        URL.revokeObjectURL(srcUrl);
+      }
+      setExportNotice('Failed to process image file. Please try another format (JPG/PNG).');
+      setTimeout(() => setExportNotice(null), 3500);
+    };
+    tempImg.src = srcUrl;
+  };
 
   const handlePhotoFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -110,26 +196,122 @@ export default function AvatarBuilder(): React.ReactElement {
       return;
     }
     playTelemetryBeep(1050, 0.08);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      setUserPhoto(dataUrl);
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        setUserPhotoImg(img);
-        setExportNotice('Cadet face biometric loaded into spacesuit HUD & Flight Pass!');
-        setTimeout(() => setExportNotice(null), 3500);
-      };
-      img.src = dataUrl;
-    };
-    reader.readAsDataURL(file);
+
+    // Use URL.createObjectURL instead of massive FileReader.readAsDataURL
+    // This prevents Android Chrome "Unable to complete previous operation due to low memory"
+    const blobUrl = URL.createObjectURL(file);
+    downscaleAndProcessImage(blobUrl, true);
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handlePhotoFile(file);
     e.target.value = '';
+  };
+
+  /**
+   * Direct WebRTC live camera capture.
+   * Works on laptop webcams (Windows/Mac/Linux) and mobile browsers without crashing.
+   */
+  const startCamera = async (facing: 'user' | 'environment' = 'user') => {
+    setCameraError(null);
+    setCameraLoading(true);
+    setIsCameraActive(true);
+    setCameraFacing(facing);
+
+    // Stop previous stream if switching facing mode
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      setCameraStream(null);
+    }
+
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Direct camera access is not supported by your browser or connection (requires HTTPS or localhost).');
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+        },
+        audio: false,
+      });
+      setCameraStream(stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+    } catch (err: any) {
+      console.error('Camera access error:', err);
+      let msg = 'Could not access camera.';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        msg = 'Camera permission was denied. Please allow camera permissions in your browser address bar or choose an existing photo from gallery.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        msg = 'No camera device detected on this device. Please upload an image from your files.';
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        msg = 'Camera is currently locked or in use by another program. Please close other camera apps and retry.';
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setCameraError(msg);
+    } finally {
+      setCameraLoading(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      setCameraStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+    setCameraError(null);
+    setCameraLoading(false);
+  };
+
+  const captureFromCamera = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const vw = video.videoWidth || 640;
+    const vh = video.videoHeight || 480;
+
+    // Center crop square optimal for astronaut helmet visor
+    const minDim = Math.min(vw, vh);
+    const sx = (vw - minDim) / 2;
+    const sy = (vh - minDim) / 2;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 600;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Flip horizontally for front camera (natural mirror feel)
+    if (cameraFacing === 'user') {
+      ctx.translate(600, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, sx, sy, minDim, minDim, 0, 0, 600, 600);
+
+    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    // Stop camera immediately to free hardware & system memory
+    stopCamera();
+    playTelemetryBeep(1200, 0.1);
+
+    setUserPhoto(compressedDataUrl);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      setUserPhotoImg(img);
+      setExportNotice('Cadet biometric captured & sealed into spacesuit HUD!');
+      setTimeout(() => setExportNotice(null), 3500);
+    };
+    img.src = compressedDataUrl;
   };
 
   const handleRemovePhoto = () => {
@@ -853,6 +1035,328 @@ export default function AvatarBuilder(): React.ReactElement {
           color: #e11d48 !important;
           border: 1px solid #fda4af !important;
         }
+
+        /* Camera Scanner Modal Styles */
+        .biometric-camera-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(2, 6, 23, 0.9);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          z-index: 99999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+          box-sizing: border-box;
+        }
+
+        .biometric-scanner-modal {
+          background: var(--deep, #0b1120);
+          border: 1px solid var(--orbit, #38bdf8);
+          border-radius: var(--radius-lg, 14px);
+          width: 100%;
+          max-width: 480px;
+          overflow: hidden;
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 32px rgba(56, 189, 248, 0.25);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .scanner-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.85rem 1.15rem;
+          background: rgba(15, 23, 42, 0.95);
+          border-bottom: 1px solid color-mix(in srgb, var(--steel, #475569) 30%, transparent);
+        }
+
+        .scanner-live-badge {
+          background: #ef4444;
+          color: #ffffff;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.625rem;
+          font-weight: 800;
+          padding: 0.2rem 0.5rem;
+          border-radius: 4px;
+          letter-spacing: 0.08em;
+          animation: pulseRed 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseRed {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+
+        .scanner-modal-title {
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: var(--moon, #ffffff);
+        }
+
+        .scanner-close-btn {
+          background: transparent;
+          border: none;
+          color: var(--steel, #94a3b8);
+          font-size: 1.1rem;
+          cursor: pointer;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .scanner-close-btn:hover {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .scanner-viewport-box {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          max-height: 380px;
+          background: #000000;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .scanner-video-feed {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .scanner-video-feed.mirror {
+          transform: scaleX(-1);
+        }
+
+        .scanner-reticle-overlay {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem;
+          box-sizing: border-box;
+        }
+
+        .scanner-reticle-svg {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          inset: 0;
+        }
+
+        .scanner-reticle-label {
+          position: relative;
+          margin-top: auto;
+          background: rgba(2, 6, 23, 0.85);
+          color: var(--orbit, #38bdf8);
+          font-family: var(--font-mono, monospace);
+          font-size: 0.625rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          padding: 0.3rem 0.65rem;
+          border-radius: 4px;
+          border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .scanner-status-scrim {
+          position: absolute;
+          inset: 0;
+          background: rgba(6, 9, 19, 0.94);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 0.85rem;
+          padding: 1.5rem;
+          text-align: center;
+          z-index: 10;
+        }
+
+        .scanner-spinner {
+          width: 36px;
+          height: 36px;
+          border: 3px solid rgba(56, 189, 248, 0.2);
+          border-top-color: var(--orbit, #38bdf8);
+          border-radius: 50%;
+          animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .scanner-status-text {
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75rem;
+          color: var(--orbit, #38bdf8);
+          letter-spacing: 0.08em;
+        }
+
+        .scanner-error-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: rgba(239, 68, 68, 0.2);
+          border: 2px solid #ef4444;
+          color: #ef4444;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: var(--font-mono, monospace);
+          font-weight: 800;
+          font-size: 1.1rem;
+        }
+
+        .scanner-error-title {
+          font-family: var(--font-mono, monospace);
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #ef4444;
+          letter-spacing: 0.08em;
+        }
+
+        .scanner-error-desc {
+          font-family: var(--font-body, sans-serif);
+          font-size: 0.78rem;
+          color: var(--star, #cbd5e1);
+          line-height: 1.45;
+          margin: 0;
+          max-width: 320px;
+        }
+
+        .scanner-retry-btn,
+        .scanner-alt-btn {
+          font-family: var(--font-mono, monospace);
+          font-size: 0.72rem;
+          font-weight: 600;
+          padding: 0.4rem 0.8rem;
+          border-radius: var(--radius-sm, 6px);
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .scanner-retry-btn {
+          background: var(--orbit, #38bdf8);
+          color: #000000;
+          border: 1px solid var(--orbit, #38bdf8);
+        }
+
+        .scanner-alt-btn {
+          background: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .scanner-controls-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.85rem 1.15rem;
+          background: rgba(15, 23, 42, 0.95);
+          border-top: 1px solid color-mix(in srgb, var(--steel, #475569) 30%, transparent);
+          gap: 0.75rem;
+        }
+
+        .scanner-action-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          background: transparent;
+          color: var(--steel, #94a3b8);
+          border: 1px solid rgba(148, 163, 184, 0.25);
+          border-radius: var(--radius-sm, 6px);
+          padding: 0.45rem 0.75rem;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.72rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .scanner-action-btn:hover:not(:disabled) {
+          color: #ffffff;
+          border-color: #ffffff;
+        }
+
+        .scanner-action-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .scanner-snap-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: var(--orbit, #38bdf8);
+          color: #020617;
+          border: 1px solid var(--orbit, #38bdf8);
+          border-radius: var(--radius-sm, 6px);
+          padding: 0.55rem 1.25rem;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.8rem;
+          font-weight: 800;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+          box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+          transition: all 0.2s;
+        }
+
+        .scanner-snap-btn:hover:not(:disabled) {
+          background: #7dd3fc;
+          transform: translateY(-1px);
+          box-shadow: 0 0 24px rgba(56, 189, 248, 0.6);
+        }
+
+        .scanner-snap-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+          box-shadow: none;
+        }
+
+        /* Light Mode (Solar Flare) Overrides for Scanner */
+        html[data-theme="solar-flare"] .biometric-scanner-modal,
+        html.theme-solar-flare .biometric-scanner-modal,
+        html.light-mode .biometric-scanner-modal {
+          background: #ffffff !important;
+          border-color: #0284c7 !important;
+        }
+
+        html[data-theme="solar-flare"] .scanner-modal-header,
+        html.theme-solar-flare .scanner-modal-header,
+        html.light-mode .scanner-modal-header,
+        html[data-theme="solar-flare"] .scanner-controls-bar,
+        html.theme-solar-flare .scanner-controls-bar,
+        html.light-mode .scanner-controls-bar {
+          background: #f8fafc !important;
+          border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        html[data-theme="solar-flare"] .scanner-modal-title,
+        html.theme-solar-flare .scanner-modal-title,
+        html.light-mode .scanner-modal-title {
+          color: #0f172a !important;
+        }
+
+        html[data-theme="solar-flare"] .scanner-snap-btn,
+        html.theme-solar-flare .scanner-snap-btn,
+        html.light-mode .scanner-snap-btn {
+          background: #0284c7 !important;
+          color: #ffffff !important;
+          border-color: #0284c7 !important;
+        }
       `}</style>
 
       {/* Top Banner */}
@@ -1285,7 +1789,7 @@ export default function AvatarBuilder(): React.ReactElement {
             {/* Biometric Face Photo Upload */}
             <div style={{ marginBottom: 'var(--space-lg)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <span style={sectionLabelStyle}>2. ASTRONAUT BIOMETRIC FACE (GALLERY / MEDIA)</span>
+                <span style={sectionLabelStyle}>2. ASTRONAUT BIOMETRIC FACE (CAMERA / GALLERY)</span>
                 {userPhoto && (
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: '#22c55e', fontWeight: 700 }}>
                     [✓] FACE INTEGRATED
@@ -1294,7 +1798,7 @@ export default function AvatarBuilder(): React.ReactElement {
               </div>
 
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: 'var(--steel)', margin: '0 0 0.6rem 0' }}>
-                Upload your face from device gallery or capture with camera. Your face renders inside the pressurized EVA space helmet and seals on your official Flight Pass.
+                Capture directly with your laptop/phone camera or upload from gallery. In-memory compression protects device memory while seamlessly sealing your face into the EVA suit visor & Flight Pass.
               </p>
 
               {/* Hidden Inputs */}
@@ -1306,7 +1810,7 @@ export default function AvatarBuilder(): React.ReactElement {
                 onChange={handlePhotoUpload}
               />
               <input
-                ref={cameraInputRef}
+                ref={nativeCameraInputRef}
                 type="file"
                 accept="image/*"
                 capture="user"
@@ -1317,27 +1821,29 @@ export default function AvatarBuilder(): React.ReactElement {
               <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap', alignItems: 'center' }}>
                 <button
                   type="button"
+                  onClick={() => startCamera('user')}
+                  className="biometric-upload-btn"
+                  title="Open live camera or laptop webcam"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                  <span>Use Camera / WebCam</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="biometric-upload-btn"
+                  title="Choose existing photo from device gallery or disk"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                     <circle cx="8.5" cy="8.5" r="1.5" />
                     <polyline points="21 15 16 10 5 21" />
                   </svg>
-                  <span>Choose from Gallery / Media</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="biometric-upload-btn"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
-                  <span>Capture Photo</span>
+                  <span>Choose from Gallery</span>
                 </button>
 
                 {userPhoto && (
@@ -1486,6 +1992,142 @@ export default function AvatarBuilder(): React.ReactElement {
                   );
                 })}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Live Camera Biometric Scanner Modal */}
+      {isCameraActive && (
+        <div className="biometric-camera-overlay" onClick={(e) => { if (e.target === e.currentTarget) stopCamera(); }}>
+          <div className="biometric-scanner-modal" role="dialog" aria-modal="true" aria-labelledby="scanner-modal-title">
+            <div className="scanner-modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="scanner-live-badge">LIVE WEBCAM</span>
+                <span id="scanner-modal-title" className="scanner-modal-title">CADET BIOMETRIC SCANNER</span>
+              </div>
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="scanner-close-btn"
+                aria-label="Close camera scanner"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="scanner-viewport-box">
+              {/* Video Element */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`scanner-video-feed ${cameraFacing === 'user' ? 'mirror' : ''}`}
+              />
+
+              {/* Astronaut Visor Guide HUD Reticle */}
+              {!cameraError && (
+                <div className="scanner-reticle-overlay">
+                  <svg className="scanner-reticle-svg" viewBox="0 0 400 400" preserveAspectRatio="none">
+                    {/* Outer Frame Corner Accents */}
+                    <path d="M 20 50 L 20 20 L 50 20" stroke="#38bdf8" strokeWidth="3" fill="none" />
+                    <path d="M 350 20 L 380 20 L 380 50" stroke="#38bdf8" strokeWidth="3" fill="none" />
+                    <path d="M 20 350 L 20 380 L 50 380" stroke="#38bdf8" strokeWidth="3" fill="none" />
+                    <path d="M 350 380 L 380 380 L 380 350" stroke="#38bdf8" strokeWidth="3" fill="none" />
+
+                    {/* Visor Oval Target Guide */}
+                    <ellipse
+                      cx="200"
+                      cy="195"
+                      rx="110"
+                      ry="135"
+                      fill="none"
+                      stroke="#38bdf8"
+                      strokeWidth="2"
+                      strokeDasharray="8 6"
+                      opacity="0.8"
+                    />
+
+                    {/* Eye Level Guideline */}
+                    <line x1="130" y1="175" x2="270" y2="175" stroke="#ffb86b" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
+                    <circle cx="200" cy="195" r="3" fill="#ffb86b" />
+                  </svg>
+                  <div className="scanner-reticle-label">ALIGN CADET FACE INSIDE VISOR OVAL</div>
+                </div>
+              )}
+
+              {/* Loading State */}
+              {cameraLoading && (
+                <div className="scanner-status-scrim">
+                  <div className="scanner-spinner"></div>
+                  <span className="scanner-status-text">INITIALIZING OPTICAL SENSOR...</span>
+                </div>
+              )}
+
+              {/* Error State */}
+              {cameraError && (
+                <div className="scanner-status-scrim error-scrim">
+                  <div className="scanner-error-icon">!</div>
+                  <span className="scanner-error-title">CAMERA SENSOR UNAVAILABLE</span>
+                  <p className="scanner-error-desc">{cameraError}</p>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => startCamera(cameraFacing)}
+                      className="scanner-retry-btn"
+                    >
+                      Retry Camera
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        stopCamera();
+                        fileInputRef.current?.click();
+                      }}
+                      className="scanner-alt-btn"
+                    >
+                      Choose from Gallery
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Controls Bar */}
+            <div className="scanner-controls-bar">
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="scanner-action-btn cancel-btn"
+              >
+                Abort
+              </button>
+
+              <button
+                type="button"
+                onClick={() => startCamera(cameraFacing === 'user' ? 'environment' : 'user')}
+                className="scanner-action-btn flip-btn"
+                title="Switch front/back camera"
+                disabled={cameraLoading || !!cameraError}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 1.253.287 2.438.8 3.5L2 16h6v-6L5.5 6.5C6.91 5.37 8.86 4.5 11 4.5c4.14 0 7.5 3.36 7.5 7.5s-3.36 7.5-7.5 7.5c-1.85 0-3.54-.68-4.85-1.81l-1.42 1.42C6.42 20.61 8.57 21.5 11 21.5c5.523 0 10-4.477 10-10z" />
+                </svg>
+                <span>Flip Sensor</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={captureFromCamera}
+                className="scanner-snap-btn"
+                disabled={cameraLoading || !!cameraError}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="4" fill="currentColor" />
+                </svg>
+                <span>SNAP PHOTO</span>
+              </button>
             </div>
           </div>
         </div>
