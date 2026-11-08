@@ -824,13 +824,101 @@ export default function PodcastTransmission(): React.ReactElement {
         html[data-theme="solar-flare"] .station-sub,
         html.theme-solar-flare .station-sub,
         html.light-mode .station-sub {
+          color: #0369a1 !important;
+          font-weight: 700 !important;
+        }
+
+        html[data-theme="solar-flare"] .host-pill,
+        html.theme-solar-flare .host-pill,
+        html.light-mode .host-pill {
+          background: #fef3c7 !important;
+          color: #92400e !important;
+          border-color: #f59e0b !important;
+          font-weight: 800 !important;
+        }
+
+        html[data-theme="solar-flare"] .series-pill,
+        html.theme-solar-flare .series-pill,
+        html.light-mode .series-pill {
+          background: #e0f2fe !important;
+          color: #0369a1 !important;
+          border-color: #7dd3fc !important;
+          font-weight: 800 !important;
+        }
+
+        html[data-theme="solar-flare"] .status-live-chip,
+        html.theme-solar-flare .status-live-chip,
+        html.light-mode .status-live-chip {
+          background: #dcfce7 !important;
+          color: #15803d !important;
+          border-color: #86efac !important;
+        }
+
+        html[data-theme="solar-flare"] .freq-label,
+        html.theme-solar-flare .freq-label,
+        html.light-mode .freq-label {
+          color: #475569 !important;
+        }
+
+        html[data-theme="solar-flare"] .freq-chip,
+        html.theme-solar-flare .freq-chip,
+        html.light-mode .freq-chip {
+          background: #ffffff !important;
+          border-color: rgba(0, 0, 0, 0.15) !important;
+          color: #475569 !important;
+        }
+
+        html[data-theme="solar-flare"] .freq-chip:hover,
+        html.theme-solar-flare .freq-chip:hover,
+        html.light-mode .freq-chip:hover {
           color: #0284c7 !important;
+          border-color: #0284c7 !important;
+          background: #f0f9ff !important;
+        }
+
+        html[data-theme="solar-flare"] .freq-chip.active,
+        html.theme-solar-flare .freq-chip.active,
+        html.light-mode .freq-chip.active {
+          background: #e0f2fe !important;
+          color: #0369a1 !important;
+          border-color: #0284c7 !important;
+          font-weight: 800 !important;
+          box-shadow: 0 0 8px rgba(2, 132, 199, 0.25) !important;
         }
 
         html[data-theme="solar-flare"] .episode-synopsis,
         html.theme-solar-flare .episode-synopsis,
         html.light-mode .episode-synopsis {
           color: #334155 !important;
+        }
+
+        html[data-theme="solar-flare"] .episode-synopsis strong,
+        html.theme-solar-flare .episode-synopsis strong,
+        html.light-mode .episode-synopsis strong {
+          color: #0f172a !important;
+          font-weight: 800 !important;
+        }
+
+        html[data-theme="solar-flare"] .stat-name,
+        html.theme-solar-flare .stat-name,
+        html.light-mode .stat-name {
+          color: #64748b !important;
+          font-weight: 700 !important;
+        }
+
+        html[data-theme="solar-flare"] .dossier-heading,
+        html.theme-solar-flare .dossier-heading,
+        html.light-mode .dossier-heading {
+          color: #0f172a !important;
+          font-weight: 800 !important;
+        }
+
+        html[data-theme="solar-flare"] .dossier-footer,
+        html.theme-solar-flare .dossier-footer,
+        html.light-mode .dossier-footer {
+          color: #475569 !important;
+          border-color: rgba(0, 0, 0, 0.12) !important;
+          font-weight: 700 !important;
         }
 
         html[data-theme="solar-flare"] .stat-pill,
