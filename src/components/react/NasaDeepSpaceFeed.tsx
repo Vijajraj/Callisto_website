@@ -248,13 +248,24 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
 
   // Optical Magnifier / Loupe Inspection State
   const [loupeActive, setLoupeActive] = useState<boolean>(false);
-  const [loupePos, setLoupePos] = useState<{ x: number; y: number; pctX: number; pctY: number }>({
+  const [loupePos, setLoupePos] = useState<{
+    x: number;
+    y: number;
+    imgWidth: number;
+    imgHeight: number;
+    imgLeft: number;
+    imgTop: number;
+  }>({
     x: 0,
     y: 0,
-    pctX: 50,
-    pctY: 50,
+    imgWidth: 0,
+    imgHeight: 0,
+    imgLeft: 0,
+    imgTop: 0,
   });
   const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  const ZOOM_FACTOR = 2.5;
 
   // Handle Mouse Hover Loupe
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -262,9 +273,14 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
     const rect = imageContainerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const pctX = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    const pctY = Math.max(0, Math.min(100, (y / rect.height) * 100));
-    setLoupePos({ x, y, pctX, pctY });
+
+    const loupeRadius = rect.width < 640 ? 55 : 70;
+    const imgWidth = rect.width * ZOOM_FACTOR;
+    const imgHeight = rect.height * ZOOM_FACTOR;
+    const imgLeft = loupeRadius - (x * ZOOM_FACTOR);
+    const imgTop = loupeRadius - (y * ZOOM_FACTOR);
+
+    setLoupePos({ x, y, imgWidth, imgHeight, imgLeft, imgTop });
   }, []);
 
   // Handle Touch Screen Loupe (Mobile / Tablet compatibility)
@@ -274,9 +290,14 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
     const rect = imageContainerRef.current.getBoundingClientRect();
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
-    const pctX = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    const pctY = Math.max(0, Math.min(100, (y / rect.height) * 100));
-    setLoupePos({ x, y, pctX, pctY });
+
+    const loupeRadius = rect.width < 640 ? 55 : 70;
+    const imgWidth = rect.width * ZOOM_FACTOR;
+    const imgHeight = rect.height * ZOOM_FACTOR;
+    const imgLeft = loupeRadius - (x * ZOOM_FACTOR);
+    const imgTop = loupeRadius - (y * ZOOM_FACTOR);
+
+    setLoupePos({ x, y, imgWidth, imgHeight, imgLeft, imgTop });
   }, []);
 
   // Filter Categories
@@ -404,12 +425,26 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
                 style={{
                   left: `${loupePos.x}px`,
                   top: `${loupePos.y}px`,
-                  backgroundImage: `url(${currentDispatch.hdurl})`,
-                  backgroundPosition: `${loupePos.pctX}% ${loupePos.pctY}%`,
-                  backgroundSize: '260%',
-                  filter: getFilterStyle(),
                 }}
               >
+                <img
+                  src={currentDispatch.hdurl}
+                  alt=""
+                  style={{
+                    position: 'absolute',
+                    width: `${loupePos.imgWidth}px`,
+                    height: `${loupePos.imgHeight}px`,
+                    left: `${loupePos.imgLeft}px`,
+                    top: `${loupePos.imgTop}px`,
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    objectFit: 'cover',
+                    filter: getFilterStyle(),
+                    pointerEvents: 'none',
+                    display: 'block',
+                  }}
+                  aria-hidden="true"
+                />
                 <div className="loupe-reticle">
                   <span className="reticle-line vert"></span>
                   <span className="reticle-line horiz"></span>
@@ -759,22 +794,34 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
         /* Optical Loupe */
         .optical-loupe {
           position: absolute;
-          width: 130px;
-          height: 130px;
+          width: 140px;
+          height: 140px;
           border-radius: 50%;
-          border: 2px solid #38bdf8;
-          box-shadow: 0 0 16px rgba(56, 189, 248, 0.6), inset 0 0 10px rgba(0, 0, 0, 0.8);
+          border: 2.5px solid #38bdf8;
+          box-shadow: 0 0 20px rgba(56, 189, 248, 0.7), inset 0 0 16px rgba(0, 0, 0, 0.85);
           pointer-events: none;
           transform: translate(-50%, -50%);
           z-index: 10;
-          background-repeat: no-repeat;
           overflow: hidden;
+          background: #020617;
+        }
+
+        .optical-loupe::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 65%);
+          pointer-events: none;
+          box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5);
+          z-index: 2;
         }
 
         .loupe-reticle {
           position: relative;
           width: 100%;
           height: 100%;
+          z-index: 3;
         }
 
         .reticle-line {
@@ -1210,8 +1257,8 @@ export default function NasaDeepSpaceFeed(): React.ReactElement {
             gap: 0.5rem;
           }
           .optical-loupe {
-            width: 105px;
-            height: 105px;
+            width: 110px;
+            height: 110px;
           }
           .spectral-bar {
             flex-direction: column;
