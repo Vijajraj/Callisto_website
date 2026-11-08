@@ -196,7 +196,7 @@ export const crewOfficers: CrewOfficer[] = [
   },
   {
     id: 'sheetal',
-    name: 'Sheetal BN',
+    name: 'Sheetal Bathri Narayanan',
     role: 'Team Leader',
     departmentId: 'people',
     departmentName: 'People Management',
@@ -204,7 +204,7 @@ export const crewOfficers: CrewOfficer[] = [
     description: 'Manages member engagement, cross-department collaboration workflows, and training initiatives for incoming space cadets.',
     avatar: '/crew/avatars/sheetal.svg',
     socialLinks: {
-      linkedin: 'https://linkedin.com',
+      linkedin: 'https://www.linkedin.com/in/sheetal-bathri-narayanan-563496364/',
       comms: 'mailto:crew@callisto.club',
     },
   },
@@ -346,8 +346,8 @@ export const departments: Department[] = [
     id: 'people',
     name: 'People Management',
     themedName: 'Stellar Path',
-    lead: 'Aishmica Harish | Sheetal BN',
-    roleAssigned: 'Aishmica Harish | Sheetal BN',
+    lead: 'Aishmica Harish | Sheetal Bathri Narayanan',
+    roleAssigned: 'Aishmica Harish | Sheetal Bathri Narayanan',
     role: 'Secretary | Team Leader',
     shipModule: 'HR-09',
     description: 'Nurturing club culture, coordinating recruitment drives, organizing internal workshops, and fostering member growth.',

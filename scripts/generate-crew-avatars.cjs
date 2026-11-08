@@ -28,7 +28,7 @@ const officers = [
   { id: 'vijayraj', name: 'vijayraj s', accent: '#10B981', glow: 'rgba(16, 185, 129, 0.4)', initials: 'VS' },
   { id: 'guru', name: 'Guru Harish', accent: '#3B82F6', glow: 'rgba(59, 130, 246, 0.4)', initials: 'GH' },
   { id: 'aishmica', name: 'Aishmica Harish', accent: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.4)', initials: 'AH' },
-  { id: 'sheetal', name: 'Sheetal BN', accent: '#14B8A6', glow: 'rgba(20, 184, 166, 0.4)', initials: 'SB' },
+  { id: 'sheetal', name: 'Sheetal Bathri Narayanan', accent: '#14B8A6', glow: 'rgba(20, 184, 166, 0.4)', initials: 'SN' },
   { id: 'mridula', name: 'Mridula Nataraj', accent: '#6366F1', glow: 'rgba(99, 102, 241, 0.4)', initials: 'MN' },
   { id: 'executive-council', name: 'Executive Council', accent: '#E2E8F0', glow: 'rgba(226, 232, 240, 0.4)', initials: 'EC' }
 ];
