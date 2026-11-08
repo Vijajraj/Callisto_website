@@ -19,17 +19,17 @@ if (!fs.existsSync(targetDir)) {
 const officers = [
   { id: 'aswin-ponnuraj', name: 'Aswin Ponnuraj', accent: '#F59E0B', glow: 'rgba(245, 158, 11, 0.4)', initials: 'AP' },
   { id: 'lathika-raj', name: 'Lathika Raj S R', accent: '#EC4899', glow: 'rgba(236, 72, 153, 0.4)', initials: 'LR' },
-  { id: 'harshitha', name: 'Harshitha', accent: '#38BDF8', glow: 'rgba(56, 189, 248, 0.4)', initials: 'HA' },
-  { id: 'mirudhula', name: 'Mirudhula', accent: '#A855F7', glow: 'rgba(168, 85, 247, 0.4)', initials: 'MI' },
+  { id: 'harshitha', name: 'Harshitha Leoamarnath', accent: '#38BDF8', glow: 'rgba(56, 189, 248, 0.4)', initials: 'HL' },
+  { id: 'mirudhula', name: 'Mirudhula Madhu', accent: '#A855F7', glow: 'rgba(168, 85, 247, 0.4)', initials: 'MM' },
   { id: 'mukilan', name: 'Mukilan', accent: '#F59E0B', glow: 'rgba(245, 158, 11, 0.4)', initials: 'MU' },
   { id: 'mahavishnu', name: 'Mahavishnu', accent: '#06B6D4', glow: 'rgba(6, 182, 212, 0.4)', initials: 'MV' },
   { id: 'siddiksha', name: 'Siddiksha', accent: '#EC4899', glow: 'rgba(236, 72, 153, 0.4)', initials: 'SI' },
   { id: 'azmina', name: 'Azmina', accent: '#F43F5E', glow: 'rgba(244, 63, 94, 0.4)', initials: 'AZ' },
   { id: 'vijayraj', name: 'vijayraj s', accent: '#10B981', glow: 'rgba(16, 185, 129, 0.4)', initials: 'VS' },
-  { id: 'guru', name: 'Guru', accent: '#3B82F6', glow: 'rgba(59, 130, 246, 0.4)', initials: 'GU' },
+  { id: 'guru', name: 'Guru Harish', accent: '#3B82F6', glow: 'rgba(59, 130, 246, 0.4)', initials: 'GH' },
   { id: 'aishmica', name: 'Aishmica Harish', accent: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.4)', initials: 'AH' },
   { id: 'sheetal', name: 'Sheetal BN', accent: '#14B8A6', glow: 'rgba(20, 184, 166, 0.4)', initials: 'SB' },
-  { id: 'mridula', name: 'Mridula Natraj', accent: '#6366F1', glow: 'rgba(99, 102, 241, 0.4)', initials: 'MN' },
+  { id: 'mridula', name: 'Mridula Nataraj', accent: '#6366F1', glow: 'rgba(99, 102, 241, 0.4)', initials: 'MN' },
   { id: 'executive-council', name: 'Executive Council', accent: '#E2E8F0', glow: 'rgba(226, 232, 240, 0.4)', initials: 'EC' }
 ];
 
