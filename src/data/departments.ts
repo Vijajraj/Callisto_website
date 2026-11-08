@@ -62,7 +62,7 @@ export const crewOfficers: CrewOfficer[] = [
     departmentName: 'Presidential Committee',
     themedName: 'Polaris Circle',
     description: 'Coordinates executive operations, inter-wing mission planning, university liaison, and student leadership governance.',
-    avatar: '/crew/avatars/lathika-raj.svg',
+    avatar: '/crew/avatars/lathika-raj.jpg',
     socialLinks: {
       linkedin: 'https://www.linkedin.com/in/lathikarajsr/',
       comms: 'mailto:vicepresident@callisto.club',
