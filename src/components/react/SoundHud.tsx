@@ -8,456 +8,304 @@
  * =====================================================================
  */
 
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
+import React, { useState, useCallback } from 'react';
 
 /**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
+ * JoinRocketHud
+ *
+ * Replaces the legacy sound console with an interactive rocket-launch "JOIN NOW" trigger.
+ * Features the Starfield expedition insignia badge, orbital thruster glow,
+ * and a supersonic rocket liftoff animation sequence that launches upwards
+ * into the cosmos before navigating to the expedition enlistment protocol (/join).
  */
-
-/**
- * =====================================================================
- * CALLISTO DEEP SPACE OBSERVATORY & ASTRODYNAMICS ENGINE
- * =====================================================================
- * Architect & Developer: vijayraj.s
- * GitHub Profile: https://github.com/Vijajraj
- * Repository: https://github.com/Vijajraj/Callisto_website
- * =====================================================================
- */
-
-import React, { useState, useEffect } from 'react';
-import {
-  isMusicEnabled,
-  toggleMusic,
-  getMusicVolume,
-  setMusicVolume,
-  getCurrentMovementInfo,
-} from '../../lib/audioManager';
-
 export default function SoundHud(): React.ReactElement {
-  const [musicOn, setMusicOn] = useState<boolean>(false);
-  const [volume, setVolume] = useState<number>(0.32);
-  const [expanded, setExpanded] = useState<boolean>(false);
-  const [isUsingHtmlAudio, setIsUsingHtmlAudio] = useState<boolean>(false);
-  const [audioStatus, setAudioStatus] = useState<string>('idle');
-  const [movement, setMovement] = useState<{ name: string; theme: string }>({
-    name: 'SILENT',
-    theme: 'STANDBY',
-  });
+  const [launchState, setLaunchState] = useState<'idle' | 'igniting' | 'launched'>('idle');
 
-  useEffect(() => {
-    setMusicOn(isMusicEnabled());
-    setVolume(getMusicVolume());
-    setMovement(getCurrentMovementInfo());
+  const handleLaunch = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    if (launchState !== 'idle') return;
 
-    const handleStateUpdate = (e: Event) => {
-      const customEvent = e as CustomEvent<{
-        musicEnabled: boolean;
-        musicVolume: number;
-        isUsingHtmlAudio?: boolean;
-        audioTrackStatus?: string;
-        movementName: string;
-        movementTheme: string;
-      }>;
-      if (customEvent.detail) {
-        setMusicOn(customEvent.detail.musicEnabled);
-        setVolume(customEvent.detail.musicVolume);
-        if (customEvent.detail.isUsingHtmlAudio !== undefined) {
-          setIsUsingHtmlAudio(customEvent.detail.isUsingHtmlAudio);
+    // Phase 1: Thruster Ignition & Micro-rumble
+    setLaunchState('igniting');
+
+    // Phase 2: Full Supersonic Liftoff Acceleration
+    const ignitionTimer = setTimeout(() => {
+      setLaunchState('launched');
+    }, 180);
+
+    // Phase 3: Departure Navigation to /join
+    const navTimer = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        if (window.location.pathname === '/join' || window.location.pathname === '/join/') {
+          const formEl = document.getElementById('join-form') || document.querySelector('form');
+          if (formEl) {
+            formEl.scrollIntoView({ behavior: 'smooth' });
+          }
+          setLaunchState('idle');
+        } else {
+          window.location.href = '/join';
         }
-        if (customEvent.detail.audioTrackStatus) {
-          setAudioStatus(customEvent.detail.audioTrackStatus);
-        }
-        setMovement({
-          name: customEvent.detail.movementName,
-          theme: customEvent.detail.movementTheme,
-        });
       }
-    };
-
-    window.addEventListener('callisto-audio-manager-state', handleStateUpdate);
-
-    const pollInterval = window.setInterval(() => {
-      if (isMusicEnabled()) {
-        setMovement(getCurrentMovementInfo());
-      }
-    }, 1000);
+    }, 850);
 
     return () => {
-      window.removeEventListener('callisto-audio-manager-state', handleStateUpdate);
-      clearInterval(pollInterval);
+      clearTimeout(ignitionTimer);
+      clearTimeout(navTimer);
     };
-  }, []);
-
-  const handleToggleMusic = () => {
-    const next = toggleMusic();
-    setMusicOn(next);
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVol = parseFloat(e.target.value);
-    setVolume(newVol);
-    setMusicVolume(newVol);
-  };
+  }, [launchState]);
 
   return (
     <div
-      className="sound-hud-container"
+      className={`callisto-join-rocket-hud ${launchState !== 'idle' ? `state-${launchState}` : ''}`}
       style={{
         position: 'fixed',
         bottom: '1.25rem',
         right: '1.25rem',
-        zIndex: 'var(--z-fixed, 800)',
-        fontFamily: 'var(--font-mono)',
+        zIndex: 850,
+        pointerEvents: launchState === 'launched' ? 'none' : 'auto',
       }}
       role="region"
-      aria-label="Expedition Background Music Audio Console"
+      aria-label="Expedition Enlistment Rocket Launcher"
     >
       <style>{`
+        .callisto-join-rocket-hud {
+          transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .rocket-launch-btn {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 0.35rem;
+          background: transparent;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          outline: none;
+          position: relative;
+          text-decoration: none;
+          color: inherit;
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .rocket-badge-wrapper {
+          position: relative;
+          width: 62px;
+          height: 62px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 35% 35%, #0B192C 0%, #030811 100%);
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 14px rgba(56, 189, 248, 0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          border: 1.5px solid rgba(255, 255, 255, 0.85);
+        }
+
+        .rocket-badge-img {
+          width: 58px;
+          height: 58px;
+          border-radius: 50%;
+          object-fit: cover;
+          display: block;
+          pointer-events: none;
+        }
+
+        .rocket-label-pill {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.25rem;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #FFFFFF;
+          background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+          border: 1px solid rgba(125, 211, 252, 0.6);
+          padding: 0.22rem 0.65rem;
+          border-radius: 9999px;
+          box-shadow: 0 2px 10px rgba(2, 132, 199, 0.45);
+          white-space: nowrap;
+          transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .rocket-launch-btn:hover .rocket-badge-wrapper {
+          transform: translateY(-4px) scale(1.05);
+          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.8), 0 0 22px rgba(56, 189, 248, 0.65);
+          border-color: #38BDF8;
+        }
+
+        .rocket-launch-btn:hover .rocket-label-pill {
+          background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 14px rgba(14, 165, 233, 0.65);
+        }
+
+        .rocket-launch-btn:focus-visible .rocket-badge-wrapper {
+          outline: 2px solid #38BDF8;
+          outline-offset: 4px;
+        }
+
+        /* Thruster Exhaust & Flames */
+        .thruster-plume {
+          position: absolute;
+          top: 96%;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 24px;
+          height: 0px;
+          opacity: 0;
+          pointer-events: none;
+          z-index: -1;
+          transition: height 0.15s ease, opacity 0.15s ease;
+        }
+
+        .plume-core {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 14px;
+          height: 100%;
+          background: linear-gradient(to bottom, #FFFFFF 0%, #F59E0B 40%, #EF4444 80%, transparent 100%);
+          border-radius: 50% 50% 20% 20%;
+          filter: blur(1px);
+        }
+
+        .plume-outer {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 26px;
+          height: 120%;
+          background: radial-gradient(ellipse at top, rgba(56, 189, 248, 0.8) 0%, rgba(249, 115, 22, 0.6) 50%, transparent 90%);
+          filter: blur(4px);
+        }
+
+        /* State: Igniting Rumble */
+        .callisto-join-rocket-hud.state-igniting {
+          animation: rocketRumble 0.08s ease-in-out infinite alternate;
+        }
+
+        .callisto-join-rocket-hud.state-igniting .thruster-plume {
+          opacity: 1;
+          height: 48px;
+        }
+
+        .callisto-join-rocket-hud.state-igniting .rocket-badge-wrapper {
+          box-shadow: 0 0 30px rgba(245, 158, 11, 0.85), 0 0 50px rgba(239, 68, 68, 0.65);
+          border-color: #F59E0B;
+        }
+
+        /* State: Launched Blastoff */
+        .callisto-join-rocket-hud.state-launched {
+          animation: rocketBlastoff 0.8s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+        }
+
+        .callisto-join-rocket-hud.state-launched .thruster-plume {
+          opacity: 1;
+          height: 160px;
+        }
+
+        .callisto-join-rocket-hud.state-launched .rocket-badge-wrapper {
+          box-shadow: 0 0 45px rgba(245, 158, 11, 1), 0 0 70px rgba(239, 68, 68, 0.9);
+          border-color: #FEF08A;
+        }
+
+        @keyframes rocketRumble {
+          0% {
+            transform: translate(0, 0) rotate(0deg);
+          }
+          50% {
+            transform: translate(-1.5px, 1px) rotate(-1.5deg);
+          }
+          100% {
+            transform: translate(1.5px, -1px) rotate(1.5deg);
+          }
+        }
+
+        @keyframes rocketBlastoff {
+          0% {
+            transform: translate(0, 0) scale(1) rotate(0deg);
+            opacity: 1;
+          }
+          20% {
+            transform: translate(0, 4px) scale(0.96) rotate(-0.5deg);
+            opacity: 1;
+          }
+          50% {
+            transform: translate(0, -35vh) scale(1.08) rotate(-1.5deg);
+            opacity: 1;
+          }
+          85% {
+            transform: translate(0, -95vh) scale(0.9) rotate(-1deg);
+            opacity: 0.95;
+          }
+          100% {
+            transform: translate(0, -140vh) scale(0.75) rotate(-0.5deg);
+            opacity: 0;
+          }
+        }
+
         @media (max-width: 768px) {
-          .sound-hud-container {
+          .callisto-join-rocket-hud {
             bottom: 0.75rem !important;
             right: 0.75rem !important;
           }
+          .rocket-badge-wrapper {
+            width: 52px;
+            height: 52px;
+          }
+          .rocket-badge-img {
+            width: 48px;
+            height: 48px;
+          }
+          .rocket-label-pill {
+            font-size: 0.62rem;
+            padding: 0.18rem 0.5rem;
+            letter-spacing: 0.1em;
+          }
         }
       `}</style>
-      {/* Expanded Master Music Console */}
-      {expanded && (
-        <div
-          style={{
-            marginBottom: '0.65rem',
-            backgroundColor: 'color-mix(in srgb, var(--deep) 96%, black)',
-            border: '1px solid color-mix(in srgb, var(--orbit) 55%, transparent)',
-            borderRadius: 'var(--radius-md)',
-            padding: '1.1rem',
-            boxShadow:
-              '0 16px 40px rgba(0, 0, 0, 0.5), 0 0 24px color-mix(in srgb, var(--orbit) 25%, transparent)',
-            backdropFilter: 'blur(20px)',
-            width: '300px',
-            maxWidth: 'calc(100vw - 2.5rem)',
-            boxSizing: 'border-box',
-            animation: 'fadeIn 0.2s ease',
-          }}
-        >
-          {/* Header */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderBottom: '1px solid color-mix(in srgb, var(--steel) 30%, transparent)',
-              paddingBottom: '0.6rem',
-              marginBottom: '0.85rem',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  color: 'var(--moon)',
-                  letterSpacing: '0.1em',
-                }}
-              >
-                EXPEDITION CATHEDRAL SCORE
-              </div>
-              <div
-                style={{
-                  fontSize: '0.625rem',
-                  color: 'var(--astrophage)',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                CINEMATIC INSTRUMENTAL SUITE
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setExpanded(false)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--steel)',
-                cursor: 'pointer',
-                fontSize: '1.2rem',
-                lineHeight: 1,
-                padding: '0 0.25rem',
-              }}
-              aria-label="Close Music Console"
-            >
-              &times;
-            </button>
-          </div>
 
-          {/* Active Movement Status */}
-          <div
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--void) 75%, transparent)',
-              border: `1px solid ${
-                musicOn
-                  ? 'color-mix(in srgb, var(--orbit) 60%, transparent)'
-                  : 'color-mix(in srgb, var(--steel) 25%, transparent)'
-              }`,
-              borderRadius: 'var(--radius-sm)',
-              padding: '0.75rem',
-              marginBottom: '0.85rem',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.35rem',
-              }}
-            >
-              <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--moon)' }}>
-                ACTIVE MOVEMENT
-              </span>
-              <span
-                style={{
-                  fontSize: '0.625rem',
-                  fontWeight: 700,
-                  color: musicOn ? '#4ade80' : 'var(--steel)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: musicOn ? '#4ade80' : 'var(--steel)',
-                    boxShadow: musicOn ? '0 0 6px #4ade80' : 'none',
-                  }}
-                />
-                {musicOn ? 'PLAYING' : 'MUTED'}
-              </span>
-            </div>
+      <button
+        type="button"
+        className="rocket-launch-btn"
+        onClick={handleLaunch}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            handleLaunch(e);
+          }
+        }}
+        aria-label="Join Callisto Expedition - Launch Rocket"
+        title="Launch Expedition // Join Callisto"
+      >
+        <div className="rocket-badge-wrapper">
+          <img
+            src="/icons/starfield-rocket-badge.png"
+            alt="Callisto Starfield Insignia"
+            className="rocket-badge-img"
+            width="58"
+            height="58"
+            decoding="async"
+          />
 
-            <div
-              style={{
-                fontSize: '0.6875rem',
-                color: musicOn ? 'var(--orbit)' : 'var(--steel)',
-                fontWeight: 600,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {musicOn
-                ? `${movement.name} // ${movement.theme}`
-                : 'Score in standby (click to engage)'}
-            </div>
-
-            {musicOn && (
-              <div
-                style={{
-                  fontSize: '0.58rem',
-                  color: isUsingHtmlAudio ? '#38bdf8' : 'var(--steel)',
-                  marginTop: '0.35rem',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                AUDIO SOURCE: {isUsingHtmlAudio ? 'MP3 NATIVE SOUNDTRACK' : 'PROCEDURAL SYNTH ENGINE'}
-              </div>
-            )}
-          </div>
-
-          {/* Master Music Toggle */}
-          <button
-            type="button"
-            onClick={handleToggleMusic}
-            style={{
-              width: '100%',
-              padding: '0.65rem',
-              backgroundColor: musicOn
-                ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
-                : 'color-mix(in srgb, var(--navy) 60%, transparent)',
-              border: `1px solid ${
-                musicOn ? 'var(--orbit)' : 'color-mix(in srgb, var(--steel) 40%, transparent)'
-              }`,
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--moon)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              marginBottom: '0.85rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.4rem',
-              transition: 'all 0.2s',
-            }}
-            aria-pressed={musicOn}
-          >
-            <span>{musicOn ? 'Pause Background Music' : 'Start Background Music'}</span>
-          </button>
-
-          {/* Volume Slider */}
-          <div style={{ marginBottom: '0.5rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '0.625rem',
-                color: 'var(--steel)',
-                marginBottom: '0.35rem',
-              }}
-            >
-              <span>Score Volume</span>
-              <span>{Math.round(volume * 100)}%</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.02"
-              value={volume}
-              onChange={handleVolumeChange}
-              disabled={!musicOn}
-              aria-label="Background Music Volume"
-              style={{
-                width: '100%',
-                accentColor: 'var(--orbit)',
-                cursor: musicOn ? 'pointer' : 'not-allowed',
-                opacity: musicOn ? 1 : 0.45,
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              marginTop: '0.75rem',
-              fontSize: '0.5625rem',
-              color: 'var(--steel)',
-              textAlign: 'center',
-              letterSpacing: '0.04em',
-            }}
-          >
-            PREFERENCES PERSISTED ACROSS NAVIGATION
+          {/* Rocket Thruster Engine Plume */}
+          <div className="thruster-plume" aria-hidden="true">
+            <div className="plume-outer" />
+            <div className="plume-core" />
           </div>
         </div>
-      )}
 
-      {/* Floating HUD Pill Button */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          backgroundColor: 'color-mix(in srgb, var(--deep) 90%, black)',
-          border: '1px solid color-mix(in srgb, var(--orbit) 40%, transparent)',
-          borderRadius: 'var(--radius-full)',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(12px)',
-          padding: '0.25rem',
-          gap: '0.2rem',
-        }}
-      >
-        <button
-          type="button"
-          onClick={handleToggleMusic}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.45rem 0.85rem',
-            backgroundColor: musicOn
-              ? 'color-mix(in srgb, var(--orbit) 25%, var(--void))'
-              : 'transparent',
-            border: `1px solid ${
-              musicOn ? 'var(--orbit)' : 'transparent'
-            }`,
-            borderRadius: 'var(--radius-full)',
-            color: musicOn ? 'var(--moon)' : 'var(--steel)',
-            cursor: 'pointer',
-            fontSize: '0.6875rem',
-            fontWeight: 600,
-            transition: 'all 0.2s',
-          }}
-          title={musicOn ? 'Background Music: ON (Click to pause)' : 'Background Music: OFF (Click to play)'}
-          aria-pressed={musicOn}
-          aria-label="Background Music Toggle"
-        >
-          {/* Animated Waveform Visualizer */}
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '2px',
-              height: '12px',
-            }}
-            aria-hidden="true"
-          >
-            <span
-              style={{
-                width: '2px',
-                height: musicOn ? '10px' : '3px',
-                backgroundColor: musicOn ? '#4ade80' : 'var(--steel)',
-                borderRadius: '1px',
-                transition: 'height 0.2s ease',
-              }}
-            />
-            <span
-              style={{
-                width: '2px',
-                height: musicOn ? '14px' : '5px',
-                backgroundColor: musicOn ? 'var(--orbit)' : 'var(--steel)',
-                borderRadius: '1px',
-                transition: 'height 0.2s ease',
-              }}
-            />
-            <span
-              style={{
-                width: '2px',
-                height: musicOn ? '8px' : '3px',
-                backgroundColor: musicOn ? 'var(--astrophage)' : 'var(--steel)',
-                borderRadius: '1px',
-                transition: 'height 0.2s ease',
-              }}
-            />
-          </span>
-          <span>{musicOn ? 'EXPEDITION SCORE' : 'SCORE OFF'}</span>
-        </button>
-
-        {/* Expand / Collapse Drawer Toggle */}
-        <button
-          type="button"
-          onClick={() => setExpanded(!expanded)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--orbit)',
-            padding: '0.45rem 0.55rem',
-            cursor: 'pointer',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          title={expanded ? 'Collapse score console' : 'Open score console & volume controls'}
-          aria-expanded={expanded}
-          aria-label="Open detailed music volume settings"
-        >
-          {expanded ? '▾' : '▴'}
-        </button>
-      </div>
+        <span className="rocket-label-pill">
+          JOIN NOW
+        </span>
+      </button>
     </div>
   );
 }
