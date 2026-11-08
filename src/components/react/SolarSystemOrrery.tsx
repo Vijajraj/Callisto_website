@@ -252,7 +252,6 @@ export default function SolarSystemOrrery(): React.ReactElement {
   const [selectedBody, setSelectedBody] = useState<SolarSystemBody>(SOLAR_BODIES[3]); // Default to Earth
   const [speedMultiplier, setSpeedMultiplier] = useState<number>(1.0);
   const [viewScope, setViewScope] = useState<'full' | 'inner'>('full');
-  const [showOrbits, setShowOrbits] = useState<boolean>(false);
 
   // Orbital angles storage
   const anglesRef = useRef<{ [key: string]: number }>({
@@ -271,9 +270,6 @@ export default function SolarSystemOrrery(): React.ReactElement {
 
   const viewScopeRef = useRef(viewScope);
   viewScopeRef.current = viewScope;
-
-  const showOrbitsRef = useRef(showOrbits);
-  showOrbitsRef.current = showOrbits;
 
   // Cached planet positions on canvas for click/touch detection
   const bodyPositionsRef = useRef<{ [key: string]: { x: number; y: number; r: number } }>({});
@@ -344,32 +340,6 @@ export default function SolarSystemOrrery(): React.ReactElement {
       const activeBodies = isInner
         ? SOLAR_BODIES.filter((b) => ['sun', 'mercury', 'venus', 'earth', 'mars'].includes(b.id))
         : SOLAR_BODIES;
-
-      // Draw Orbit Tracks
-      if (showOrbitsRef.current) {
-        activeBodies.slice(1).forEach((planet) => {
-          const orbitRadius = isInner ? planet.orbitalRadiusPxInner : planet.orbitalRadiusPxFull;
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, orbitRadius, 0, Math.PI * 2);
-          ctx.strokeStyle = isLight
-            ? 'rgba(15, 23, 42, 0.14)'
-            : 'rgba(255, 255, 255, 0.12)';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([3, 4]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-        });
-
-        // Asteroid belt representation in inner/full view
-        const asteroidBeltRadius = isInner ? 228 : 133;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, asteroidBeltRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = isLight ? 'rgba(71, 85, 105, 0.18)' : 'rgba(148, 163, 184, 0.18)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([1, 6]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
 
       // Draw Sun at Center
       const sunRadius = isInner ? 22 : 17;
@@ -654,6 +624,66 @@ export default function SolarSystemOrrery(): React.ReactElement {
           color: var(--moon);
         }
 
+        /* Starfield Join Action Button */
+        .solar-join-btn {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 0.25rem 0.65rem;
+          background-color: color-mix(in srgb, var(--orbit) 14%, var(--navy));
+          border: 1px solid var(--orbit);
+          border-radius: var(--radius-sm);
+          text-decoration: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 0 10px color-mix(in srgb, var(--orbit) 25%, transparent);
+        }
+        .solar-join-btn:hover {
+          background-color: var(--orbit);
+          border-color: var(--orbit);
+          box-shadow: 0 0 18px color-mix(in srgb, var(--orbit) 50%, transparent);
+          transform: translateY(-1px);
+        }
+        .solar-join-btn:hover .solar-join-text {
+          color: var(--void) !important;
+        }
+        .solar-join-badge-img {
+          width: 28px;
+          height: 18px;
+          object-fit: contain;
+          display: block;
+        }
+        .solar-join-text {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          color: var(--orbit);
+          line-height: 1;
+          margin-top: 2px;
+          transition: color 0.18s ease;
+        }
+
+        .solar-join-dossier-cta {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          background-color: color-mix(in srgb, var(--orbit) 12%, var(--navy));
+          border: 1px solid color-mix(in srgb, var(--orbit) 45%, transparent);
+          border-radius: var(--radius-sm);
+          padding: 0.65rem 0.85rem;
+          text-decoration: none;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .solar-join-dossier-cta:hover {
+          border-color: var(--orbit);
+          background-color: color-mix(in srgb, var(--orbit) 22%, var(--navy));
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px color-mix(in srgb, var(--orbit) 30%, transparent);
+        }
+
         /* Light Mode Overrides */
         html[data-theme="solar-flare"] .solar-system-orrery-container,
         html.theme-solar-flare .solar-system-orrery-container,
@@ -727,6 +757,41 @@ export default function SolarSystemOrrery(): React.ReactElement {
           color: #475569 !important;
           font-weight: 700 !important;
         }
+        html[data-theme="solar-flare"] .solar-join-btn,
+        html.theme-solar-flare .solar-join-btn,
+        html.light-mode .solar-join-btn {
+          background-color: #ffffff !important;
+          border-color: #0284c7 !important;
+          box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
+        }
+        html[data-theme="solar-flare"] .solar-join-btn:hover,
+        html.theme-solar-flare .solar-join-btn:hover,
+        html.light-mode .solar-join-btn:hover {
+          background-color: #0284c7 !important;
+        }
+        html[data-theme="solar-flare"] .solar-join-text,
+        html.theme-solar-flare .solar-join-text,
+        html.light-mode .solar-join-text {
+          color: #0284c7 !important;
+        }
+        html[data-theme="solar-flare"] .solar-join-btn:hover .solar-join-text,
+        html.theme-solar-flare .solar-join-btn:hover .solar-join-text,
+        html.light-mode .solar-join-btn:hover .solar-join-text {
+          color: #ffffff !important;
+        }
+        html[data-theme="solar-flare"] .solar-join-dossier-cta,
+        html.theme-solar-flare .solar-join-dossier-cta,
+        html.light-mode .solar-join-dossier-cta {
+          background-color: #ffffff !important;
+          border-color: rgba(2, 132, 199, 0.35) !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+        }
+        html[data-theme="solar-flare"] .solar-join-dossier-cta:hover,
+        html.theme-solar-flare .solar-join-dossier-cta:hover,
+        html.light-mode .solar-join-dossier-cta:hover {
+          border-color: #0284c7 !important;
+          background-color: #f0f9ff !important;
+        }
       `}</style>
 
       {/* Header & Controls Bar */}
@@ -796,15 +861,22 @@ export default function SolarSystemOrrery(): React.ReactElement {
             {speedMultiplier}x SPEED
           </button>
 
-          {/* Orbit Tracks Toggle */}
-          <button
-            onClick={() => setShowOrbits((prev) => !prev)}
-            className="solar-ctrl-btn"
-            title="Toggle orbital tracks"
-            aria-label="Toggle orbital tracks"
+          {/* Join Callisto Expedition Button */}
+          <a
+            href="/join"
+            className="solar-join-btn"
+            title="Join Callisto Space Club"
+            aria-label="Join Callisto Space Club"
           >
-            {showOrbits ? 'ORBITS: ON' : 'ORBITS: OFF'}
-          </button>
+            <img
+              src="/icons/starfield-badge.png"
+              alt="Starfield Badge"
+              width="28"
+              height="18"
+              className="solar-join-badge-img"
+            />
+            <span className="solar-join-text">JOIN</span>
+          </a>
         </div>
       </div>
 
@@ -1133,6 +1205,29 @@ export default function SolarSystemOrrery(): React.ReactElement {
             <span style={{ color: 'var(--astrophage)', fontWeight: 600 }}>ASTRODYNAMICS RECON: </span>
             {selectedBody.lore}
           </div>
+
+          {/* Join Callisto Expedition Action Card */}
+          <a
+            href="/join"
+            className="solar-join-dossier-cta"
+            title="Join Callisto Space Club"
+          >
+            <img
+              src="/icons/starfield-badge.png"
+              alt="Starfield Badge"
+              width="46"
+              height="30"
+              style={{ objectFit: 'contain' }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--moon)', letterSpacing: '0.05em' }}>
+                READY FOR THE EXPEDITION?
+              </div>
+              <div style={{ fontSize: '0.625rem', color: 'var(--orbit)', letterSpacing: '0.04em', fontWeight: 600 }}>
+                Join Callisto Space Club &rarr;
+              </div>
+            </div>
+          </a>
         </div>
       </div>
     </div>
