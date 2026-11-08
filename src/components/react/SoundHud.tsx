@@ -77,7 +77,7 @@ export default function SoundHud(): React.ReactElement {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 0.35rem;
+          gap: 0.45rem;
           background: transparent;
           border: none;
           padding: 0;
@@ -92,22 +92,24 @@ export default function SoundHud(): React.ReactElement {
 
         .rocket-badge-wrapper {
           position: relative;
-          width: 66px;
-          height: 66px;
+          width: 64px;
+          height: 64px;
           border-radius: 50%;
-          background: transparent;
+          background: #213250;
+          border: 1.5px solid rgba(56, 189, 248, 0.4);
           box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 189, 248, 0.4);
           display: flex;
           align-items: center;
           justify-content: center;
           transition: transform 0.25s ease, box-shadow 0.25s ease;
+          overflow: hidden;
         }
 
         .rocket-badge-img {
-          width: 66px;
-          height: 66px;
+          width: 100%;
+          height: 100%;
           border-radius: 50%;
-          object-fit: contain;
+          object-fit: cover;
           display: block;
           pointer-events: none;
         }
@@ -257,12 +259,12 @@ export default function SoundHud(): React.ReactElement {
             right: 0.75rem !important;
           }
           .rocket-badge-wrapper {
-            width: 54px;
-            height: 54px;
+            width: 52px;
+            height: 52px;
           }
           .rocket-badge-img {
-            width: 54px;
-            height: 54px;
+            width: 100%;
+            height: 100%;
           }
           .rocket-label-pill {
             font-size: 0.62rem;
