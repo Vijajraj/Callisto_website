@@ -320,6 +320,10 @@ export default function Starfield({
       const groundHeight = height - horizonY;
 
       // 3. Render Stars across the celestial sky and subtly behind grid
+      const starBaseColor = isDarkMode ? '#FFFFFF' : '#000000';
+      ctx.fillStyle = starBaseColor;
+      ctx.strokeStyle = starBaseColor;
+
       for (let i = 0; i < stars.length; i++) {
         const star = stars[i];
 
@@ -347,12 +351,12 @@ export default function Starfield({
         const drawX = ((shiftedX % width) + width) % width;
         const drawY = ((shiftedY % height) + height) % height;
 
-        // Render star dot
+        // Render star dot without per-frame string allocation
         const finalAlpha = isDarkMode
           ? Math.min(1.0, star.currentOpacity * 1.15)
           : star.currentOpacity * 0.8;
 
-        ctx.fillStyle = `rgba(${starColorRgb}, ${finalAlpha})`;
+        ctx.globalAlpha = finalAlpha;
         ctx.beginPath();
         ctx.arc(drawX, drawY, star.size, 0, Math.PI * 2);
         ctx.fill();
@@ -360,7 +364,7 @@ export default function Starfield({
         // Diffraction cross spikes for designated beacon stars in the sky
         if (star.hasSpike && drawY < horizonY) {
           const spikeLength = star.size * 3.8;
-          ctx.strokeStyle = `rgba(${starColorRgb}, ${finalAlpha * 0.65})`;
+          ctx.globalAlpha = finalAlpha * 0.65;
           ctx.lineWidth = isDarkMode ? 0.9 : 0.75;
 
           ctx.beginPath();
@@ -371,6 +375,7 @@ export default function Starfield({
           ctx.stroke();
         }
       }
+      ctx.globalAlpha = 1.0;
 
       // 4. Render 3D Perspective Ground Grid (Retro-futuristic Vector Wireframe)
       // Cache atmospheric horizon glow gradient to eliminate 60 allocations/sec GC churn
@@ -406,6 +411,8 @@ export default function Starfield({
       // z starts at near plane and extends toward the horizon.
       // u(z) = 1 / (1 + 0.32 * z) gives the exact non-linear optical foreshortening from the image!
       const totalHorizontalLines = isMobile ? 13 : 24;
+      ctx.strokeStyle = isDarkMode ? '#FFFFFF' : '#000000';
+
       for (let k = 0; k < totalHorizontalLines; k++) {
         const z = k + (1 - gridOffset);
         if (z < 0) continue;
@@ -413,10 +420,10 @@ export default function Starfield({
         const lineY = horizonY + groundHeight * u;
         if (lineY < horizonY || lineY > height + 2) continue;
 
-        // Smooth anti-aliased opacity fade near horizon
+        // Smooth anti-aliased opacity fade near horizon without per-frame string churn
         const minAlpha = isDarkMode ? 0.32 : 0.2;
         const lineAlpha = Math.min(1.0, Math.max(minAlpha, u * 1.3));
-        ctx.strokeStyle = `rgba(${gridColorRgb}, ${lineAlpha})`;
+        ctx.globalAlpha = lineAlpha;
         ctx.lineWidth = Math.min(2.2, Math.max(isDarkMode ? 1.2 : 0.85, 0.9 + u * 1.1));
 
         ctx.beginPath();
@@ -424,6 +431,7 @@ export default function Starfield({
         ctx.lineTo(width, lineY);
         ctx.stroke();
       }
+      ctx.globalAlpha = 1.0;
 
       // 4b. Longitudinal (Perspective Converging) Grid Lines fanning from vanishing point
       const bottomSpacing = isMobile

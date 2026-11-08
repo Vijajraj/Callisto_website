@@ -247,6 +247,10 @@ export const SOLAR_BODIES: SolarSystemBody[] = [
   },
 ];
 
+const INNER_SOLAR_BODIES: SolarSystemBody[] = SOLAR_BODIES.filter((b) =>
+  ['sun', 'mercury', 'venus', 'earth', 'mars'].includes(b.id)
+);
+
 export default function SolarSystemOrrery(): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [selectedBody, setSelectedBody] = useState<SolarSystemBody>(SOLAR_BODIES[3]); // Default to Earth
@@ -336,21 +340,27 @@ export default function SolarSystemOrrery(): React.ReactElement {
 
       const isInner = viewScopeRef.current === 'inner';
 
-      // Advance planetary orbital angles
-      SOLAR_BODIES.slice(1).forEach((planet) => {
+      // Advance planetary orbital angles without array allocations
+      for (let i = 1; i < SOLAR_BODIES.length; i++) {
+        const planet = SOLAR_BODIES[i];
         anglesRef.current[planet.id] =
           (anglesRef.current[planet.id] + planet.orbitalSpeedRadPerSec * speedRef.current * dt * 0.45) %
           (Math.PI * 2);
-      });
+      }
 
-      // Filter bodies according to view scope
-      const activeBodies = isInner
-        ? SOLAR_BODIES.filter((b) => ['sun', 'mercury', 'venus', 'earth', 'mars'].includes(b.id))
-        : SOLAR_BODIES;
+      // Filter bodies according to view scope using pre-allocated lists
+      const activeBodies = isInner ? INNER_SOLAR_BODIES : SOLAR_BODIES;
 
       // Draw Sun at Center
       const sunRadius = isInner ? 22 : 17;
-      bodyPositionsRef.current['sun'] = { x: centerX, y: centerY, r: sunRadius };
+      const sunPos = bodyPositionsRef.current['sun'];
+      if (!sunPos) {
+        bodyPositionsRef.current['sun'] = { x: centerX, y: centerY, r: sunRadius };
+      } else {
+        sunPos.x = centerX;
+        sunPos.y = centerY;
+        sunPos.r = sunRadius;
+      }
 
       if (cachedCenterX !== centerX || cachedCenterY !== centerY || cachedSunRadius !== sunRadius) {
         cachedCenterX = centerX;
@@ -419,8 +429,9 @@ export default function SolarSystemOrrery(): React.ReactElement {
         drawReticle(ctx, centerX, centerY, sunRadius + 6, isLight);
       }
 
-      // Draw Planets
-      activeBodies.slice(1).forEach((planet) => {
+      // Draw Planets without array allocations
+      for (let i = 1; i < activeBodies.length; i++) {
+        const planet = activeBodies[i];
         const orbitRadius = isInner ? planet.orbitalRadiusPxInner : planet.orbitalRadiusPxFull;
         const angle = anglesRef.current[planet.id];
         const px = centerX + Math.cos(angle) * orbitRadius;
@@ -435,7 +446,14 @@ export default function SolarSystemOrrery(): React.ReactElement {
         else if (planet.id === 'mercury') pRadius = isInner ? 4 : 3.5;
         else if (planet.id === 'mars') pRadius = isInner ? 4.5 : 4;
 
-        bodyPositionsRef.current[planet.id] = { x: px, y: py, r: pRadius };
+        const bPos = bodyPositionsRef.current[planet.id];
+        if (!bPos) {
+          bodyPositionsRef.current[planet.id] = { x: px, y: py, r: pRadius };
+        } else {
+          bPos.x = px;
+          bPos.y = py;
+          bPos.r = pRadius;
+        }
 
         const isSelected = planet.id === selectedBody.id;
 
@@ -505,7 +523,7 @@ export default function SolarSystemOrrery(): React.ReactElement {
           ? isSelected ? '#0F172A' : '#334155'
           : isSelected ? '#FFFFFF' : '#CBD5E1';
         ctx.fillText(planet.name.toUpperCase(), px, py + pRadius + 13);
-      });
+      }
 
       if (isVisible && isRunning) {
         animationId = requestAnimationFrame(render);
@@ -678,9 +696,10 @@ export default function SolarSystemOrrery(): React.ReactElement {
           color: var(--void) !important;
         }
         .solar-join-badge-img {
-          width: 28px;
-          height: 18px;
-          object-fit: contain;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          object-fit: cover;
           display: block;
         }
         .solar-join-text {
@@ -900,8 +919,8 @@ export default function SolarSystemOrrery(): React.ReactElement {
             <img
               src="/icons/starfield-badge.png"
               alt="Starfield Badge"
-              width="28"
-              height="18"
+              width="22"
+              height="22"
               className="solar-join-badge-img"
             />
             <span className="solar-join-text">JOIN</span>
@@ -1244,9 +1263,9 @@ export default function SolarSystemOrrery(): React.ReactElement {
             <img
               src="/icons/starfield-badge.png"
               alt="Starfield Badge"
-              width="46"
-              height="30"
-              style={{ objectFit: 'contain' }}
+              width="36"
+              height="36"
+              style={{ objectFit: 'cover', borderRadius: '50%' }}
             />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--moon)', letterSpacing: '0.05em' }}>
