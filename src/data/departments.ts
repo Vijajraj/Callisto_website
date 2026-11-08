@@ -202,7 +202,7 @@ export const crewOfficers: CrewOfficer[] = [
     departmentName: 'People Management',
     themedName: 'Stellar Path',
     description: 'Manages member engagement, cross-department collaboration workflows, and training initiatives for incoming space cadets.',
-    avatar: '/crew/avatars/sheetal.svg',
+    avatar: '/crew/avatars/sheetal.jpg',
     socialLinks: {
       linkedin: 'https://www.linkedin.com/in/sheetal-bathri-narayanan-563496364/',
       comms: 'mailto:crew@callisto.club',
