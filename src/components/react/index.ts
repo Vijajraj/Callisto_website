@@ -49,6 +49,7 @@ export { default as EventExplorer } from './EventExplorer';
 export { default as ExpeditionSimulator } from './ExpeditionSimulator';
 export { default as GalleryViewer } from './GalleryViewer';
 export { default as JovianOrrery } from './JovianOrrery';
+export { default as SolarSystemOrrery } from './SolarSystemOrrery';
 export { default as MissionsConsole } from './MissionsConsole';
 export { default as NasaDeepSpaceFeed } from './NasaDeepSpaceFeed';
 export { default as SoundHud } from './SoundHud';

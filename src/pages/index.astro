@@ -44,7 +44,7 @@ import SectionHeading from '../components/SectionHeading.astro';
 import DepartmentCard from '../components/DepartmentCard.astro';
 import CrescentLoader from '../components/react/CrescentLoader';
 import EventCountdown from '../components/react/EventCountdown';
-import JovianOrrery from '../components/react/JovianOrrery';
+import SolarSystemOrrery from '../components/react/SolarSystemOrrery';
 import { departments } from '../data/departments';
 import { getUpcomingEvents } from '../data/events';
 import { getSolCount } from '../lib/utils';
@@ -148,17 +148,17 @@ const previewDepartments = departments.slice(0, 5);
     </div>
   </section>
 
-  <!-- Jovian System Orrery Section -->
-  <section class="orrery-section" aria-label="Jovian System Orbital Orrery">
+  <!-- Interactive Solar System Orrery Section -->
+  <section class="orrery-section" aria-label="Interactive Solar System Orrery">
     <div class="content-wrapper">
       <SectionHeading
-        mono="CELESTIAL HARBOR"
-        title="Explore The Jovian System"
-        subtitle="Callisto orbits safely beyond Jupiter's intense radiation belt. Explore the Galilean moons, simulate orbital periods in real-time, and inspect telemetry."
+        mono="HELIOCENTRIC HARBOR"
+        title="Interactive Solar System Orrery"
+        subtitle="Simulate real-time Keplerian orbital motions across all eight major planets and the radiant Sun. Inspect interplanetary distances, surface temperatures, and deep-space telemetry."
         align="center"
       />
       <div class="orrery-island-wrapper">
-        <JovianOrrery client:visible />
+        <SolarSystemOrrery client:visible />
       </div>
     </div>
   </section>
