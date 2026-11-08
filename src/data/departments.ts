@@ -47,7 +47,7 @@ export const crewOfficers: CrewOfficer[] = [
     departmentName: 'Presidential Committee',
     themedName: 'Polaris Circle',
     description: 'Directs overall club vision, institutional governance, mission timelines, and cross-department strategic initiatives.',
-    avatar: '/crew/avatars/aswin-ponnuraj.svg',
+    avatar: '/crew/avatars/aswin-ponnuraj.jpg',
     socialLinks: {
       linkedin: 'https://www.linkedin.com/in/aswin-ponnuraj-6a4b14409/',
       comms: 'mailto:president@callisto.club',
