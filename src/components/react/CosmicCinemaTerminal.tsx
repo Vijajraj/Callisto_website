@@ -8,7 +8,7 @@
  * =====================================================================
  */
 
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 
 export interface MotifItem {
   name: string;
@@ -26,9 +26,12 @@ export interface CinemaSignal {
   callSign: string;
   themeColor: string;
   tag: string;
+  aspectRatioLabel: string;
   iconType: 'hal' | 'tars' | 'gravity' | 'martian' | 'apollo' | 'alien' | 'starwars' | 'walle' | 'aliens';
   quote: string;
   speaker: string;
+  sceneTitle: string;
+  sceneDescription: string;
   motifs: MotifItem[];
   astrodynamicsNote: string;
   classifiedEasterEgg: {
@@ -50,9 +53,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'DISCOVERY ONE // HAL 9000',
     themeColor: '#ef4444',
     tag: 'HARD SCI-FI BENCHMARK',
+    aspectRatioLabel: '2.20:1 SUPER PANAVISION 70',
     iconType: 'hal',
     quote: "I'm sorry, Dave. I'm afraid I can't do that.",
     speaker: 'HAL 9000 (Heuristic Algorithmic Computer)',
+    sceneTitle: 'THE COSMIC ALIGNMENT // TYCHO MONOLITH DISCOVERY',
+    sceneDescription: 'The Sun, Earth, and Moon rise in geometric perfection over the obsidian Monolith on the lunar surface, emitting a deafening high-frequency radio burst aimed straight at Jupiter.',
     motifs: [
       {
         name: 'The Monolith',
@@ -103,9 +109,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'ENDURANCE // TARS-CASE',
     themeColor: '#06b6d4',
     tag: 'GRAVITATIONAL ASTROPHYSICS',
+    aspectRatioLabel: '1.43:1 IMAX 70MM DUAL-PROJECTION',
     iconType: 'tars',
     quote: "Do not go gentle into that good night. Rage, rage against the dying of the light.",
     speaker: 'Dr. Brand (reciting Dylan Thomas) // Cooper',
+    sceneTitle: 'GARGANTUA ACCRETION DISK // 1 HOUR = 7 YEARS',
+    sceneDescription: 'The supermassive spinning Kerr black hole Gargantua warps spacetime into a luminous golden-cyan gravitational lens ring, with Endurance orbiting along the edge of the event horizon.',
     motifs: [
       {
         name: 'TARS & CASE Robots',
@@ -156,9 +165,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'SHUTTLE EXPLORER // STS-157',
     themeColor: '#38bdf8',
     tag: 'ORBITAL KESSLER CASCADE',
+    aspectRatioLabel: '2.39:1 ANAMORPHIC WIDESCREEN',
     iconType: 'gravity',
     quote: "I hate space. But I'm going to make it back, because either way, it's gonna be one hell of a ride.",
     speaker: 'Dr. Ryan Stone (Bio-medical Engineer)',
+    sceneTitle: 'LOW EARTH ORBIT HORIZON // KESSLER TRAJECTORY',
+    sceneDescription: 'The curvature of Earth gleams in radiant turquoise 600 kilometers below as a cloud of hypervelocity satellite shrapnel tears through the Explorer payload bay at Mach 25.',
     motifs: [
       {
         name: 'The Floating Pen',
@@ -209,9 +221,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'ARES III HAB // SOL 546',
     themeColor: '#f97316',
     tag: 'MARS BOTANY & ASTRODYNAMICS',
+    aspectRatioLabel: '2.39:1 PANAVISION RED DRAGON 6K',
     iconType: 'martian',
     quote: "In the face of overwhelming odds, I'm left with only one option: I'm gonna have to science the s*** out of this.",
     speaker: 'Mark Watney (Ares III Botanist & Mechanical Engineer)',
+    sceneTitle: 'ACIDALIA PLANITIA TWILIGHT // BLUE MARTIAN SUNSET',
+    sceneDescription: 'Rust-ochre Martian dunes roll toward distant basalt crater walls under a rare blue-halo sunset, with Pathfinder\'s solar mast transmitting hex telemetry back to Pasadena.',
     motifs: [
       {
         name: '"Science the s*** out of this"',
@@ -267,9 +282,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'ODYSSEY & AQUARIUS // CSM-109',
     themeColor: '#fbbf24',
     tag: 'CREW RECOVERY ASTRODYNAMICS',
+    aspectRatioLabel: '2.39:1 SUPER 35 CINEMASCOPE',
     iconType: 'apollo',
     quote: "Houston, we have a problem.",
     speaker: 'Jim Lovell // Jack Swigert',
+    sceneTitle: 'LUNAR FAR SIDE SLINGSHOT // FROZEN OXYGEN VENTING',
+    sceneDescription: 'The crippled Odyssey and Aquarius drift in silence through the deep shadow of the Moon\'s cratered far side, venting crystalline oxygen gas into the sunbeams as Earth rises in the distance.',
     motifs: [
       {
         name: '"Houston, we have a problem"',
@@ -320,9 +338,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'USCSS NOSTROMO // COMMERCIAL TOW',
     themeColor: '#22c55e',
     tag: 'XENOMORPH DEEP-SPACE LORE',
+    aspectRatioLabel: '2.39:1 PANAVISION ANAMORPHIC',
     iconType: 'alien',
     quote: "In space, no one can hear you scream.",
     speaker: 'Official Tagline // Ellen Ripley',
+    sceneTitle: 'DERELICT JUGGERNAUT // LV-426 EGG CHAMBER',
+    sceneDescription: 'Blue laser fan beams slice through the suffocating mist of the biomechanical extraterrestrial derelict on LV-426, illuminating rows of translucent ovomorph eggs beneath the toxic storm.',
     motifs: [
       {
         name: '"In space, no one can hear you scream"',
@@ -378,9 +399,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'RED FIVE // T-65 X-WING',
     themeColor: '#3b82f6',
     tag: 'CIRCUMBINARY ASTROPHYSICS',
+    aspectRatioLabel: '2.39:1 PANAVISION C-SERIES',
     iconType: 'starwars',
     quote: "Help me, Obi-Wan Kenobi. You're my only hope.",
     speaker: 'Princess Leia Organa // Luke Skywalker',
+    sceneTitle: 'TATOOINE BINARY SUNSET // DUSK OVER THE DUNES',
+    sceneDescription: 'Luke Skywalker looks across the infinite sands of Tatooine as the twin suns Tatoo I and Tatoo II sink below the dunes, while a lone X-Wing starfighter streaks upward toward the Death Star.',
     motifs: [
       {
         name: 'The Opening Crawl',
@@ -441,9 +465,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'WASTE ALLOCATION // AXIOM',
     themeColor: '#eab308',
     tag: 'ROBOTIC STEWARDSHIP & TRANSCENDENCE',
+    aspectRatioLabel: '2.39:1 DIGITAL CINEMA 2K',
     iconType: 'walle',
     quote: "WALL-E... EVA! Directive? Plant!",
     speaker: 'WALL-E & EVE (Extraterrestrial Vegetation Evaluator)',
+    sceneTitle: 'ZERO-G DANCE IN DEEP SPACE // FIRE EXTINGUISHER VAPOR',
+    sceneDescription: 'WALL-E uses a fire extinguisher to jet propulsion-dance alongside EVE outside the Axiom, spraying crystalline vapor clouds that swirl into delicate spiral ribbons across the stars.',
     motifs: [
       {
         name: 'A-113 Directive',
@@ -499,9 +526,12 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
     callSign: 'USS SULACO // 2ND BATTALION',
     themeColor: '#e11d48',
     tag: 'COLONIAL MARINE FIREPOWER',
+    aspectRatioLabel: '1.85:1 ACADEMY FLAT 35MM',
     iconType: 'aliens',
     quote: "Get away from her, you b****!",
     speaker: 'Ellen Ripley (piloting Caterpillar P-5000 Power Loader)',
+    sceneTitle: 'HADLEY\'S HOPE PROCESSING COMPLEX // QUEEN SHOWDOWN',
+    sceneDescription: 'Floodlights cut through torrential LV-426 rain and escaping steam valves inside the colony gantry, as the Caterpillar P-5000 Power Loader raises its hydraulic forklift claws against the Alien Queen.',
     motifs: [
       {
         name: '"Get away from her, you b****!"',
@@ -591,6 +621,27 @@ class CinemaAudioEngine {
       osc.stop(ctx.currentTime + 0.07);
     } catch {
       // Audio autoplay policy fallback
+    }
+  }
+
+  // Deep Cinematic Sub-Bass Drone (THX/Dolby Theatre Ambient intro)
+  playCinemaDrone(freq = 65) {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ctx.currentTime + 1.2);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 1.2);
+    } catch {
+      // Audio fallback
     }
   }
 
@@ -736,6 +787,14 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
+  // --- Floating Mini-Movie Screen Hologram Controls ---
+  const [screenTilt, setScreenTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isScreenHovered, setIsScreenHovered] = useState<boolean>(false);
+  const [isCinemaPlaying, setIsCinemaPlaying] = useState<boolean>(false);
+  const [aspectRatio, setAspectRatio] = useState<'widescreen' | 'imax' | 'broadcast'>('widescreen');
+  const [displayFx, setDisplayFx] = useState<'hologram' | '4k' | 'grain'>('hologram');
+  const [isAmbilightOn, setIsAmbilightOn] = useState<boolean>(true);
+
   // --- Interactive Mini-Game States ---
   // 1. 2001: HAL 9000 memory core disconnects
   const [halCores, setHalCores] = useState<string[]>([
@@ -789,6 +848,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
   // Handle Signal Tuning
   const handleSelectSignal = useCallback((id: string) => {
     setActiveSignalId(id);
+    setIsCinemaPlaying(false);
     audio.playRadioChirp(920);
   }, []);
 
@@ -799,6 +859,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
     if (newIdx >= CINEMA_SIGNALS.length) newIdx = 0;
     if (newIdx < 0) newIdx = CINEMA_SIGNALS.length - 1;
     setActiveSignalId(CINEMA_SIGNALS[newIdx].id);
+    setIsCinemaPlaying(false);
     audio.playRadioChirp(1040);
   }, [activeSignalId]);
 
@@ -826,6 +887,47 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
     const next = !isMuted;
     setIsMuted(next);
     audio.isMuted = next;
+  };
+
+  // 3D Parallax Mouse Tracking for Floating Screen
+  const handleScreenMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setScreenTilt({ x: x * 18, y: -y * 18 });
+    setIsScreenHovered(true);
+  };
+
+  const handleScreenMouseLeave = () => {
+    setScreenTilt({ x: 0, y: 0 });
+    setIsScreenHovered(false);
+  };
+
+  // Toggle Cinema Play State
+  const toggleCinemaPlay = () => {
+    const next = !isCinemaPlaying;
+    setIsCinemaPlaying(next);
+    if (next) {
+      audio.playCinemaDrone(activeSignal.freqMhz > 2000 ? 55 : 70);
+    } else {
+      audio.playRadioChirp(600);
+    }
+  };
+
+  // Cycle Aspect Ratio
+  const cycleAspectRatio = () => {
+    const modes: Array<'widescreen' | 'imax' | 'broadcast'> = ['widescreen', 'imax', 'broadcast'];
+    const next = modes[(modes.indexOf(aspectRatio) + 1) % modes.length];
+    setAspectRatio(next);
+    audio.playRadioChirp(720);
+  };
+
+  // Cycle Display FX
+  const cycleDisplayFx = () => {
+    const fxs: Array<'hologram' | '4k' | 'grain'> = ['hologram', '4k', 'grain'];
+    const next = fxs[(fxs.indexOf(displayFx) + 1) % fxs.length];
+    setDisplayFx(next);
+    audio.playRadioChirp(840);
   };
 
   // --- Specific Film Interactions ---
@@ -930,8 +1032,341 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
     return list;
   }, [activeSignal, selectedCategory, searchQuery]);
 
+  // Render High-Graphics Ultra-Realistic Cinematic Scenes on Floating Movie Screen
+  const renderCinematicScene = (id: string) => {
+    switch (id) {
+      case 'odyssey-2001':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="2001 Monolith and Lunar alignment">
+            <defs>
+              <radialGradient id="sunCorona" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                <stop offset="25%" stopColor="#fef08a" stopOpacity="0.9" />
+                <stop offset="60%" stopColor="#f97316" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+              </radialGradient>
+              <linearGradient id="lunarLimbGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#94a3b8" />
+                <stop offset="40%" stopColor="#334155" />
+                <stop offset="100%" stopColor="#020617" />
+              </linearGradient>
+              <linearGradient id="monolithSheen" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#05070f" />
+                <stop offset="48%" stopColor="#020408" />
+                <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.6" />
+                <stop offset="52%" stopColor="#020408" />
+                <stop offset="100%" stopColor="#0a0f1d" />
+              </linearGradient>
+            </defs>
+            {/* Deep Space Starfield */}
+            <rect width="600" height="280" fill="#030712" />
+            {[
+              [40, 30, 1.2], [120, 70, 0.8], [210, 40, 1.5], [380, 25, 1.0], [520, 60, 1.4],
+              [75, 110, 0.7], [480, 110, 0.9], [560, 35, 1.1], [300, 20, 0.6]
+            ].map(([x, y, r], idx) => (
+              <circle key={idx} cx={x} cy={y} r={r} fill="#ffffff" opacity="0.8" />
+            ))}
+            {/* The Radiant Sun Crowning behind the Moon */}
+            <circle cx="300" cy="115" r="70" fill="url(#sunCorona)" className={isCinemaPlaying ? 'pulse-sun' : ''} />
+            {/* Anamorphic Panavision Horizontal Blue Flare */}
+            <line x1="0" y1="115" x2="600" y2="115" stroke="#38bdf8" strokeWidth="2.5" opacity="0.75" />
+            <line x1="180" y1="115" x2="420" y2="115" stroke="#ffffff" strokeWidth="4" opacity="0.9" />
+            {/* Crescent Lunar Limb */}
+            <path d="M 0 160 Q 300 130 600 160 L 600 280 L 0 280 Z" fill="url(#lunarLimbGrad)" />
+            <path d="M 0 160 Q 300 130 600 160" fill="none" stroke="#e2e8f0" strokeWidth="1.5" opacity="0.9" />
+            {/* Discovery One Distant Module */}
+            <g transform="translate(480, 75)">
+              <circle cx="0" cy="0" r="10" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+              <line x1="10" y1="0" x2="55" y2="0" stroke="#94a3b8" strokeWidth="2.5" />
+              <circle cx="58" cy="0" r="5" fill="#e2e8f0" />
+            </g>
+            {/* The Pitch-Black Monolith in Foreground Alignment */}
+            <rect x="278" y="70" width="44" height="150" fill="url(#monolithSheen)" stroke="#64748b" strokeWidth="1" />
+          </svg>
+        );
+
+      case 'interstellar':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="Gargantua relativistic accretion disc">
+            <defs>
+              <linearGradient id="accretionGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.2" />
+                <stop offset="30%" stopColor="#06b6d4" stopOpacity="0.95" />
+                <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+                <stop offset="70%" stopColor="#38bdf8" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#ea580c" stopOpacity="0.3" />
+              </linearGradient>
+              <radialGradient id="singularityGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#000000" />
+                <stop offset="65%" stopColor="#000000" />
+                <stop offset="90%" stopColor="#06b6d4" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <rect width="600" height="280" fill="#020617" />
+            {/* Gravitational Warped Einstein Light Ring (Upper Arc) */}
+            <path d="M 120 140 C 140 30 460 30 480 140" fill="none" stroke="url(#accretionGrad)" strokeWidth="14" opacity="0.85" className={isCinemaPlaying ? 'spin-ring-upper' : ''} />
+            {/* Gravitational Lensing Lower Arc */}
+            <path d="M 135 140 C 160 215 440 215 465 140" fill="none" stroke="url(#accretionGrad)" strokeWidth="10" opacity="0.75" />
+            {/* Central Accretion Disc Plane */}
+            <ellipse cx="300" cy="140" rx="260" ry="24" fill="none" stroke="url(#accretionGrad)" strokeWidth="12" />
+            <ellipse cx="300" cy="140" rx="240" ry="16" fill="none" stroke="#ffffff" strokeWidth="4" opacity="0.9" />
+            {/* Black Hole Event Horizon Shadow */}
+            <circle cx="300" cy="140" r="54" fill="url(#singularityGlow)" />
+            {/* Endurance Spacecraft Ring Module in Foreground */}
+            <g transform="translate(180, 95)" className={isCinemaPlaying ? 'orbit-endurance' : ''}>
+              <circle cx="0" cy="0" r="16" fill="none" stroke="#06b6d4" strokeWidth="2" strokeDasharray="4 4" />
+              {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg, i) => {
+                const rad = (deg * Math.PI) / 180;
+                return <circle key={i} cx={Math.cos(rad) * 16} cy={Math.sin(rad) * 16} r="2.5" fill="#f8fafc" />;
+              })}
+            </g>
+          </svg>
+        );
+
+      case 'gravity':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="Earth curvature and Kessler cascade">
+            <defs>
+              <linearGradient id="earthLimbGlow" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stopColor="#0284c7" />
+                <stop offset="60%" stopColor="#38bdf8" />
+                <stop offset="100%" stopColor="#e0f2fe" />
+              </linearGradient>
+            </defs>
+            <rect width="600" height="280" fill="#000000" />
+            {/* Low Earth Orbit Horizon */}
+            <path d="M -50 200 Q 300 120 650 200 L 650 320 L -50 320 Z" fill="#082f49" />
+            <path d="M -50 200 Q 300 120 650 200" fill="none" stroke="url(#earthLimbGlow)" strokeWidth="6" opacity="0.95" />
+            {/* Atmospheric Cyan Airglow Haze */}
+            <path d="M -50 196 Q 300 116 650 196" fill="none" stroke="#38bdf8" strokeWidth="12" opacity="0.4" />
+            {/* Hypervelocity Kessler Debris Burning Streaks */}
+            <line x1="80" y1="40" x2="520" y2="90" stroke="#ef4444" strokeWidth="2.5" strokeDasharray="20 10" className={isCinemaPlaying ? 'fast-debris' : ''} />
+            <line x1="560" y1="30" x2="120" y2="120" stroke="#fbbf24" strokeWidth="2" strokeDasharray="14 8" />
+            {/* Hubble / Station Solar Wings in Sunlight */}
+            <g transform="translate(380, 80) rotate(-15)">
+              <rect x="-30" y="-8" width="60" height="16" fill="#0284c7" stroke="#38bdf8" strokeWidth="1" />
+              <rect x="-6" y="-14" width="12" height="28" fill="#e2e8f0" />
+            </g>
+            {/* Untethered Astronaut Silhouette */}
+            <g transform="translate(190, 85)">
+              <circle cx="0" cy="0" r="6" fill="#ffffff" stroke="#93c5fd" strokeWidth="1" />
+              <rect x="-4" y="6" width="8" height="12" rx="2" fill="#e2e8f0" />
+              <line x1="-8" y1="8" x2="8" y2="8" stroke="#cbd5e1" strokeWidth="2.5" />
+            </g>
+          </svg>
+        );
+
+      case 'the-martian':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="Acidalia Planitia Martian Sunset">
+            <defs>
+              <linearGradient id="marsSky" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#431407" />
+                <stop offset="60%" stopColor="#7c2d12" />
+                <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.4" />
+              </linearGradient>
+            </defs>
+            <rect width="600" height="280" fill="url(#marsSky)" />
+            {/* Small Blue Martian Sunset Glow */}
+            <circle cx="360" cy="135" r="16" fill="#bae6fd" opacity="0.9" />
+            <circle cx="360" cy="135" r="42" fill="#0284c7" opacity="0.3" />
+            {/* Rolling Acidalia Dunes */}
+            <path d="M 0 160 Q 150 145 300 155 T 600 150 L 600 280 L 0 280 Z" fill="#9a3412" />
+            <path d="M 0 185 Q 220 170 420 190 T 600 180 L 600 280 L 0 280 Z" fill="#7c2d12" />
+            <path d="M 0 215 Q 180 200 360 220 T 600 210 L 600 280 L 0 280 Z" fill="#431407" />
+            {/* Ares III Hab Geodesic Dome */}
+            <path d="M 160 185 A 36 28 0 0 1 232 185 Z" fill="#f8fafc" stroke="#64748b" strokeWidth="1.5" />
+            <circle cx="196" cy="178" r="4" fill="#f97316" />
+            {/* Pathfinder Camera Mast with Hex Ring */}
+            <g transform="translate(420, 195)">
+              <circle cx="0" cy="0" r="14" fill="none" stroke="#fdba74" strokeWidth="1" strokeDasharray="3 2" />
+              <line x1="0" y1="0" x2="0" y2="-22" stroke="#ea580c" strokeWidth="2.5" />
+              <circle cx="0" cy="-22" r="4" fill="#fbbf24" />
+            </g>
+          </svg>
+        );
+
+      case 'apollo-13':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="Apollo 13 lunar far side and oxygen vent">
+            <defs>
+              <linearGradient id="oxygenVapor" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                <stop offset="60%" stopColor="#93c5fd" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <rect width="600" height="280" fill="#000000" />
+            {/* Lunar Far Side Rugged Horizon */}
+            <path d="M 0 210 Q 120 190 260 205 Q 400 185 600 200 L 600 280 L 0 280 Z" fill="#1e293b" />
+            <circle cx="140" cy="235" r="18" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+            <circle cx="380" cy="230" r="24" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+            {/* Distant Blue Marble Earth */}
+            <circle cx="480" cy="65" r="16" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
+            <path d="M 470 60 Q 480 55 490 62 Q 484 72 470 60 Z" fill="#ffffff" opacity="0.85" />
+            {/* Apollo 13 CSM & Aquarius docked */}
+            <g transform="translate(240, 100)">
+              {/* Command Module Cone */}
+              <polygon points="0,0 -20,12 -20,-12" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+              {/* Service Module Cylinder */}
+              <rect x="-56" y="-12" width="36" height="24" fill="#94a3b8" />
+              {/* Lunar Module Aquarius */}
+              <polygon points="0,0 24,14 24,-14" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+              {/* Venting Oxygen Plume from Sector 4 */}
+              <path d="M -38 -12 C -80 -45 -140 -20 -180 -60" fill="none" stroke="url(#oxygenVapor)" strokeWidth="6" strokeLinecap="round" className={isCinemaPlaying ? 'plume-vent' : ''} />
+            </g>
+          </svg>
+        );
+
+      case 'alien':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="Derelict ship on LV-426">
+            <defs>
+              <linearGradient id="alienGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#14532d" />
+                <stop offset="70%" stopColor="#052e16" />
+                <stop offset="100%" stopColor="#021407" />
+              </linearGradient>
+            </defs>
+            <rect width="600" height="280" fill="url(#alienGlow)" />
+            {/* Giger Biomechanical Derelict Juggernaut Silhouette */}
+            <path d="M 60 170 C 140 100 220 120 300 90 C 380 120 460 100 540 170 L 600 280 L 0 280 Z" fill="#021a0a" stroke="#166534" strokeWidth="2" />
+            {/* Toxic Blue-Green Laser Scan Fan */}
+            <polygon points="300,90 80,260 520,260" fill="#22c55e" fillOpacity="0.12" />
+            <line x1="80" y1="260" x2="520" y2="260" stroke="#4ade80" strokeWidth="2.5" opacity="0.8" className={isCinemaPlaying ? 'scan-fan' : ''} />
+            {/* The Ovomorph Egg in Foreground */}
+            <g transform="translate(300, 205)">
+              <path d="M 0 45 C -24 45 -30 -10 0 -22 C 30 -10 24 45 0 45 Z" fill="#052e16" stroke="#22c55e" strokeWidth="2" />
+              <path d="M -10 -20 Q 0 -10 10 -20" stroke="#86efac" strokeWidth="1.5" fill="none" />
+            </g>
+          </svg>
+        );
+
+      case 'starwars':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="Tatooine Binary Sunset">
+            <defs>
+              <linearGradient id="tatooineSky" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#1e1b4b" />
+                <stop offset="45%" stopColor="#701a75" />
+                <stop offset="75%" stopColor="#d97706" />
+                <stop offset="100%" stopColor="#f59e0b" />
+              </linearGradient>
+            </defs>
+            <rect width="600" height="280" fill="url(#tatooineSky)" />
+            {/* Twin Suns of Tatooine */}
+            <circle cx="340" cy="140" r="32" fill="#fef08a" opacity="0.95" />
+            <circle cx="410" cy="165" r="22" fill="#ef4444" opacity="0.9" />
+            {/* Rolling Sand Dunes */}
+            <path d="M 0 190 Q 200 170 380 195 T 600 185 L 600 280 L 0 280 Z" fill="#78350f" />
+            <path d="M 0 220 Q 260 200 460 225 T 600 215 L 600 280 L 0 280 Z" fill="#451a03" />
+            {/* Vaporator Silhouette */}
+            <g transform="translate(180, 165)">
+              <line x1="0" y1="0" x2="0" y2="40" stroke="#000000" strokeWidth="2.5" />
+              <circle cx="0" cy="8" r="5" fill="#000000" />
+              <line x1="-8" y1="18" x2="8" y2="18" stroke="#000000" strokeWidth="1.5" />
+            </g>
+            {/* X-Wing Starfighter Streaking Upward */}
+            <g transform="translate(260, 70) rotate(-25)" className={isCinemaPlaying ? 'speed-xwing' : ''}>
+              <polygon points="0,0 -16,6 -16,-6" fill="#f8fafc" stroke="#0284c7" strokeWidth="1" />
+              <line x1="-16" y1="-12" x2="8" y2="-12" stroke="#ef4444" strokeWidth="1.8" />
+              <line x1="-16" y1="12" x2="8" y2="12" stroke="#ef4444" strokeWidth="1.8" />
+              {/* Ion Engine Glow */}
+              <circle cx="-16" cy="0" r="3" fill="#38bdf8" />
+            </g>
+          </svg>
+        );
+
+      case 'wall-e':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="WALL-E and EVE Zero-G Dance">
+            <defs>
+              <radialGradient id="nebulaDust" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#a855f7" stopOpacity="0.4" />
+                <stop offset="60%" stopColor="#3b82f6" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <rect width="600" height="280" fill="#030712" />
+            <circle cx="280" cy="120" r="140" fill="url(#nebulaDust)" />
+            {/* Distant Starliner Axiom */}
+            <g transform="translate(460, 50)">
+              <rect x="0" y="0" width="70" height="14" rx="7" fill="#1e293b" stroke="#38bdf8" strokeWidth="1" />
+              <circle cx="16" cy="7" r="4" fill="#38bdf8" />
+              <circle cx="50" cy="7" r="4" fill="#eab308" />
+            </g>
+            {/* WALL-E Floating with Extinguisher Vapor */}
+            <g transform="translate(240, 140)">
+              {/* Fire Extinguisher Vapor Ribbon */}
+              <path d="M 0 0 C -40 20 -80 -20 -140 10" fill="none" stroke="#f1f5f9" strokeWidth="8" strokeLinecap="round" opacity="0.6" className={isCinemaPlaying ? 'vapor-spiral' : ''} />
+              {/* WALL-E Chassis */}
+              <rect x="-14" y="-12" width="28" height="24" rx="3" fill="#ca8a04" stroke="#713f12" strokeWidth="1.5" />
+              {/* Binocular Eyes */}
+              <circle cx="-6" cy="-18" r="6" fill="#475569" stroke="#eab308" strokeWidth="1" />
+              <circle cx="6" cy="-18" r="6" fill="#475569" stroke="#eab308" strokeWidth="1" />
+            </g>
+            {/* EVE Gliding Beside */}
+            <g transform="translate(340, 125)">
+              <ellipse cx="0" cy="0" rx="12" ry="24" fill="#ffffff" stroke="#93c5fd" strokeWidth="1" />
+              <ellipse cx="0" cy="-8" rx="8" ry="6" fill="#0f172a" />
+              <ellipse cx="0" cy="-8" rx="5" ry="3" fill="#38bdf8" />
+            </g>
+          </svg>
+        );
+
+      case 'aliens':
+        return (
+          <svg viewBox="0 0 600 280" className="ultra-scene-svg" preserveAspectRatio="xMidYMid slice" aria-label="Hadley's Hope Power Loader Showdown">
+            <defs>
+              <linearGradient id="aliensStorm" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#1e1b4b" />
+                <stop offset="50%" stopColor="#0f172a" />
+                <stop offset="100%" stopColor="#020617" />
+              </linearGradient>
+            </defs>
+            <rect width="600" height="280" fill="url(#aliensStorm)" />
+            {/* Atmospheric Processing Tower Silhouette */}
+            <polygon points="120,40 150,220 90,220" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+            <polygon points="460,30 500,220 420,220" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+            {/* Industrial Gantry Steel Truss */}
+            <line x1="0" y1="210" x2="600" y2="210" stroke="#475569" strokeWidth="4" />
+            {/* Halogen Searchlight Cones cutting through mist */}
+            <polygon points="260,140 120,260 380,260" fill="#fef08a" fillOpacity="0.16" />
+            {/* Caterpillar P-5000 Industrial Yellow Power Loader */}
+            <g transform="translate(260, 160)">
+              <rect x="-16" y="-20" width="32" height="40" fill="#eab308" stroke="#713f12" strokeWidth="2" />
+              {/* Hydraulic Forklift Claws */}
+              <path d="M -22 -10 Q -36 0 -22 15" fill="none" stroke="#ca8a04" strokeWidth="4" strokeLinecap="round" />
+              <path d="M 22 -10 Q 36 0 22 15" fill="none" stroke="#ca8a04" strokeWidth="4" strokeLinecap="round" />
+            </g>
+            {/* Looming Queen Silhouette in Steam */}
+            <path d="M 400 130 C 420 80 470 90 490 120 C 470 140 430 170 410 210 Z" fill="#000000" opacity="0.85" />
+          </svg>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="cinema-terminal" id="cosmic-cinema-terminal">
+    <div
+      className={`cinema-terminal ${isAmbilightOn ? 'ambilight-active' : ''}`}
+      id="cosmic-cinema-terminal"
+      style={{ '--active-movie-color': activeSignal.themeColor } as React.CSSProperties}
+    >
+      {/* Dynamic Ambient Theater Glow Backdrop */}
+      {isAmbilightOn && (
+        <div
+          className="ambilight-glow-backdrop"
+          style={{
+            background: `radial-gradient(circle at 50% 25%, ${activeSignal.themeColor}30 0%, transparent 70%)`,
+          }}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Terminal Title Bar */}
       <div className="terminal-top-bar">
         <div className="terminal-title-group">
@@ -939,6 +1374,14 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           <span className="terminal-tag">COSMIC CINEMA & SIGNALS TRANSCEIVER</span>
         </div>
         <div className="terminal-controls-group">
+          <button
+            type="button"
+            className="screen-control-btn"
+            onClick={() => setIsAmbilightOn(!isAmbilightOn)}
+            aria-label="Toggle theatrical Ambilight illumination"
+          >
+            <span>{isAmbilightOn ? 'AMBILIGHT: ON' : 'AMBILIGHT: OFF'}</span>
+          </button>
           <button
             type="button"
             className="sound-toggle-btn"
@@ -954,7 +1397,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
       {/* Intro Description */}
       <div className="terminal-intro">
         <p>
-          Tune your deep-space radio telescope into the transmissions of space cinema history. Interact with authentic simulation consoles, explore 54 curated visual motifs, props, and dialogue, and decrypt classified Easter eggs.
+          Tune your deep-space radio telescope into the transmissions of space cinema history. Interact with the floating 3D holographic mini movie screen, explore authentic simulation consoles, study 54 curated visual motifs and props, and decrypt classified Easter eggs.
         </p>
       </div>
 
@@ -993,6 +1436,104 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* ULTRA-REALISTIC FLOATING HOLOGRAPHIC MINI MOVIE SCREEN                     */}
+      {/* ========================================================================= */}
+      <div className="floating-screen-wrapper">
+        <div className="screen-toolbar">
+          <div className="screen-title-badge">
+            <span className="screen-signal-icon" aria-hidden="true">&#9670;</span>
+            <span className="screen-film-title">{activeSignal.movie.toUpperCase()} ({activeSignal.year})</span>
+            <span className="screen-aspect-tag">{activeSignal.aspectRatioLabel}</span>
+          </div>
+
+          <div className="screen-action-buttons">
+            <button
+              type="button"
+              className={`cine-btn ${isCinemaPlaying ? 'playing' : ''}`}
+              onClick={toggleCinemaPlay}
+              aria-label="Toggle live cinema playback mode"
+            >
+              <span>{isCinemaPlaying ? '&#9632; PAUSE CINEMA MODE' : '&#9658; PLAY CINEMA MODE'}</span>
+            </button>
+            <button type="button" className="cine-opt-btn" onClick={cycleAspectRatio}>
+              FORMAT: {aspectRatio.toUpperCase()}
+            </button>
+            <button type="button" className="cine-opt-btn" onClick={cycleDisplayFx}>
+              FX: {displayFx.toUpperCase()}
+            </button>
+          </div>
+        </div>
+
+        {/* 3D Levitating Stage */}
+        <div
+          className="holo-levitation-stage"
+          onMouseMove={handleScreenMouseMove}
+          onMouseLeave={handleScreenMouseLeave}
+        >
+          {/* Volumetric Projection Cones from Dock */}
+          <div
+            className="volumetric-beam-cone"
+            style={{
+              background: `linear-gradient(to top, ${activeSignal.themeColor}40 0%, ${activeSignal.themeColor}10 40%, transparent 90%)`,
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Floating Cinema Screen Container (3D Tilted via Mouse Parallax) */}
+          <div
+            className={`floating-cinema-screen aspect-${aspectRatio} fx-${displayFx} ${isCinemaPlaying ? 'cinema-active' : ''}`}
+            style={{
+              transform: `perspective(1200px) rotateX(${screenTilt.y}deg) rotateY(${screenTilt.x}deg) translateY(${isScreenHovered ? -6 : 0}px)`,
+              boxShadow: `0 24px 60px ${activeSignal.themeColor}33, 0 0 20px ${activeSignal.themeColor}22`,
+              borderColor: `${activeSignal.themeColor}77`,
+            }}
+          >
+            {/* Cinematic Lens Flare Streak */}
+            <div className="anamorphic-flare-streak" style={{ borderColor: activeSignal.themeColor }} />
+
+            {/* Render High-Graphics Scene */}
+            <div className="scene-viewport">
+              {renderCinematicScene(activeSignal.id)}
+            </div>
+
+            {/* Specular Glare reacting to mouse cursor */}
+            <div
+              className="specular-glass-glare"
+              style={{
+                background: `radial-gradient(circle at ${50 + screenTilt.x * 2.5}% ${50 - screenTilt.y * 2.5}%, rgba(255, 255, 255, 0.3) 0%, transparent 65%)`,
+              }}
+            />
+
+            {/* Scanline CRT overlay when fx-hologram or fx-grain is active */}
+            {displayFx === 'hologram' && <div className="hologram-scanlines" />}
+            {displayFx === 'grain' && <div className="film-grain-overlay" />}
+
+            {/* Screen Lower HUD Banner */}
+            <div className="screen-hud-overlay">
+              <span className="hud-scene-name">{activeSignal.sceneTitle}</span>
+              <span className="hud-rec-indicator">
+                <span className="rec-dot" /> LIVE TRANSMISSION
+              </span>
+            </div>
+          </div>
+
+          {/* Holographic Projector Emitter Dock at Base */}
+          <div className="holo-projector-dock">
+            <div className="dock-emitter-ring" style={{ borderColor: activeSignal.themeColor }} />
+            <div className="dock-status-label">HOLO-PROJECTION EMITTER // OPTICAL MATRIX ACTIVE</div>
+          </div>
+
+          {/* Ground Ambient Deck Shadow */}
+          <div className="holo-deck-shadow" />
+        </div>
+
+        {/* Scene Narrative Caption */}
+        <div className="scene-narrative-bar">
+          <p className="scene-narrative-text">{activeSignal.sceneDescription}</p>
         </div>
       </div>
 
@@ -1490,6 +2031,21 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           position: relative;
           overflow: hidden;
           margin-bottom: var(--space-3xl);
+          transition: box-shadow 0.4s ease;
+        }
+
+        .cinema-terminal.ambilight-active {
+          box-shadow: 0 20px 60px color-mix(in srgb, var(--active-movie-color, var(--orbit)) 25%, transparent),
+                      0 0 100px color-mix(in srgb, var(--active-movie-color, var(--orbit)) 15%, transparent);
+        }
+
+        .ambilight-glow-backdrop {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          opacity: 0.85;
+          transition: background 0.6s ease;
         }
 
         /* Top Bar */
@@ -1502,6 +2058,8 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           border-bottom: 1px solid color-mix(in srgb, var(--orbit) 25%, transparent);
           padding-bottom: var(--space-sm);
           margin-bottom: var(--space-md);
+          position: relative;
+          z-index: 1;
         }
 
         .terminal-title-group {
@@ -1536,8 +2094,10 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           display: flex;
           align-items: center;
           gap: 0.5rem;
+          flex-wrap: wrap;
         }
 
+        .screen-control-btn,
         .sound-toggle-btn {
           font-family: var(--font-mono);
           font-size: 0.625rem;
@@ -1550,6 +2110,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           transition: all 0.2s ease;
         }
 
+        .screen-control-btn:hover,
         .sound-toggle-btn:hover {
           background: var(--orbit);
           color: #ffffff;
@@ -1564,6 +2125,11 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           color: var(--astrophage);
           border-radius: 9999px;
           letter-spacing: 0.05em;
+        }
+
+        .terminal-intro {
+          position: relative;
+          z-index: 1;
         }
 
         .terminal-intro p {
@@ -1581,6 +2147,8 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           border-radius: var(--radius-md);
           padding: var(--space-sm);
           margin-bottom: var(--space-lg);
+          position: relative;
+          z-index: 1;
         }
 
         .scrubber-header {
@@ -1698,12 +2266,413 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           color: var(--movie-theme, var(--orbit));
         }
 
+        /* ========================================================================= */
+        /* FLOATING HOLOGRAPHIC MINI MOVIE SCREEN STYLING                            */
+        /* ========================================================================= */
+        .floating-screen-wrapper {
+          background: color-mix(in srgb, var(--void) 85%, transparent);
+          border: 1px solid color-mix(in srgb, var(--orbit) 30%, transparent);
+          border-radius: var(--radius-lg);
+          padding: var(--space-md);
+          margin-bottom: var(--space-xl);
+          position: relative;
+          z-index: 1;
+        }
+
+        .screen-toolbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: var(--space-md);
+          border-bottom: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+          padding-bottom: 0.5rem;
+        }
+
+        .screen-title-badge {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-family: var(--font-mono);
+        }
+
+        .screen-signal-icon {
+          color: var(--active-movie-color, var(--orbit));
+          font-size: 0.875rem;
+        }
+
+        .screen-film-title {
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: var(--moon);
+          letter-spacing: 0.05em;
+        }
+
+        .screen-aspect-tag {
+          font-size: 0.625rem;
+          color: var(--sol-dust);
+          background: color-mix(in srgb, var(--void) 90%, transparent);
+          border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+        }
+
+        .screen-action-buttons {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          flex-wrap: wrap;
+        }
+
+        .cine-btn {
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 0.35rem 0.85rem;
+          background: color-mix(in srgb, var(--orbit) 20%, transparent);
+          border: 1px solid var(--orbit);
+          color: var(--moon);
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .cine-btn:hover {
+          background: var(--orbit);
+          color: #ffffff;
+        }
+
+        .cine-btn.playing {
+          background: #22c55e;
+          border-color: #4ade80;
+          color: #000000;
+          animation: playPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes playPulse {
+          0%, 100% { box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+          50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+        }
+
+        .cine-opt-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.35rem 0.55rem;
+          background: color-mix(in srgb, var(--navy) 60%, var(--void));
+          border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+          color: var(--star);
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .cine-opt-btn:hover {
+          border-color: var(--orbit);
+          color: var(--moon);
+        }
+
+        /* 3D Levitation Stage */
+        .holo-levitation-stage {
+          position: relative;
+          min-height: 280px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: var(--space-md) 0 var(--space-xl) 0;
+          perspective: 1200px;
+        }
+
+        @media (min-width: 768px) {
+          .holo-levitation-stage {
+            min-height: 340px;
+          }
+        }
+
+        .volumetric-beam-cone {
+          position: absolute;
+          bottom: 24px;
+          width: 85%;
+          height: 180px;
+          clip-path: polygon(30% 100%, 70% 100%, 100% 0%, 0% 0%);
+          pointer-events: none;
+          z-index: 1;
+          opacity: 0.75;
+          animation: beamShimmer 3s infinite ease-in-out;
+        }
+
+        @keyframes beamShimmer {
+          0%, 100% { opacity: 0.55; }
+          50% { opacity: 0.85; }
+        }
+
+        /* The Floating Screen */
+        .floating-cinema-screen {
+          width: 92%;
+          max-width: 780px;
+          border-radius: 12px;
+          border: 2px solid;
+          background: #020617;
+          position: relative;
+          overflow: hidden;
+          z-index: 2;
+          transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+          animation: holoFloat 5s infinite ease-in-out;
+          transform-style: preserve-3d;
+        }
+
+        @keyframes holoFloat {
+          0%, 100% { transform: translateY(0px) rotateX(0deg); }
+          50% { transform: translateY(-8px) rotateX(1deg); }
+        }
+
+        .floating-cinema-screen.aspect-widescreen {
+          aspect-ratio: 2.39 / 1;
+        }
+
+        .floating-cinema-screen.aspect-imax {
+          aspect-ratio: 1.43 / 1;
+        }
+
+        .floating-cinema-screen.aspect-broadcast {
+          aspect-ratio: 16 / 9;
+        }
+
+        @media (max-width: 600px) {
+          .floating-cinema-screen {
+            width: 98%;
+            aspect-ratio: 16 / 9 !important;
+          }
+        }
+
+        .anamorphic-flare-streak {
+          position: absolute;
+          top: 30%;
+          left: -10%;
+          right: -10%;
+          height: 2px;
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%);
+          border-top: 1px solid;
+          opacity: 0.6;
+          pointer-events: none;
+          z-index: 4;
+        }
+
+        .scene-viewport {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #000000;
+        }
+
+        .ultra-scene-svg {
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+
+        .specular-glass-glare {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 5;
+          mix-blend-mode: screen;
+        }
+
+        .hologram-scanlines {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%),
+                      linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+          background-size: 100% 3px, 3px 100%;
+          pointer-events: none;
+          z-index: 6;
+          opacity: 0.65;
+        }
+
+        .film-grain-overlay {
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 0);
+          background-size: 4px 4px;
+          pointer-events: none;
+          z-index: 6;
+          opacity: 0.5;
+        }
+
+        .screen-hud-overlay {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 0.4rem 0.75rem;
+          background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          color: #f8fafc;
+          z-index: 7;
+        }
+
+        .hud-scene-name {
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .hud-rec-indicator {
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+          color: #ef4444;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+        }
+
+        .rec-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #ef4444;
+          box-shadow: 0 0 6px #ef4444;
+          animation: recBlink 1.2s infinite ease-in-out;
+        }
+
+        @keyframes recBlink {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
+        }
+
+        /* Projector Emitter Dock */
+        .holo-projector-dock {
+          margin-top: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.25rem;
+          z-index: 3;
+        }
+
+        .dock-emitter-ring {
+          width: 140px;
+          height: 8px;
+          border-radius: 9999px;
+          border: 2px solid;
+          background: #020617;
+          box-shadow: 0 0 12px var(--active-movie-color, var(--orbit));
+        }
+
+        .dock-status-label {
+          font-family: var(--font-mono);
+          font-size: 0.5625rem;
+          color: var(--star);
+          letter-spacing: 0.1em;
+          opacity: 0.7;
+        }
+
+        .holo-deck-shadow {
+          width: 60%;
+          height: 12px;
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.6);
+          filter: blur(6px);
+          margin-top: 0.25rem;
+          animation: shadowPulse 5s infinite ease-in-out;
+        }
+
+        @keyframes shadowPulse {
+          0%, 100% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(0.85); opacity: 0.35; }
+        }
+
+        .scene-narrative-bar {
+          background: color-mix(in srgb, var(--void) 90%, transparent);
+          border: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+          border-radius: var(--radius-sm);
+          padding: 0.6rem 0.85rem;
+        }
+
+        .scene-narrative-text {
+          font-family: var(--font-body);
+          font-size: 0.8125rem;
+          color: var(--star);
+          margin: 0;
+          line-height: 1.45;
+          font-style: italic;
+        }
+
+        /* Dynamic SVG Cinema Scene Animations */
+        .pulse-sun {
+          animation: pulseSunAnim 3s infinite ease-in-out;
+        }
+        @keyframes pulseSunAnim {
+          0%, 100% { transform: scale(1); transform-origin: 300px 115px; }
+          50% { transform: scale(1.15); transform-origin: 300px 115px; }
+        }
+
+        .spin-ring-upper {
+          animation: spinRingAnim 4s infinite linear;
+        }
+        @keyframes spinRingAnim {
+          0% { stroke-dashoffset: 0; stroke-dasharray: 20 10; }
+          100% { stroke-dashoffset: 60; stroke-dasharray: 20 10; }
+        }
+
+        .fast-debris {
+          animation: fastDebrisAnim 1.5s infinite linear;
+        }
+        @keyframes fastDebrisAnim {
+          0% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: 80; }
+        }
+
+        .plume-vent {
+          animation: plumeVentAnim 2s infinite ease-in-out;
+        }
+        @keyframes plumeVentAnim {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.95; }
+        }
+
+        .scan-fan {
+          animation: scanFanAnim 2s infinite ease-in-out;
+        }
+        @keyframes scanFanAnim {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
+        }
+
+        .speed-xwing {
+          animation: xwingDrift 2.5s infinite ease-in-out;
+        }
+        @keyframes xwingDrift {
+          0%, 100% { transform: translate(260px, 70px) rotate(-25deg); }
+          50% { transform: translate(268px, 64px) rotate(-22deg); }
+        }
+
+        .vapor-spiral {
+          animation: vaporAnim 3s infinite ease-in-out;
+        }
+        @keyframes vaporAnim {
+          0%, 100% { stroke-dashoffset: 0; stroke-dasharray: 40 10; }
+          50% { stroke-dashoffset: 40; stroke-dasharray: 30 15; }
+        }
+
         /* Telemetry Card */
         .signal-telemetry-card {
           background: color-mix(in srgb, var(--navy) 40%, var(--deep));
           border: 1px solid color-mix(in srgb, var(--orbit) 30%, transparent);
           border-radius: var(--radius-lg);
           padding: var(--space-md);
+          position: relative;
+          z-index: 1;
         }
 
         @media (min-width: 768px) {
@@ -2777,6 +3746,38 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
         :global(.flat-mode) .terminal-tag,
         :global([data-flat='true']) .terminal-tag {
           color: #0284c7;
+        }
+
+        :global([data-theme='light']) .floating-screen-wrapper,
+        :global(.flat-mode) .floating-screen-wrapper,
+        :global([data-flat='true']) .floating-screen-wrapper {
+          background: #f8fafc;
+          border-color: #cbd5e1;
+        }
+
+        :global([data-theme='light']) .screen-toolbar,
+        :global(.flat-mode) .screen-toolbar,
+        :global([data-flat='true']) .screen-toolbar {
+          border-bottom-color: #e2e8f0;
+        }
+
+        :global([data-theme='light']) .screen-film-title,
+        :global(.flat-mode) .screen-film-title,
+        :global([data-flat='true']) .screen-film-title {
+          color: #0f172a;
+        }
+
+        :global([data-theme='light']) .scene-narrative-bar,
+        :global(.flat-mode) .scene-narrative-bar,
+        :global([data-flat='true']) .scene-narrative-bar {
+          background: #ffffff;
+          border-color: #e2e8f0;
+        }
+
+        :global([data-theme='light']) .scene-narrative-text,
+        :global(.flat-mode) .scene-narrative-text,
+        :global([data-flat='true']) .scene-narrative-text {
+          color: #334155;
         }
 
         :global([data-theme='light']) .frequency-scrubber-bar,
