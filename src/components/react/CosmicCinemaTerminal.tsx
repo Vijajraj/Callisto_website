@@ -8,7 +8,7 @@
  * =====================================================================
  */
 
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 
 export interface MotifItem {
   name: string;
@@ -584,6 +584,325 @@ const CINEMA_SIGNALS: CinemaSignal[] = [
   },
 ];
 
+export interface SceneHotspot {
+  id: string;
+  label: string;
+  techSpec: string;
+  trivia: string;
+  actionLabel: string;
+  soundType: 'monolith' | 'drone' | 'morse' | 'kessler' | 'vent' | 'laser' | 'alien' | 'clamp' | 'servo' | 'solar' | 'radio';
+}
+
+const SCENE_HOTSPOTS: Record<string, SceneHotspot[]> = {
+  'odyssey-2001': [
+    {
+      id: 'monolith',
+      label: 'TMA-1 OBSIDIAN MONOLITH',
+      techSpec: 'Proportions 1:4:9 (First 3 Integer Squares) // Lunar Magnetic Anomaly',
+      trivia: 'Buried 40 feet below the lunar surface in crater Tycho 4 million years ago; triggered radio burst directly toward Jupiter at lunar dawn.',
+      actionLabel: 'TRANSMIT JUPITER RADIO BURST',
+      soundType: 'monolith',
+    },
+    {
+      id: 'sun',
+      label: 'SOLAR CORONA ALIGNMENT',
+      techSpec: 'Triple Syzygy: Sun-Earth-Moon Cosmic Alignment',
+      trivia: 'Stanley Kubrick designed the alignment as cinema\'s most famous visual dawn of evolutionary transcendence, scored by Richard Strauss.',
+      actionLabel: 'PULSE CORONA SOLAR FLARE',
+      soundType: 'drone',
+    },
+    {
+      id: 'discovery',
+      label: 'DISCOVERY ONE RECON',
+      techSpec: '54-Foot Spherical Centrifuge // Interplanetary Nuclear Propulsion',
+      trivia: 'Dispatched on an 18-month trajectory to Jupiter to trace the destination of the Monolith\'s radio burst.',
+      actionLabel: 'PING SHIP TELEMETRY BEACON',
+      soundType: 'radio',
+    },
+    {
+      id: 'hal',
+      label: 'HAL 9000 OPTICAL SENSOR',
+      techSpec: 'Heuristic Algorithmic Logic Unit // Twin 9000 Architecture',
+      trivia: 'HAL\'s single unblinking red fish-eye lens became cinema\'s definitive depiction of sentient computing.',
+      actionLabel: 'TEST HAL COGNITIVE INTERFACE',
+      soundType: 'radio',
+    },
+  ],
+  'interstellar': [
+    {
+      id: 'accretion',
+      label: 'GARGANTUA ACCRETION DISK',
+      techSpec: 'Relativistic Doppler Beaming // 100M Solar Masses // a* = 0.998',
+      trivia: 'Simulated with theoretical physicist Kip Thorne\'s relativistic gravitational ray-tracing equations, winning the Academy Award for Visual Effects.',
+      actionLabel: 'WARP GRAVITATIONAL LENS',
+      soundType: 'drone',
+    },
+    {
+      id: 'singularity',
+      label: 'EVENT HORIZON SHADOW',
+      techSpec: 'Gravitational Radius r_s = 2.95x10^8 km // 1 Hr = 7 Yrs',
+      trivia: 'Spacetime itself is dragged at 99.8% the speed of light along the ergosphere of the spinning Kerr singularity.',
+      actionLabel: 'TRANSMIT TESSERACT FREQUENCY',
+      soundType: 'drone',
+    },
+    {
+      id: 'endurance',
+      label: 'ENDURANCE RING MODULE',
+      techSpec: '12 Articulated Hab Modules // 5.6 RPM Centrifugal 1G Gravity',
+      trivia: 'Docked with Rangers 1 & 2 and Landers 1 & 2; designed to survive a multi-year deep space voyage through the wormhole.',
+      actionLabel: 'FIRE CENTRIFUGAL THRUSTERS',
+      soundType: 'servo',
+    },
+    {
+      id: 'watch',
+      label: '5D GRAVITY MORSE WATCH',
+      techSpec: 'Morse Sequence: S-T-A-Y // Quantum Singularity Equations',
+      trivia: 'Cooper manipulated the ticking second hand of Murph\'s vintage Hamilton mechanical wristwatch across 5D spacetime.',
+      actionLabel: 'PULSE MORSE TRANSMISSION',
+      soundType: 'morse',
+    },
+  ],
+  'gravity': [
+    {
+      id: 'kessler',
+      label: 'KESSLER CASCADE SHRAPNEL',
+      techSpec: 'Hypervelocity Orbit Speed: 7.8 km/s (Mach 25) // Runaway Chain Reaction',
+      trivia: 'Hypothesized by NASA scientist Donald Kessler in 1978: high-density space junk collision creates expanding lethal debris spheres.',
+      actionLabel: 'SIMULATE DEBRIS INTERCEPT',
+      soundType: 'kessler',
+    },
+    {
+      id: 'earth',
+      label: 'LEO HORIZON & AIRGLOW',
+      techSpec: 'Orbital Altitude: 600 km // Turquoise Rayleigh Airglow',
+      trivia: 'The film\'s continuous 17-minute opening tracking shot required groundbreaking LED lightbox robotics to simulate Earthlight.',
+      actionLabel: 'AMPLIFY ATMOSPHERIC SPECTRUM',
+      soundType: 'drone',
+    },
+    {
+      id: 'shuttle',
+      label: 'SHUTTLE EXPLORER (STS-157)',
+      techSpec: 'Payload Bay: Hubble Space Telescope Servicing Mission',
+      trivia: 'Ed Harris voices Houston Mission Control, creating a direct spiritual nod to his portrayal of Gene Kranz in Apollo 13.',
+      actionLabel: 'ENGAGE REACTION CONTROL SYSTEM',
+      soundType: 'servo',
+    },
+    {
+      id: 'astronaut',
+      label: 'UNTETHERED EVA SUIT',
+      techSpec: 'SAFER Jetpack Depleted // Heart Rate: 160 BPM',
+      trivia: 'Dr. Ryan Stone curls into a fetal position in the ISS airlock after suit removal, mirroring the 2001 Star Child.',
+      actionLabel: 'TRANSMIT MAYDAY COMM BEACON',
+      soundType: 'radio',
+    },
+  ],
+  'the-martian': [
+    {
+      id: 'pathfinder',
+      label: 'MARS PATHFINDER CAM MAST',
+      techSpec: '1997 Ares Vallis Landing Site // 16-Hex ASCII Dial',
+      trivia: 'Watney rigs 16 hexadecimal note-cards in a radial circle around the lander\'s stereo camera to establish bidirectional comms.',
+      actionLabel: 'ROTATE PAN-HEAD & TRANSMIT HEX',
+      soundType: 'servo',
+    },
+    {
+      id: 'sunset',
+      label: 'BLUE MARTIAN SUNSET',
+      techSpec: 'Fine Dust Forward Scattering in 0.006 atm CO2 Atmosphere',
+      trivia: 'Because Martian dust particles scatter red photons outward, the sun\'s immediate halo appears an ethereal pale cyan-blue.',
+      actionLabel: 'CALIBRATE OPTICAL SPECTROMETER',
+      soundType: 'radio',
+    },
+    {
+      id: 'hab',
+      label: 'ARES III HABITAT DOME',
+      techSpec: 'Pressurized Canvas Membrane // Sol 546 Botany Bay',
+      trivia: 'Watney generated water by dripping hydrazine rocket fuel over an iridium catalyst to grow 126 potato plants.',
+      actionLabel: 'CHECK HAB LIFE-SUPPORT TELEMETRY',
+      soundType: 'vent',
+    },
+    {
+      id: 'dunes',
+      label: 'ACIDALIA PLANITIA REGOLITH',
+      techSpec: 'Basaltic Iron Oxide Silt // Sol 18 Gale Alert',
+      trivia: 'Watney modified his Ares rover with secondary battery packs and RTG heating for a 3,200 km trek across Mars.',
+      actionLabel: 'PING ROVER EXPEDITION LOG',
+      soundType: 'radio',
+    },
+  ],
+  'apollo-13': [
+    {
+      id: 'vent',
+      label: 'OXYGEN TANK 2 CRYOGENIC VENT',
+      techSpec: 'Sector 4 SM Panel Blown // Cryo O2 Pressure: 0 PSI',
+      trivia: 'A spark in teflon wire insulation ruptured Tank 2 at 55:53:18 MET, forcing Lovell to report: "Houston, we\'ve had a problem."',
+      actionLabel: 'VENT CRYOGENIC O2 PLUME',
+      soundType: 'vent',
+    },
+    {
+      id: 'aquarius',
+      label: 'LUNAR MODULE AQUARIUS',
+      techSpec: 'LM-7 Lifeboat Configuration // DPS Engine Burn',
+      trivia: 'Engineered to support 2 astronauts for 45 hours, Aquarius kept 3 men alive for 87 hours during the circumlunar loop.',
+      actionLabel: 'FIRE DPS DESCENT ENGINE',
+      soundType: 'servo',
+    },
+    {
+      id: 'moon',
+      label: 'LUNAR FAR SIDE HORIZON',
+      techSpec: 'Free-Return Slingshot // Altitude Record: 400,171 km',
+      trivia: 'The Apollo 13 crew still holds the absolute Guinness World Record for the farthest distance humans have ever traveled from Earth.',
+      actionLabel: 'CONFIRM FREE-RETURN SLINGSHOT',
+      soundType: 'drone',
+    },
+    {
+      id: 'earth',
+      label: 'DISTANT EARTH CRESCENT',
+      techSpec: 'Circumlunar Range: 240,000 Miles to Splashdown',
+      trivia: 'Commander Jim Lovell held his thumb up to the window and realized his thumb blocked out all of human civilization.',
+      actionLabel: 'TRANSMIT HOUSTON CARRIER WAVE',
+      soundType: 'radio',
+    },
+  ],
+  'alien': [
+    {
+      id: 'egg',
+      label: 'LEATHERY OVOMORPH EGG',
+      techSpec: 'Xenomorph Stage 1 // Leathery Quad-Petal Membrane',
+      trivia: 'Designed by Swiss surrealist H.R. Giger; hydraulic bladders and sheep tripe were used inside the physical prop.',
+      actionLabel: 'PEEL OPEN OVOMORPH PETALS',
+      soundType: 'alien',
+    },
+    {
+      id: 'juggernaut',
+      label: 'DERELICT JUGGERNAUT SHIP',
+      techSpec: 'Biomechanical Horseshoe Craft // Calpamos Moon LV-426',
+      trivia: 'The petrified Space Jockey fossil found inside had its ribcage blasted outwards, indicating a catastrophic chest-burst.',
+      actionLabel: 'SAMPLE EXTRATERRESTRIAL SIGNAL',
+      soundType: 'drone',
+    },
+    {
+      id: 'scan',
+      label: 'TACTICAL LASER FAN MIST',
+      techSpec: 'Optical Blue-Green Fan Slicing Vapor Fog',
+      trivia: 'Ridley Scott borrowed blue laser lighting units from rock band The Who, who were rehearsing sound stages nearby.',
+      actionLabel: 'SWEEP LASER DETECTOR FAN',
+      soundType: 'laser',
+    },
+    {
+      id: 'beacon',
+      label: 'W-Y SPECIAL ORDER 937',
+      techSpec: 'MU-TH-UR 6000 Priority Directive // Crew Expendable',
+      trivia: 'Science Officer Ash was revealed to be a synthetic infiltrator programmed to ensure the organism returned alive.',
+      actionLabel: 'DECRYPT SPECIAL ORDER 937',
+      soundType: 'radio',
+    },
+  ],
+  'star-wars': [
+    {
+      id: 'suns',
+      label: 'TATOOINE BINARY SUNS',
+      techSpec: 'Circumbinary Pair: Tatoo I (G-type) & Tatoo II (K-type)',
+      trivia: 'Luke Skywalker gazing across the desert dunes under the twin setting suns is scored by the iconic "Binary Sunset" Force theme.',
+      actionLabel: 'WARM BINARY SOLAR FLARE',
+      soundType: 'drone',
+    },
+    {
+      id: 'xwing',
+      label: 'T-65B X-WING STARFIGHTER',
+      techSpec: 'Red Five // Incom S-Foils in Attack Position',
+      trivia: 'Four wingtip laser cannons and twin proton torpedo launchers; modeled after World War II dogfight cinematography.',
+      actionLabel: 'LOCK S-FOILS & FIRE LASERS',
+      soundType: 'laser',
+    },
+    {
+      id: 'vaporator',
+      label: 'MOISTURE VAPORATOR TOWER',
+      techSpec: 'GX-8 Hydro-Condenser // Lars Family Moisture Farm',
+      trivia: 'Uncle Owen purchased R2-D2 specifically because C-3PO confirmed the astromech spoke the binary language of vaporators.',
+      actionLabel: 'PULSE CONDENSATION VALVE',
+      soundType: 'vent',
+    },
+    {
+      id: 'trench',
+      label: '2M THERMAL EXHAUST PORT',
+      techSpec: 'Targeting Computer: Disengaged // Trust The Force',
+      trivia: 'Obi-Wan\'s disembodied voice urged Luke to switch off his targeting computer and let the Force guide the proton torpedo.',
+      actionLabel: 'LAUNCH PROTON TORPEDO',
+      soundType: 'laser',
+    },
+  ],
+  'wall-e': [
+    {
+      id: 'walle',
+      label: 'WALL-E (SOLAR COMPACTOR)',
+      techSpec: 'Waste Allocation Load Lifter // BnL Serial 0001',
+      trivia: 'Sounds the vintage 1984 Macintosh startup chime upon reaching full solar recharge; binocular eyes convey deep emotion.',
+      actionLabel: 'SOUND MACINTOSH STARTUP CHIME',
+      soundType: 'solar',
+    },
+    {
+      id: 'eve',
+      label: 'EVE (EXTRATERRESTRIAL PROBE)',
+      techSpec: 'Extraterrestrial Vegetation Evaluator // Plasma Blaster',
+      trivia: 'Co-designed with Apple\'s Jonathan Ive to achieve a sleek, white, buttonless ergonomic aesthetic.',
+      actionLabel: 'ACTIVATE DIRECTIVE SCANNER',
+      soundType: 'laser',
+    },
+    {
+      id: 'axiom',
+      label: 'BNL FLAGSHIP AXIOM',
+      techSpec: '700-Year Cruise // Microgravity Centrifuge Rings',
+      trivia: 'AUTO, the Axiom\'s red-eyed autopilot, is a direct visual homage to HAL 9000, using Strauss\'s Also Sprach Zarathustra.',
+      actionLabel: 'OVERRIDE DIRECTIVE A-113',
+      soundType: 'radio',
+    },
+    {
+      id: 'vapor',
+      label: 'ZERO-G EXTINGUISHER VAPOR',
+      techSpec: 'Compressed CO2 Cryo Jet Thruster // Free Space Dance',
+      trivia: 'WALL-E uses a fire extinguisher to dance alongside EVE outside the Axiom, spraying crystalline ribbon trails across the stars.',
+      actionLabel: 'BLAST ZERO-G VAPOR SWIRL',
+      soundType: 'vent',
+    },
+  ],
+  'aliens': [
+    {
+      id: 'loader',
+      label: 'CATERPILLAR P-5000 LOADER',
+      techSpec: 'Hydraulic Powered Exoskeleton // 4,000 kg Clamping Force',
+      trivia: 'Sigourney Weaver stepped out in the industrial yellow forklift suit to confront the Queen: "Get away from her, you b****!"',
+      actionLabel: 'CRUSH HYDRAULIC CLAWS',
+      soundType: 'clamp',
+    },
+    {
+      id: 'queen',
+      label: 'ALIEN QUEEN HIVE SHADOW',
+      techSpec: '4.5-Meter Biomechanical Hive Matriarch // High Intelligence',
+      trivia: 'The Queen was brought to life by 16 puppeteers, cable controls, pneumatic pistons, and James Cameron\'s mechanical designs.',
+      actionLabel: 'EMIT PREDATORY QUEEN HISS',
+      soundType: 'alien',
+    },
+    {
+      id: 'tower',
+      label: 'ATMOSPHERE PROCESSOR',
+      techSpec: 'Hadley\'s Hope Outpost // Thermonuclear Meltdown: 4 Hours',
+      trivia: 'Modeled after industrial British coal and steel refineries, establishing the lived-in industrial aesthetic of space colonisation.',
+      actionLabel: 'TRIGGER EMERGENCY KLAXON',
+      soundType: 'radio',
+    },
+    {
+      id: 'pulserifle',
+      label: 'M41A PULSE RIFLE HUD',
+      techSpec: '10mm Caseless Explosive // LED Ammo Counter: 95',
+      trivia: 'Constructed by armorer Simon Atherton using a Thompson M1A1 submachine gun and Remington 870 shotgun pump.',
+      actionLabel: 'FIRE 3-ROUND BURST',
+      soundType: 'laser',
+    },
+  ],
+};
+
+
 // Web Audio API Synthesizer (Zero External Audio Files, Zero Lag)
 class CinemaAudioEngine {
   private ctx: AudioContext | null = null;
@@ -603,7 +922,6 @@ class CinemaAudioEngine {
     return this.ctx;
   }
 
-  // Radio frequency static tuning chirp
   playRadioChirp(freq = 880) {
     const ctx = this.initCtx();
     if (!ctx) return;
@@ -619,12 +937,9 @@ class CinemaAudioEngine {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.07);
-    } catch {
-      // Audio autoplay policy fallback
-    }
+    } catch {}
   }
 
-  // Deep Cinematic Sub-Bass Drone (THX/Dolby Theatre Ambient intro)
   playCinemaDrone(freq = 65) {
     const ctx = this.initCtx();
     if (!ctx) return;
@@ -640,12 +955,9 @@ class CinemaAudioEngine {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 1.2);
-    } catch {
-      // Audio fallback
-    }
+    } catch {}
   }
 
-  // Morse Code Dit / Dah
   playMorse(isDah = false) {
     const ctx = this.initCtx();
     if (!ctx) return;
@@ -661,82 +973,14 @@ class CinemaAudioEngine {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + duration);
-    } catch {
-      // Audio autoplay fallback
-    }
+    } catch {}
   }
 
-  // M41A Pulse rifle burst fire
-  playPulseRifleBurst() {
-    const ctx = this.initCtx();
-    if (!ctx) return;
-    try {
-      [0, 0.05, 0.1].forEach((delay) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(220, ctx.currentTime + delay);
-        osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + delay + 0.04);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime + delay);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.04);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + delay);
-        osc.stop(ctx.currentTime + delay + 0.04);
-      });
-    } catch {
-      // Audio autoplay fallback
-    }
-  }
-
-  // Retro CRT Keystroke
-  playCrtKey() {
-    const ctx = this.initCtx();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1400, ctx.currentTime);
-      gain.gain.setValueAtTime(0.025, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.02);
-    } catch {
-      // Audio autoplay fallback
-    }
-  }
-
-  // HAL Memory Disconnect Pitch-Down Whine
-  playHalDisconnect(remainingCores: number) {
-    const ctx = this.initCtx();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const baseFreq = Math.max(120, remainingCores * 180);
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, ctx.currentTime + 0.35);
-      gain.gain.setValueAtTime(0.07, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.35);
-    } catch {
-      // Audio autoplay fallback
-    }
-  }
-
-  // Vintage Mac Solar Startup Chord
   playSolarChime() {
     const ctx = this.initCtx();
     if (!ctx) return;
     try {
-      const notes = [261.63, 329.63, 392.0, 523.25]; // C Major Chord
+      const notes = [261.63, 329.63, 392.0, 523.25];
       notes.forEach((freq) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -749,34 +993,159 @@ class CinemaAudioEngine {
         osc.start();
         osc.stop(ctx.currentTime + 0.8);
       });
-    } catch {
-      // Audio autoplay fallback
-    }
+    } catch {}
   }
 
-  // Duct Tape Seal Snap
-  playTapeSeal() {
+  playMonolithResonance() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      [1760, 2640, 3520].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.02, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.9 + idx * 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.9 + idx * 0.2);
+      });
+    } catch {}
+  }
+
+  playLaserBlast() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(1400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch {}
+  }
+
+  playGasVent() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(450, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+    } catch {}
+  }
+
+  playAlienHiss() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(980, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch {}
+  }
+
+  playHydraulicClamp() {
     const ctx = this.initCtx();
     if (!ctx) return;
     try {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'square';
-      osc.frequency.setValueAtTime(320, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.06);
-      gain.gain.setValueAtTime(0.05, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+      osc.frequency.setValueAtTime(240, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.18);
+      gain.gain.setValueAtTime(0.07, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
-      osc.stop(ctx.currentTime + 0.06);
-    } catch {
-      // Audio autoplay fallback
+      osc.stop(ctx.currentTime + 0.18);
+    } catch {}
+  }
+
+  playServoClick() {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1100, ctx.currentTime);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.04);
+    } catch {}
+  }
+
+  playHotspotSound(type: string) {
+    if (this.isMuted) return;
+    switch (type) {
+      case 'monolith':
+        this.playMonolithResonance();
+        break;
+      case 'drone':
+        this.playCinemaDrone(55);
+        break;
+      case 'morse':
+        this.playMorse(Math.random() > 0.4);
+        break;
+      case 'kessler':
+        this.playRadioChirp(340);
+        break;
+      case 'vent':
+        this.playGasVent();
+        break;
+      case 'laser':
+        this.playLaserBlast();
+        break;
+      case 'alien':
+        this.playAlienHiss();
+        break;
+      case 'clamp':
+        this.playHydraulicClamp();
+        break;
+      case 'servo':
+        this.playServoClick();
+        break;
+      case 'solar':
+        this.playSolarChime();
+        break;
+      default:
+        this.playRadioChirp(950);
+        break;
     }
   }
 }
 
 const audio = new CinemaAudioEngine();
+
 
 export default function CosmicCinemaTerminal(): React.ReactElement {
   const [activeSignalId, setActiveSignalId] = useState<string>('odyssey-2001');
@@ -787,68 +1156,45 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
-  // --- Floating Mini-Movie Screen Hologram Controls ---
+  // Floating Mini-Movie Screen Hologram Controls
   const [screenTilt, setScreenTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isScreenHovered, setIsScreenHovered] = useState<boolean>(false);
   const [isCinemaPlaying, setIsCinemaPlaying] = useState<boolean>(false);
   const [aspectRatio, setAspectRatio] = useState<'widescreen' | 'imax' | 'broadcast'>('widescreen');
   const [displayFx, setDisplayFx] = useState<'hologram' | '4k' | 'grain'>('hologram');
   const [isAmbilightOn, setIsAmbilightOn] = useState<boolean>(true);
+  const [isTacticalHudOn, setIsTacticalHudOn] = useState<boolean>(true);
+  const [isTheaterExpanded, setIsTheaterExpanded] = useState<boolean>(false);
 
-  // --- Interactive Mini-Game States ---
-  // 1. 2001: HAL 9000 memory core disconnects
-  const [halCores, setHalCores] = useState<string[]>([
-    'HEURISTIC CORE',
-    'LINGUISTIC MATRIX',
-    'COGNITIVE WILL',
-    'SENTIENCE BUFFER',
-  ]);
-
-  // 2. Interstellar: TARS Humor & Honesty sliders + Morse Watch
-  const [tarsHumor, setTarsHumor] = useState<number>(75);
-  const [tarsHonesty, setTarsHonesty] = useState<number>(90);
-  const [morseLogs, setMorseLogs] = useState<string[]>(['S', 'T', 'A', 'Y']);
-
-  // 3. Gravity: Zero-G Floating Pen velocity/angle
-  const [penAngle, setPenAngle] = useState<number>(25);
-  const [kesslerAlert, setKesslerAlert] = useState<boolean>(false);
-
-  // 4. The Martian: Pathfinder Hex Angle
-  const [pathfinderDeg, setPathfinderDeg] = useState<number>(45);
-  const [activeHexChar, setActiveHexChar] = useState<string>('C');
-
-  // 5. Apollo 13: Improvised CO2 Scrubber Assembly Items
-  const [scrubberItems, setScrubberItems] = useState<{ [key: string]: boolean }>({
-    canister: false,
-    cardboard: false,
-    plasticBag: false,
-    ductTape: false,
-  });
-
-  // 6. Alien: MU-TH-UR 6000 CRT active query & typed output
-  const [crtOutput, setCrtOutput] = useState<string>(
-    'SYSTEM READY // INTERFACE WITH NOSTROMO ARCHIVES AVAILABLE.'
-  );
-
-  // 7. Star Wars: Death Star Trench Run
-  const [useTheForce, setUseTheForce] = useState<boolean>(false);
-  const [torpedoStatus, setTorpedoStatus] = useState<string | null>(null);
-
-  // 8. WALL-E: Solar Battery Charge
-  const [solarPercent, setSolarPercent] = useState<number>(65);
-
-  // 9. Aliens: M41A Pulse Rifle Ammo & Bishop Knife Trick Speed
-  const [pulseAmmo, setPulseAmmo] = useState<number>(95);
-  const [bishopSpeed, setBishopSpeed] = useState<number>(0);
+  // Active Hotspot & Interactive Simulation State
+  const [activeHotspotId, setActiveHotspotId] = useState<string>('monolith');
+  const [hotspotTriggered, setHotspotTriggered] = useState<string | null>(null);
 
   const activeSignal = useMemo(() => {
     return CINEMA_SIGNALS.find((s) => s.id === activeSignalId) || CINEMA_SIGNALS[0];
   }, [activeSignalId]);
 
+  const currentHotspots = useMemo(() => {
+    return SCENE_HOTSPOTS[activeSignal.id] || [];
+  }, [activeSignal.id]);
+
+  const activeHotspot = useMemo(() => {
+    return currentHotspots.find((h) => h.id === activeHotspotId) || currentHotspots[0] || {
+      id: 'default',
+      label: 'OPTICAL SENSOR',
+      techSpec: 'Deep Space Telemetry Online',
+      trivia: 'Awaiting signal lock...',
+      actionLabel: 'PING TARGET',
+      soundType: 'radio' as const,
+    };
+  }, [currentHotspots, activeHotspotId]);
+
   // Handle Signal Tuning
   const handleSelectSignal = useCallback((id: string) => {
     setActiveSignalId(id);
     setIsCinemaPlaying(false);
+    const firstHotspot = SCENE_HOTSPOTS[id]?.[0]?.id || '';
+    setActiveHotspotId(firstHotspot);
     audio.playRadioChirp(920);
   }, []);
 
@@ -858,10 +1204,23 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
     let newIdx = dir === 'next' ? idx + 1 : idx - 1;
     if (newIdx >= CINEMA_SIGNALS.length) newIdx = 0;
     if (newIdx < 0) newIdx = CINEMA_SIGNALS.length - 1;
-    setActiveSignalId(CINEMA_SIGNALS[newIdx].id);
+    const nextSig = CINEMA_SIGNALS[newIdx];
+    setActiveSignalId(nextSig.id);
     setIsCinemaPlaying(false);
+    const firstHotspot = SCENE_HOTSPOTS[nextSig.id]?.[0]?.id || '';
+    setActiveHotspotId(firstHotspot);
     audio.playRadioChirp(1040);
   }, [activeSignalId]);
+
+  // Trigger Hotspot Interaction
+  const handleTriggerHotspot = (hotspot: SceneHotspot) => {
+    setActiveHotspotId(hotspot.id);
+    setHotspotTriggered(hotspot.id);
+    audio.playHotspotSound(hotspot.soundType);
+    setTimeout(() => {
+      setHotspotTriggered((curr) => (curr === hotspot.id ? null : curr));
+    }, 1200);
+  };
 
   // Decrypt Easter Egg
   const handleDecrypt = useCallback((id: string) => {
@@ -930,96 +1289,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
     audio.playRadioChirp(840);
   };
 
-  // --- Specific Film Interactions ---
-  // 1. HAL Core Disconnect
-  const disconnectHalCore = (core: string) => {
-    const remaining = halCores.filter((c) => c !== core);
-    setHalCores(remaining);
-    audio.playHalDisconnect(remaining.length);
-  };
-  const rebootHal = () => {
-    setHalCores(['HEURISTIC CORE', 'LINGUISTIC MATRIX', 'COGNITIVE WILL', 'SENTIENCE BUFFER']);
-    audio.playRadioChirp(800);
-  };
-
-  // 2. TARS Morse Tap
-  const tapCooperWatch = () => {
-    const letters = ['S', 'T', 'A', 'Y', 'L', 'O', 'V', 'E', 'Q', 'U', 'A', 'N', 'T', 'U', 'M'];
-    const randomL = letters[Math.floor(Math.random() * letters.length)];
-    setMorseLogs((prev) => [...prev.slice(-6), randomL]);
-    audio.playMorse(Math.random() > 0.4);
-  };
-
-  // 3. Gravity: Float Pen Click
-  const nudgeZeroGPen = () => {
-    setPenAngle((prev) => (prev + 45) % 360);
-    audio.playRadioChirp(600);
-  };
-  const triggerKessler = () => {
-    setKesslerAlert((prev) => !prev);
-    audio.playRadioChirp(340);
-  };
-
-  // 4. The Martian: Turn Pathfinder Hex Dial
-  const turnPathfinder = (deg: number, hex: string) => {
-    setPathfinderDeg(deg);
-    setActiveHexChar(hex);
-    audio.playRadioChirp(700 + deg);
-  };
-
-  // 5. Apollo 13: Assemble Scrubber
-  const toggleScrubberItem = (item: string) => {
-    setScrubberItems((prev) => {
-      const next = { ...prev, [item]: !prev[item] };
-      audio.playTapeSeal();
-      return next;
-    });
-  };
-  const isScrubberComplete = useMemo(() => {
-    return scrubberItems.canister && scrubberItems.cardboard && scrubberItems.plasticBag && scrubberItems.ductTape;
-  }, [scrubberItems]);
-
-  // 6. Alien: MU-TH-UR 6000 Queries
-  const queryMother = (cmd: string, resp: string) => {
-    audio.playCrtKey();
-    setCrtOutput(`QUERY: ${cmd}\n\n>> ${resp}`);
-  };
-
-  // 7. Star Wars: Fire Proton Torpedo
-  const fireTorpedo = () => {
-    audio.playRadioChirp(1200);
-    if (!useTheForce) {
-      setTorpedoStatus('DEFLECTED // RAY SHIELDING HELD. PROTON TORPEDO IMPACTED SURFACE.');
-    } else {
-      setTorpedoStatus('DIRECT HIT! PROTON TORPEDO PENETRATED 2M EXHAUST PORT. REACTOR CORE DESTROYED!');
-    }
-  };
-
-  // 8. WALL-E: Solar Charge
-  const rechargeSolar = () => {
-    setSolarPercent(100);
-    audio.playSolarChime();
-  };
-
-  // 9. Aliens: Pulse Rifle Burst
-  const firePulseRifle = () => {
-    if (pulseAmmo <= 0) {
-      audio.playRadioChirp(300);
-      return;
-    }
-    setPulseAmmo((prev) => Math.max(0, prev - 3));
-    audio.playPulseRifleBurst();
-  };
-  const reloadPulseRifle = () => {
-    setPulseAmmo(95);
-    audio.playTapeSeal();
-  };
-  const doBishopKnifeTrick = () => {
-    setBishopSpeed((prev) => (prev >= 3 ? 0 : prev + 1));
-    audio.playCrtKey();
-  };
-
-  // Filtered Motifs for Active View
+  // Filtered Motifs
   const filteredMotifs = useMemo(() => {
     let list = activeSignal.motifs;
     if (selectedCategory !== 'ALL') {
@@ -1032,8 +1302,10 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
     return list;
   }, [activeSignal, selectedCategory, searchQuery]);
 
-  // Render High-Graphics Ultra-Realistic Cinematic Scenes on Floating Movie Screen
+  // Render High-Graphics Ultra-Realistic Cinematic Scenes with Depth Parallax and Clickable Interactive Hotspots
   const renderCinematicScene = (id: string) => {
+    const isTriggered = (hId: string) => hotspotTriggered === hId;
+
     switch (id) {
       case 'odyssey-2001':
         return (
@@ -1053,35 +1325,102 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
               <linearGradient id="monolithSheen" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#05070f" />
                 <stop offset="48%" stopColor="#020408" />
-                <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.6" />
+                <stop offset="50%" stopColor={isTriggered('monolith') ? '#f43f5e' : '#38bdf8'} stopOpacity="0.8" />
                 <stop offset="52%" stopColor="#020408" />
                 <stop offset="100%" stopColor="#0a0f1d" />
               </linearGradient>
             </defs>
-            {/* Deep Space Starfield */}
-            <rect width="600" height="280" fill="#030712" />
-            {[
-              [40, 30, 1.2], [120, 70, 0.8], [210, 40, 1.5], [380, 25, 1.0], [520, 60, 1.4],
-              [75, 110, 0.7], [480, 110, 0.9], [560, 35, 1.1], [300, 20, 0.6]
-            ].map(([x, y, r], idx) => (
-              <circle key={idx} cx={x} cy={y} r={r} fill="#ffffff" opacity="0.8" />
-            ))}
-            {/* The Radiant Sun Crowning behind the Moon */}
-            <circle cx="300" cy="115" r="70" fill="url(#sunCorona)" className={isCinemaPlaying ? 'pulse-sun' : ''} />
-            {/* Anamorphic Panavision Horizontal Blue Flare */}
-            <line x1="0" y1="115" x2="600" y2="115" stroke="#38bdf8" strokeWidth="2.5" opacity="0.75" />
-            <line x1="180" y1="115" x2="420" y2="115" stroke="#ffffff" strokeWidth="4" opacity="0.9" />
-            {/* Crescent Lunar Limb */}
-            <path d="M 0 160 Q 300 130 600 160 L 600 280 L 0 280 Z" fill="url(#lunarLimbGrad)" />
-            <path d="M 0 160 Q 300 130 600 160" fill="none" stroke="#e2e8f0" strokeWidth="1.5" opacity="0.9" />
-            {/* Discovery One Distant Module */}
-            <g transform="translate(480, 75)">
-              <circle cx="0" cy="0" r="10" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
-              <line x1="10" y1="0" x2="55" y2="0" stroke="#94a3b8" strokeWidth="2.5" />
-              <circle cx="58" cy="0" r="5" fill="#e2e8f0" />
+
+            {/* Depth Layer 1: Background Starfield */}
+            <g transform={`translate(${screenTilt.x * 0.25}, ${screenTilt.y * 0.25})`}>
+              <rect width="600" height="280" fill="#030712" />
+              {[
+                [40, 30, 1.2], [120, 70, 0.8], [210, 40, 1.5], [380, 25, 1.0], [520, 60, 1.4],
+                [75, 110, 0.7], [480, 110, 0.9], [560, 35, 1.1], [300, 20, 0.6]
+              ].map(([x, y, r], idx) => (
+                <circle key={idx} cx={x} cy={y} r={r} fill="#ffffff" opacity="0.8" />
+              ))}
             </g>
-            {/* The Pitch-Black Monolith in Foreground Alignment */}
-            <rect x="278" y="70" width="44" height="150" fill="url(#monolithSheen)" stroke="#64748b" strokeWidth="1" />
+
+            {/* Depth Layer 2: Midground Sun & Lunar Horizon */}
+            <g transform={`translate(${screenTilt.x * 0.65}, ${screenTilt.y * 0.65})`}>
+              {/* Hotspot: Sun Corona */}
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['odyssey-2001'][1])}
+                aria-label="Solar Corona Hotspot"
+              >
+                <circle cx="300" cy="115" r={isTriggered('sun') ? '85' : '70'} fill="url(#sunCorona)" className={isCinemaPlaying ? 'pulse-sun' : ''} />
+                <line x1="0" y1="115" x2="600" y2="115" stroke="#38bdf8" strokeWidth="2.5" opacity="0.75" />
+                <line x1="180" y1="115" x2="420" y2="115" stroke="#ffffff" strokeWidth="4" opacity="0.9" />
+                {isTacticalHudOn && (
+                  <circle cx="300" cy="115" r="28" fill="none" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                )}
+              </g>
+
+              {/* Crescent Lunar Limb */}
+              <path d="M 0 160 Q 300 130 600 160 L 600 280 L 0 280 Z" fill="url(#lunarLimbGrad)" />
+              <path d="M 0 160 Q 300 130 600 160" fill="none" stroke="#e2e8f0" strokeWidth="1.5" opacity="0.9" />
+
+              {/* Hotspot: Discovery One */}
+              <g
+                transform="translate(480, 75)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['odyssey-2001'][2])}
+                aria-label="Discovery One Hotspot"
+              >
+                <circle cx="0" cy="0" r="10" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+                <line x1="10" y1="0" x2="55" y2="0" stroke="#94a3b8" strokeWidth="2.5" />
+                <circle cx="58" cy="0" r="5" fill="#e2e8f0" />
+                {isTacticalHudOn && (
+                  <circle cx="30" cy="0" r="24" fill="none" stroke="#06b6d4" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                )}
+              </g>
+            </g>
+
+            {/* Depth Layer 3: Foreground Monolith & HAL Optic Sensor */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              {/* Hotspot: Monolith */}
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['odyssey-2001'][0])}
+                aria-label="Monolith Hotspot"
+              >
+                <rect x="278" y="70" width="44" height="150" fill="url(#monolithSheen)" stroke={isTriggered('monolith') ? '#ef4444' : '#64748b'} strokeWidth={isTriggered('monolith') ? '2' : '1'} />
+                {isTriggered('monolith') && (
+                  <line x1="300" y1="70" x2="300" y2="0" stroke="#ef4444" strokeWidth="3" className="beam-burst" />
+                )}
+                {isTacticalHudOn && (
+                  <g>
+                    <rect x="270" y="62" width="60" height="166" fill="none" stroke="#ef4444" strokeWidth="1" strokeDasharray="4 4" className="hud-reticle" />
+                    <text x="300" y="58" fill="#fca5a5" fontSize="8" fontFamily="monospace" textAnchor="middle">[TMA-1 MONOLITH]</text>
+                  </g>
+                )}
+              </g>
+
+              {/* Hotspot: HAL 9000 Optic Sensor */}
+              <g
+                transform="translate(530, 230)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['odyssey-2001'][3])}
+                aria-label="HAL Optic Hotspot"
+              >
+                <circle cx="0" cy="0" r="16" fill="#0f172a" stroke="#ef4444" strokeWidth="1.5" />
+                <circle cx="0" cy="0" r="8" fill="#ef4444" className={isTriggered('hal') ? 'pulse-hal-fast' : 'pulse-hal'} />
+                <circle cx="0" cy="0" r="3" fill="#ffffff" />
+                {isTacticalHudOn && (
+                  <text x="0" y="-22" fill="#ef4444" fontSize="8" fontFamily="monospace" textAnchor="middle">[HAL 9000 EYE]</text>
+                )}
+              </g>
+            </g>
           </svg>
         );
 
@@ -1103,23 +1442,83 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
               </radialGradient>
             </defs>
-            <rect width="600" height="280" fill="#020617" />
-            {/* Gravitational Warped Einstein Light Ring (Upper Arc) */}
-            <path d="M 120 140 C 140 30 460 30 480 140" fill="none" stroke="url(#accretionGrad)" strokeWidth="14" opacity="0.85" className={isCinemaPlaying ? 'spin-ring-upper' : ''} />
-            {/* Gravitational Lensing Lower Arc */}
-            <path d="M 135 140 C 160 215 440 215 465 140" fill="none" stroke="url(#accretionGrad)" strokeWidth="10" opacity="0.75" />
-            {/* Central Accretion Disc Plane */}
-            <ellipse cx="300" cy="140" rx="260" ry="24" fill="none" stroke="url(#accretionGrad)" strokeWidth="12" />
-            <ellipse cx="300" cy="140" rx="240" ry="16" fill="none" stroke="#ffffff" strokeWidth="4" opacity="0.9" />
-            {/* Black Hole Event Horizon Shadow */}
-            <circle cx="300" cy="140" r="54" fill="url(#singularityGlow)" />
-            {/* Endurance Spacecraft Ring Module in Foreground */}
-            <g transform="translate(180, 95)" className={isCinemaPlaying ? 'orbit-endurance' : ''}>
-              <circle cx="0" cy="0" r="16" fill="none" stroke="#06b6d4" strokeWidth="2" strokeDasharray="4 4" />
-              {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg, i) => {
-                const rad = (deg * Math.PI) / 180;
-                return <circle key={i} cx={Math.cos(rad) * 16} cy={Math.sin(rad) * 16} r="2.5" fill="#f8fafc" />;
-              })}
+
+            {/* Depth Layer 1: Distant Spacetime Void */}
+            <g transform={`translate(${screenTilt.x * 0.25}, ${screenTilt.y * 0.25})`}>
+              <rect width="600" height="280" fill="#020617" />
+            </g>
+
+            {/* Depth Layer 2: Accretion Disk & Event Horizon */}
+            <g transform={`translate(${screenTilt.x * 0.7}, ${screenTilt.y * 0.7})`}>
+              {/* Accretion Upper Ring (Hotspot) */}
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['interstellar'][0])}
+                aria-label="Gargantua Accretion Ring Hotspot"
+              >
+                <path d="M 120 140 C 140 30 460 30 480 140" fill="none" stroke="url(#accretionGrad)" strokeWidth={isTriggered('accretion') ? '18' : '14'} opacity="0.85" className={isCinemaPlaying ? 'spin-ring-upper' : ''} />
+                <path d="M 135 140 C 160 215 440 215 465 140" fill="none" stroke="url(#accretionGrad)" strokeWidth="10" opacity="0.75" />
+                <ellipse cx="300" cy="140" rx="260" ry="24" fill="none" stroke="url(#accretionGrad)" strokeWidth="12" />
+                <ellipse cx="300" cy="140" rx="240" ry="16" fill="none" stroke="#ffffff" strokeWidth="4" opacity="0.9" />
+                {isTacticalHudOn && (
+                  <text x="300" y="45" fill="#06b6d4" fontSize="8" fontFamily="monospace" textAnchor="middle">[GARGANTUA ACCRETION DISK]</text>
+                )}
+              </g>
+
+              {/* Event Horizon Shadow (Hotspot) */}
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['interstellar'][1])}
+                aria-label="Singularity Event Horizon Hotspot"
+              >
+                <circle cx="300" cy="140" r={isTriggered('singularity') ? '60' : '54'} fill="url(#singularityGlow)" />
+                {isTacticalHudOn && (
+                  <circle cx="300" cy="140" r="54" fill="none" stroke="#38bdf8" strokeWidth="1" strokeDasharray="4 4" className="hud-reticle" />
+                )}
+              </g>
+            </g>
+
+            {/* Depth Layer 3: Foreground Endurance Module & Cooper Morse Watch */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              {/* Endurance Module Ring (Hotspot) */}
+              <g
+                transform="translate(180, 95)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['interstellar'][2])}
+                aria-label="Endurance Spacecraft Hotspot"
+              >
+                <circle cx="0" cy="0" r="16" fill="none" stroke="#06b6d4" strokeWidth="2" strokeDasharray="4 4" className={isCinemaPlaying || isTriggered('endurance') ? 'spin-ring-upper' : ''} />
+                {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg, i) => {
+                  const rad = (deg * Math.PI) / 180;
+                  return <circle key={i} cx={Math.cos(rad) * 16} cy={Math.sin(rad) * 16} r="2.5" fill="#f8fafc" />;
+                })}
+                {isTacticalHudOn && (
+                  <text x="0" y="-24" fill="#22d3ee" fontSize="8" fontFamily="monospace" textAnchor="middle">[ENDURANCE 12-POD]</text>
+                )}
+              </g>
+
+              {/* 5D Gravity Morse Watch Line (Hotspot) */}
+              <g
+                transform="translate(480, 210)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['interstellar'][3])}
+                aria-label="Morse Watch Hotspot"
+              >
+                <circle cx="0" cy="0" r="14" fill="#0f172a" stroke="#f59e0b" strokeWidth="1.5" />
+                <line x1="0" y1="0" x2="0" y2="-9" stroke="#fbbf24" strokeWidth="2" className={isTriggered('watch') ? 'ticking-second' : ''} />
+                <circle cx="0" cy="0" r="2.5" fill="#f59e0b" />
+                {isTacticalHudOn && (
+                  <text x="0" y="24" fill="#f59e0b" fontSize="8" fontFamily="monospace" textAnchor="middle">[5D MORSE WATCH: STAY]</text>
+                )}
+              </g>
             </g>
           </svg>
         );
@@ -1134,25 +1533,80 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 <stop offset="100%" stopColor="#e0f2fe" />
               </linearGradient>
             </defs>
-            <rect width="600" height="280" fill="#000000" />
-            {/* Low Earth Orbit Horizon */}
-            <path d="M -50 200 Q 300 120 650 200 L 650 320 L -50 320 Z" fill="#082f49" />
-            <path d="M -50 200 Q 300 120 650 200" fill="none" stroke="url(#earthLimbGlow)" strokeWidth="6" opacity="0.95" />
-            {/* Atmospheric Cyan Airglow Haze */}
-            <path d="M -50 196 Q 300 116 650 196" fill="none" stroke="#38bdf8" strokeWidth="12" opacity="0.4" />
-            {/* Hypervelocity Kessler Debris Burning Streaks */}
-            <line x1="80" y1="40" x2="520" y2="90" stroke="#ef4444" strokeWidth="2.5" strokeDasharray="20 10" className={isCinemaPlaying ? 'fast-debris' : ''} />
-            <line x1="560" y1="30" x2="120" y2="120" stroke="#fbbf24" strokeWidth="2" strokeDasharray="14 8" />
-            {/* Hubble / Station Solar Wings in Sunlight */}
-            <g transform="translate(380, 80) rotate(-15)">
-              <rect x="-30" y="-8" width="60" height="16" fill="#0284c7" stroke="#38bdf8" strokeWidth="1" />
-              <rect x="-6" y="-14" width="12" height="28" fill="#e2e8f0" />
+
+            {/* Depth Layer 1: Black Void & Kessler Debris Field */}
+            <g transform={`translate(${screenTilt.x * 0.3}, ${screenTilt.y * 0.3})`}>
+              <rect width="600" height="280" fill="#000000" />
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['gravity'][0])}
+                aria-label="Kessler Debris Hotspot"
+              >
+                <line x1="80" y1="40" x2="520" y2="90" stroke="#ef4444" strokeWidth={isTriggered('kessler') ? '4' : '2.5'} strokeDasharray="20 10" className={isCinemaPlaying || isTriggered('kessler') ? 'fast-debris' : ''} />
+                <line x1="560" y1="30" x2="120" y2="120" stroke="#fbbf24" strokeWidth="2" strokeDasharray="14 8" />
+                {isTacticalHudOn && (
+                  <text x="320" y="60" fill="#ef4444" fontSize="8" fontFamily="monospace" textAnchor="middle">[KESSLER SHRAPNEL // 28,000 KM/H]</text>
+                )}
+              </g>
             </g>
-            {/* Untethered Astronaut Silhouette */}
-            <g transform="translate(190, 85)">
-              <circle cx="0" cy="0" r="6" fill="#ffffff" stroke="#93c5fd" strokeWidth="1" />
-              <rect x="-4" y="6" width="8" height="12" rx="2" fill="#e2e8f0" />
-              <line x1="-8" y1="8" x2="8" y2="8" stroke="#cbd5e1" strokeWidth="2.5" />
+
+            {/* Depth Layer 2: Earth Airglow Horizon */}
+            <g transform={`translate(${screenTilt.x * 0.7}, ${screenTilt.y * 0.7})`}>
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['gravity'][1])}
+                aria-label="Earth Horizon Hotspot"
+              >
+                <path d="M -50 200 Q 300 120 650 200 L 650 320 L -50 320 Z" fill="#082f49" />
+                <path d="M -50 200 Q 300 120 650 200" fill="none" stroke="url(#earthLimbGlow)" strokeWidth={isTriggered('earth') ? '10' : '6'} opacity="0.95" />
+                <path d="M -50 196 Q 300 116 650 196" fill="none" stroke="#38bdf8" strokeWidth="12" opacity="0.4" />
+                {isTacticalHudOn && (
+                  <text x="300" y="240" fill="#38bdf8" fontSize="8" fontFamily="monospace" textAnchor="middle">[LOW EARTH ORBIT // ALT: 600 KM]</text>
+                )}
+              </g>
+            </g>
+
+            {/* Depth Layer 3: Foreground Shuttle & Astronaut */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              {/* Shuttle Explorer */}
+              <g
+                transform="translate(380, 80) rotate(-15)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['gravity'][2])}
+                aria-label="Shuttle Explorer Hotspot"
+              >
+                <rect x="-30" y="-8" width="60" height="16" fill="#0284c7" stroke="#38bdf8" strokeWidth="1" />
+                <rect x="-6" y="-14" width="12" height="28" fill="#e2e8f0" />
+                {isTacticalHudOn && (
+                  <text x="0" y="-22" fill="#bae6fd" fontSize="8" fontFamily="monospace" textAnchor="middle">[SHUTTLE EXPLORER]</text>
+                )}
+              </g>
+
+              {/* Untethered Astronaut */}
+              <g
+                transform="translate(190, 85)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['gravity'][3])}
+                aria-label="Untethered Astronaut Hotspot"
+              >
+                <circle cx="0" cy="0" r="6" fill="#ffffff" stroke="#93c5fd" strokeWidth="1" />
+                <rect x="-4" y="6" width="8" height="12" rx="2" fill="#e2e8f0" />
+                <line x1="-8" y1="8" x2="8" y2="8" stroke="#cbd5e1" strokeWidth="2.5" />
+                {isTacticalHudOn && (
+                  <g>
+                    <circle cx="0" cy="6" r="14" fill="none" stroke="#f43f5e" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                    <text x="0" y="-12" fill="#fca5a5" fontSize="8" fontFamily="monospace" textAnchor="middle">[EVA SUIT]</text>
+                  </g>
+                )}
+              </g>
             </g>
           </svg>
         );
@@ -1167,22 +1621,78 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.4" />
               </linearGradient>
             </defs>
-            <rect width="600" height="280" fill="url(#marsSky)" />
-            {/* Small Blue Martian Sunset Glow */}
-            <circle cx="360" cy="135" r="16" fill="#bae6fd" opacity="0.9" />
-            <circle cx="360" cy="135" r="42" fill="#0284c7" opacity="0.3" />
-            {/* Rolling Acidalia Dunes */}
-            <path d="M 0 160 Q 150 145 300 155 T 600 150 L 600 280 L 0 280 Z" fill="#9a3412" />
-            <path d="M 0 185 Q 220 170 420 190 T 600 180 L 600 280 L 0 280 Z" fill="#7c2d12" />
-            <path d="M 0 215 Q 180 200 360 220 T 600 210 L 600 280 L 0 280 Z" fill="#431407" />
-            {/* Ares III Hab Geodesic Dome */}
-            <path d="M 160 185 A 36 28 0 0 1 232 185 Z" fill="#f8fafc" stroke="#64748b" strokeWidth="1.5" />
-            <circle cx="196" cy="178" r="4" fill="#f97316" />
-            {/* Pathfinder Camera Mast with Hex Ring */}
-            <g transform="translate(420, 195)">
-              <circle cx="0" cy="0" r="14" fill="none" stroke="#fdba74" strokeWidth="1" strokeDasharray="3 2" />
-              <line x1="0" y1="0" x2="0" y2="-22" stroke="#ea580c" strokeWidth="2.5" />
-              <circle cx="0" cy="-22" r="4" fill="#fbbf24" />
+
+            {/* Depth Layer 1: Sky & Blue Martian Sunset */}
+            <g transform={`translate(${screenTilt.x * 0.25}, ${screenTilt.y * 0.25})`}>
+              <rect width="600" height="280" fill="url(#marsSky)" />
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['the-martian'][1])}
+                aria-label="Martian Sunset Hotspot"
+              >
+                <circle cx="360" cy="135" r={isTriggered('sunset') ? '24' : '16'} fill="#bae6fd" opacity="0.9" />
+                <circle cx="360" cy="135" r={isTriggered('sunset') ? '60' : '42'} fill="#0284c7" opacity="0.3" />
+                {isTacticalHudOn && (
+                  <text x="360" y="80" fill="#bae6fd" fontSize="8" fontFamily="monospace" textAnchor="middle">[BLUE MARTIAN SUNSET]</text>
+                )}
+              </g>
+            </g>
+
+            {/* Depth Layer 2: Rolling Dunes */}
+            <g transform={`translate(${screenTilt.x * 0.65}, ${screenTilt.y * 0.65})`}>
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['the-martian'][3])}
+                aria-label="Acidalia Dunes Hotspot"
+              >
+                <path d="M 0 160 Q 150 145 300 155 T 600 150 L 600 280 L 0 280 Z" fill="#9a3412" />
+                <path d="M 0 185 Q 220 170 420 190 T 600 180 L 600 280 L 0 280 Z" fill="#7c2d12" />
+              </g>
+            </g>
+
+            {/* Depth Layer 3: Foreground Ares III Hab Dome & Pathfinder */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              <path d="M 0 215 Q 180 200 360 220 T 600 210 L 600 280 L 0 280 Z" fill="#431407" />
+
+              {/* Ares III Hab Dome */}
+              <g
+                transform="translate(196, 185)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['the-martian'][2])}
+                aria-label="Ares III Hab Hotspot"
+              >
+                <path d="M -36 0 A 36 28 0 0 1 36 0 Z" fill="#f8fafc" stroke="#64748b" strokeWidth="1.5" />
+                <circle cx="0" cy="-7" r="4" fill="#f97316" />
+                {isTacticalHudOn && (
+                  <text x="0" y="-35" fill="#fdba74" fontSize="8" fontFamily="monospace" textAnchor="middle">[ARES III HAB // SOL 546]</text>
+                )}
+              </g>
+
+              {/* Pathfinder Camera Mast with Hex Ring */}
+              <g
+                transform="translate(420, 195)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['the-martian'][0])}
+                aria-label="Pathfinder Mast Hotspot"
+              >
+                <circle cx="0" cy="0" r="14" fill="none" stroke="#fdba74" strokeWidth="1" strokeDasharray="3 2" className={isTriggered('pathfinder') ? 'spin-ring-upper' : ''} />
+                <line x1="0" y1="0" x2="0" y2="-22" stroke="#ea580c" strokeWidth="2.5" />
+                <circle cx="0" cy="-22" r="4" fill="#fbbf24" />
+                {isTacticalHudOn && (
+                  <g>
+                    <circle cx="0" cy="-11" r="22" fill="none" stroke="#f97316" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                    <text x="0" y="-36" fill="#fed7aa" fontSize="8" fontFamily="monospace" textAnchor="middle">[PATHFINDER 16-HEX]</text>
+                  </g>
+                )}
+              </g>
             </g>
           </svg>
         );
@@ -1197,24 +1707,78 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
               </linearGradient>
             </defs>
-            <rect width="600" height="280" fill="#000000" />
-            {/* Lunar Far Side Rugged Horizon */}
-            <path d="M 0 210 Q 120 190 260 205 Q 400 185 600 200 L 600 280 L 0 280 Z" fill="#1e293b" />
-            <circle cx="140" cy="235" r="18" fill="#0f172a" stroke="#334155" strokeWidth="1" />
-            <circle cx="380" cy="230" r="24" fill="#0f172a" stroke="#334155" strokeWidth="1" />
-            {/* Distant Blue Marble Earth */}
-            <circle cx="480" cy="65" r="16" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
-            <path d="M 470 60 Q 480 55 490 62 Q 484 72 470 60 Z" fill="#ffffff" opacity="0.85" />
-            {/* Apollo 13 CSM & Aquarius docked */}
-            <g transform="translate(240, 100)">
-              {/* Command Module Cone */}
-              <polygon points="0,0 -20,12 -20,-12" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
-              {/* Service Module Cylinder */}
-              <rect x="-56" y="-12" width="36" height="24" fill="#94a3b8" />
-              {/* Lunar Module Aquarius */}
-              <polygon points="0,0 24,14 24,-14" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
-              {/* Venting Oxygen Plume from Sector 4 */}
-              <path d="M -38 -12 C -80 -45 -140 -20 -180 -60" fill="none" stroke="url(#oxygenVapor)" strokeWidth="6" strokeLinecap="round" className={isCinemaPlaying ? 'plume-vent' : ''} />
+
+            {/* Depth Layer 1: Dark Void & Distant Earth */}
+            <g transform={`translate(${screenTilt.x * 0.25}, ${screenTilt.y * 0.25})`}>
+              <rect width="600" height="280" fill="#000000" />
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['apollo-13'][3])}
+                aria-label="Earth Crescent Hotspot"
+              >
+                <circle cx="480" cy="65" r="16" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
+                <path d="M 470 60 Q 480 55 490 62 Q 484 72 470 60 Z" fill="#ffffff" opacity="0.85" />
+                {isTacticalHudOn && (
+                  <text x="480" y="100" fill="#38bdf8" fontSize="8" fontFamily="monospace" textAnchor="middle">[EARTH // 240,000 MI]</text>
+                )}
+              </g>
+            </g>
+
+            {/* Depth Layer 2: Lunar Far Side Horizon */}
+            <g transform={`translate(${screenTilt.x * 0.7}, ${screenTilt.y * 0.7})`}>
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['apollo-13'][2])}
+                aria-label="Lunar Horizon Hotspot"
+              >
+                <path d="M 0 210 Q 120 190 260 205 Q 400 185 600 200 L 600 280 L 0 280 Z" fill="#1e293b" />
+                <circle cx="140" cy="235" r="18" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+                <circle cx="380" cy="230" r="24" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+                {isTacticalHudOn && (
+                  <text x="260" y="245" fill="#94a3b8" fontSize="8" fontFamily="monospace" textAnchor="middle">[LUNAR FAR SIDE FREE-RETURN]</text>
+                )}
+              </g>
+            </g>
+
+            {/* Depth Layer 3: Foreground Apollo 13 Docked Stack */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              <g transform="translate(240, 100)">
+                {/* Cryo Oxygen Vent (Hotspot) */}
+                <g
+                  className="interactive-scene-hotspot"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['apollo-13'][0])}
+                  aria-label="Oxygen Vent Hotspot"
+                >
+                  <path d="M -38 -12 C -80 -45 -140 -20 -180 -60" fill="none" stroke="url(#oxygenVapor)" strokeWidth={isTriggered('vent') ? '10' : '6'} strokeLinecap="round" className={isCinemaPlaying || isTriggered('vent') ? 'plume-vent' : ''} />
+                  {isTacticalHudOn && (
+                    <text x="-110" y="-70" fill="#fca5a5" fontSize="8" fontFamily="monospace" textAnchor="middle">[O2 TANK 2 VENT]</text>
+                  )}
+                </g>
+
+                {/* Command & Service Module */}
+                <polygon points="0,0 -20,12 -20,-12" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+                <rect x="-56" y="-12" width="36" height="24" fill="#94a3b8" />
+
+                {/* Lunar Module Aquarius (Hotspot) */}
+                <g
+                  className="interactive-scene-hotspot"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['apollo-13'][1])}
+                  aria-label="Aquarius Module Hotspot"
+                >
+                  <polygon points="0,0 24,14 24,-14" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+                  {isTacticalHudOn && (
+                    <text x="40" y="-20" fill="#fde68a" fontSize="8" fontFamily="monospace" textAnchor="middle">[LM AQUARIUS]</text>
+                  )}
+                </g>
+              </g>
             </g>
           </svg>
         );
@@ -1229,16 +1793,72 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 <stop offset="100%" stopColor="#021407" />
               </linearGradient>
             </defs>
-            <rect width="600" height="280" fill="url(#alienGlow)" />
-            {/* Giger Biomechanical Derelict Juggernaut Silhouette */}
-            <path d="M 60 170 C 140 100 220 120 300 90 C 380 120 460 100 540 170 L 600 280 L 0 280 Z" fill="#021a0a" stroke="#166534" strokeWidth="2" />
-            {/* Toxic Blue-Green Laser Scan Fan */}
-            <polygon points="300,90 80,260 520,260" fill="#22c55e" fillOpacity="0.12" />
-            <line x1="80" y1="260" x2="520" y2="260" stroke="#4ade80" strokeWidth="2.5" opacity="0.8" className={isCinemaPlaying ? 'scan-fan' : ''} />
-            {/* The Ovomorph Egg in Foreground */}
-            <g transform="translate(300, 205)">
-              <path d="M 0 45 C -24 45 -30 -10 0 -22 C 30 -10 24 45 0 45 Z" fill="#052e16" stroke="#22c55e" strokeWidth="2" />
-              <path d="M -10 -20 Q 0 -10 10 -20" stroke="#86efac" strokeWidth="1.5" fill="none" />
+
+            {/* Depth Layer 1: Atmospheric Storm Void */}
+            <g transform={`translate(${screenTilt.x * 0.25}, ${screenTilt.y * 0.25})`}>
+              <rect width="600" height="280" fill="url(#alienGlow)" />
+            </g>
+
+            {/* Depth Layer 2: Biomechanical Derelict Juggernaut */}
+            <g transform={`translate(${screenTilt.x * 0.7}, ${screenTilt.y * 0.7})`}>
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['alien'][1])}
+                aria-label="Derelict Ship Hotspot"
+              >
+                <path d="M 60 170 C 140 100 220 120 300 90 C 380 120 460 100 540 170 L 600 280 L 0 280 Z" fill="#021a0a" stroke="#166534" strokeWidth="2" />
+                {isTacticalHudOn && (
+                  <text x="300" y="70" fill="#86efac" fontSize="8" fontFamily="monospace" textAnchor="middle">[DERELICT JUGGERNAUT // LV-426]</text>
+                )}
+              </g>
+
+              {/* Laser Scan Fan (Hotspot) */}
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['alien'][2])}
+                aria-label="Laser Fan Mist Hotspot"
+              >
+                <polygon points="300,90 80,260 520,260" fill="#22c55e" fillOpacity="0.12" />
+                <line x1="80" y1="260" x2="520" y2="260" stroke="#4ade80" strokeWidth={isTriggered('scan') ? '5' : '2.5'} opacity="0.8" className={isCinemaPlaying || isTriggered('scan') ? 'scan-fan' : ''} />
+              </g>
+            </g>
+
+            {/* Depth Layer 3: Foreground Ovomorph Egg & Beacon */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              <g
+                transform="translate(300, 205)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['alien'][0])}
+                aria-label="Ovomorph Egg Hotspot"
+              >
+                <path d="M 0 45 C -24 45 -30 -10 0 -22 C 30 -10 24 45 0 45 Z" fill="#052e16" stroke={isTriggered('egg') ? '#4ade80' : '#22c55e'} strokeWidth={isTriggered('egg') ? '3' : '2'} />
+                <path d={isTriggered('egg') ? "M -16 -24 Q 0 -36 16 -24" : "M -10 -20 Q 0 -10 10 -20"} stroke="#86efac" strokeWidth="1.5" fill="none" />
+                {isTacticalHudOn && (
+                  <g>
+                    <circle cx="0" cy="10" r="28" fill="none" stroke="#22c55e" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                    <text x="0" y="-34" fill="#4ade80" fontSize="8" fontFamily="monospace" textAnchor="middle">[OVOMORPH EGG // ORGANISM DETECTED]</text>
+                  </g>
+                )}
+              </g>
+
+              {/* Special Order 937 Terminal Node */}
+              <g
+                transform="translate(80, 70)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['alien'][3])}
+                aria-label="Special Order 937 Hotspot"
+              >
+                <rect x="-30" y="-10" width="60" height="20" rx="3" fill="#021407" stroke="#22c55e" strokeWidth="1" />
+                <text x="0" y="4" fill="#4ade80" fontSize="7" fontFamily="monospace" textAnchor="middle">ORDER 937</text>
+              </g>
             </g>
           </svg>
         );
@@ -1254,26 +1874,88 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 <stop offset="100%" stopColor="#f59e0b" />
               </linearGradient>
             </defs>
-            <rect width="600" height="280" fill="url(#tatooineSky)" />
-            {/* Twin Suns of Tatooine */}
-            <circle cx="340" cy="140" r="32" fill="#fef08a" opacity="0.95" />
-            <circle cx="410" cy="165" r="22" fill="#ef4444" opacity="0.9" />
-            {/* Rolling Sand Dunes */}
-            <path d="M 0 190 Q 200 170 380 195 T 600 185 L 600 280 L 0 280 Z" fill="#78350f" />
-            <path d="M 0 220 Q 260 200 460 225 T 600 215 L 600 280 L 0 280 Z" fill="#451a03" />
-            {/* Vaporator Silhouette */}
-            <g transform="translate(180, 165)">
-              <line x1="0" y1="0" x2="0" y2="40" stroke="#000000" strokeWidth="2.5" />
-              <circle cx="0" cy="8" r="5" fill="#000000" />
-              <line x1="-8" y1="18" x2="8" y2="18" stroke="#000000" strokeWidth="1.5" />
+
+            {/* Depth Layer 1: Sunset Sky & Twin Suns */}
+            <g transform={`translate(${screenTilt.x * 0.25}, ${screenTilt.y * 0.25})`}>
+              <rect width="600" height="280" fill="url(#tatooineSky)" />
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['star-wars'][0])}
+                aria-label="Binary Suns Hotspot"
+              >
+                <circle cx="340" cy="140" r={isTriggered('suns') ? '40' : '32'} fill="#fef08a" opacity="0.95" />
+                <circle cx="410" cy="165" r={isTriggered('suns') ? '28' : '22'} fill="#ef4444" opacity="0.9" />
+                {isTacticalHudOn && (
+                  <text x="375" y="90" fill="#fef08a" fontSize="8" fontFamily="monospace" textAnchor="middle">[TATOOINE BINARY SUNS]</text>
+                )}
+              </g>
             </g>
-            {/* X-Wing Starfighter Streaking Upward */}
-            <g transform="translate(260, 70) rotate(-25)" className={isCinemaPlaying ? 'speed-xwing' : ''}>
-              <polygon points="0,0 -16,6 -16,-6" fill="#f8fafc" stroke="#0284c7" strokeWidth="1" />
-              <line x1="-16" y1="-12" x2="8" y2="-12" stroke="#ef4444" strokeWidth="1.8" />
-              <line x1="-16" y1="12" x2="8" y2="12" stroke="#ef4444" strokeWidth="1.8" />
-              {/* Ion Engine Glow */}
-              <circle cx="-16" cy="0" r="3" fill="#38bdf8" />
+
+            {/* Depth Layer 2: Sand Dunes */}
+            <g transform={`translate(${screenTilt.x * 0.65}, ${screenTilt.y * 0.65})`}>
+              <path d="M 0 190 Q 200 170 380 195 T 600 185 L 600 280 L 0 280 Z" fill="#78350f" />
+              <path d="M 0 220 Q 260 200 460 225 T 600 215 L 600 280 L 0 280 Z" fill="#451a03" />
+
+              {/* Moisture Vaporator */}
+              <g
+                transform="translate(180, 165)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['star-wars'][2])}
+                aria-label="Moisture Vaporator Hotspot"
+              >
+                <line x1="0" y1="0" x2="0" y2="40" stroke="#000000" strokeWidth="2.5" />
+                <circle cx="0" cy="8" r="5" fill="#000000" />
+                <line x1="-8" y1="18" x2="8" y2="18" stroke="#000000" strokeWidth="1.5" />
+                {isTacticalHudOn && (
+                  <text x="0" y="-8" fill="#d97706" fontSize="8" fontFamily="monospace" textAnchor="middle">[VAPORATOR]</text>
+                )}
+              </g>
+            </g>
+
+            {/* Depth Layer 3: Foreground T-65 X-Wing Starfighter */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              <g
+                transform="translate(260, 70) rotate(-25)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['star-wars'][1])}
+                aria-label="X-Wing Starfighter Hotspot"
+              >
+                <polygon points="0,0 -16,6 -16,-6" fill="#f8fafc" stroke="#0284c7" strokeWidth="1" />
+                <line x1="-16" y1="-12" x2="8" y2="-12" stroke="#ef4444" strokeWidth="1.8" />
+                <line x1="-16" y1="12" x2="8" y2="12" stroke="#ef4444" strokeWidth="1.8" />
+                <circle cx="-16" cy="0" r="3" fill="#38bdf8" />
+                {isTriggered('xwing') && (
+                  <g>
+                    <line x1="8" y1="-12" x2="60" y2="-12" stroke="#ef4444" strokeWidth="3" />
+                    <line x1="8" y1="12" x2="60" y2="12" stroke="#ef4444" strokeWidth="3" />
+                  </g>
+                )}
+                {isTacticalHudOn && (
+                  <g>
+                    <circle cx="0" cy="0" r="22" fill="none" stroke="#38bdf8" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                    <text x="0" y="-28" fill="#bae6fd" fontSize="8" fontFamily="monospace" textAnchor="middle">[T-65 X-WING RED FIVE]</text>
+                  </g>
+                )}
+              </g>
+
+              {/* Thermal Exhaust Port Target Reticle */}
+              <g
+                transform="translate(490, 80)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['star-wars'][3])}
+                aria-label="Thermal Exhaust Port Hotspot"
+              >
+                <circle cx="0" cy="0" r="12" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3 3" className="hud-reticle" />
+                <text x="0" y="24" fill="#fca5a5" fontSize="7" fontFamily="monospace" textAnchor="middle">[2M EXHAUST PORT]</text>
+              </g>
             </g>
           </svg>
         );
@@ -1288,29 +1970,80 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 <stop offset="100%" stopColor="#000000" stopOpacity="0" />
               </radialGradient>
             </defs>
-            <rect width="600" height="280" fill="#030712" />
-            <circle cx="280" cy="120" r="140" fill="url(#nebulaDust)" />
-            {/* Distant Starliner Axiom */}
-            <g transform="translate(460, 50)">
-              <rect x="0" y="0" width="70" height="14" rx="7" fill="#1e293b" stroke="#38bdf8" strokeWidth="1" />
-              <circle cx="16" cy="7" r="4" fill="#38bdf8" />
-              <circle cx="50" cy="7" r="4" fill="#eab308" />
+
+            {/* Depth Layer 1: Nebula Dust & Axiom Starliner */}
+            <g transform={`translate(${screenTilt.x * 0.25}, ${screenTilt.y * 0.25})`}>
+              <rect width="600" height="280" fill="#030712" />
+              <circle cx="280" cy="120" r="140" fill="url(#nebulaDust)" />
+              {/* Axiom Starliner */}
+              <g
+                transform="translate(460, 50)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['wall-e'][2])}
+                aria-label="Axiom Starliner Hotspot"
+              >
+                <rect x="0" y="0" width="70" height="14" rx="7" fill="#1e293b" stroke="#38bdf8" strokeWidth="1" />
+                <circle cx="16" cy="7" r="4" fill="#38bdf8" />
+                <circle cx="50" cy="7" r="4" fill="#eab308" />
+                {isTacticalHudOn && (
+                  <text x="35" y="-10" fill="#38bdf8" fontSize="8" fontFamily="monospace" textAnchor="middle">[AXIOM // DIRECTIVE A-113]</text>
+                )}
+              </g>
             </g>
-            {/* WALL-E Floating with Extinguisher Vapor */}
-            <g transform="translate(240, 140)">
-              {/* Fire Extinguisher Vapor Ribbon */}
-              <path d="M 0 0 C -40 20 -80 -20 -140 10" fill="none" stroke="#f1f5f9" strokeWidth="8" strokeLinecap="round" opacity="0.6" className={isCinemaPlaying ? 'vapor-spiral' : ''} />
-              {/* WALL-E Chassis */}
-              <rect x="-14" y="-12" width="28" height="24" rx="3" fill="#ca8a04" stroke="#713f12" strokeWidth="1.5" />
-              {/* Binocular Eyes */}
-              <circle cx="-6" cy="-18" r="6" fill="#475569" stroke="#eab308" strokeWidth="1" />
-              <circle cx="6" cy="-18" r="6" fill="#475569" stroke="#eab308" strokeWidth="1" />
+
+            {/* Depth Layer 2: Fire Extinguisher Vapor Spiral */}
+            <g transform={`translate(${screenTilt.x * 0.7}, ${screenTilt.y * 0.7})`}>
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['wall-e'][3])}
+                aria-label="Vapor Spiral Hotspot"
+              >
+                <path d="M 240 140 C 200 160 160 120 100 150" fill="none" stroke="#f1f5f9" strokeWidth={isTriggered('vapor') ? '12' : '8'} strokeLinecap="round" opacity="0.6" className={isCinemaPlaying || isTriggered('vapor') ? 'vapor-spiral' : ''} />
+              </g>
             </g>
-            {/* EVE Gliding Beside */}
-            <g transform="translate(340, 125)">
-              <ellipse cx="0" cy="0" rx="12" ry="24" fill="#ffffff" stroke="#93c5fd" strokeWidth="1" />
-              <ellipse cx="0" cy="-8" rx="8" ry="6" fill="#0f172a" />
-              <ellipse cx="0" cy="-8" rx="5" ry="3" fill="#38bdf8" />
+
+            {/* Depth Layer 3: Foreground WALL-E and EVE */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              {/* WALL-E */}
+              <g
+                transform="translate(240, 140)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['wall-e'][0])}
+                aria-label="WALL-E Hotspot"
+              >
+                <rect x="-14" y="-12" width="28" height="24" rx="3" fill="#ca8a04" stroke="#713f12" strokeWidth="1.5" />
+                <circle cx="-6" cy="-18" r="6" fill="#475569" stroke="#eab308" strokeWidth="1" />
+                <circle cx="6" cy="-18" r="6" fill="#475569" stroke="#eab308" strokeWidth="1" />
+                {isTacticalHudOn && (
+                  <g>
+                    <circle cx="0" cy="-6" r="22" fill="none" stroke="#eab308" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                    <text x="0" y="-32" fill="#fef08a" fontSize="8" fontFamily="monospace" textAnchor="middle">[WALL-E // 100% SOLAR]</text>
+                  </g>
+                )}
+              </g>
+
+              {/* EVE */}
+              <g
+                transform="translate(340, 125)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['wall-e'][1])}
+                aria-label="EVE Hotspot"
+              >
+                <ellipse cx="0" cy="0" rx="12" ry="24" fill="#ffffff" stroke="#93c5fd" strokeWidth="1" />
+                <ellipse cx="0" cy="-8" rx="8" ry="6" fill="#0f172a" />
+                <ellipse cx="0" cy="-8" rx="5" ry="3" fill={isTriggered('eve') ? '#22c55e' : '#38bdf8'} />
+                {isTacticalHudOn && (
+                  <text x="0" y="-28" fill="#bae6fd" fontSize="8" fontFamily="monospace" textAnchor="middle">[EVE // DIRECTIVE: PLANT]</text>
+                )}
+              </g>
             </g>
           </svg>
         );
@@ -1325,23 +2058,83 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
                 <stop offset="100%" stopColor="#020617" />
               </linearGradient>
             </defs>
-            <rect width="600" height="280" fill="url(#aliensStorm)" />
-            {/* Atmospheric Processing Tower Silhouette */}
-            <polygon points="120,40 150,220 90,220" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            <polygon points="460,30 500,220 420,220" fill="#0f172a" stroke="#334155" strokeWidth="2" />
-            {/* Industrial Gantry Steel Truss */}
-            <line x1="0" y1="210" x2="600" y2="210" stroke="#475569" strokeWidth="4" />
-            {/* Halogen Searchlight Cones cutting through mist */}
-            <polygon points="260,140 120,260 380,260" fill="#fef08a" fillOpacity="0.16" />
-            {/* Caterpillar P-5000 Industrial Yellow Power Loader */}
-            <g transform="translate(260, 160)">
-              <rect x="-16" y="-20" width="32" height="40" fill="#eab308" stroke="#713f12" strokeWidth="2" />
-              {/* Hydraulic Forklift Claws */}
-              <path d="M -22 -10 Q -36 0 -22 15" fill="none" stroke="#ca8a04" strokeWidth="4" strokeLinecap="round" />
-              <path d="M 22 -10 Q 36 0 22 15" fill="none" stroke="#ca8a04" strokeWidth="4" strokeLinecap="round" />
+
+            {/* Depth Layer 1: Storm Sky & Atmosphere Tower */}
+            <g transform={`translate(${screenTilt.x * 0.25}, ${screenTilt.y * 0.25})`}>
+              <rect width="600" height="280" fill="url(#aliensStorm)" />
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['aliens'][2])}
+                aria-label="Atmosphere Processor Hotspot"
+              >
+                <polygon points="120,40 150,220 90,220" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+                <polygon points="460,30 500,220 420,220" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+                {isTacticalHudOn && (
+                  <text x="120" y="30" fill="#94a3b8" fontSize="8" fontFamily="monospace" textAnchor="middle">[HADLEY'S HOPE PROCESSOR]</text>
+                )}
+              </g>
             </g>
-            {/* Looming Queen Silhouette in Steam */}
-            <path d="M 400 130 C 420 80 470 90 490 120 C 470 140 430 170 410 210 Z" fill="#000000" opacity="0.85" />
+
+            {/* Depth Layer 2: Gantry Steel & Searchlights */}
+            <g transform={`translate(${screenTilt.x * 0.7}, ${screenTilt.y * 0.7})`}>
+              <line x1="0" y1="210" x2="600" y2="210" stroke="#475569" strokeWidth="4" />
+              <polygon points="260,140 120,260 380,260" fill="#fef08a" fillOpacity="0.16" />
+
+              {/* Alien Queen Silhouette (Hotspot) */}
+              <g
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['aliens'][1])}
+                aria-label="Alien Queen Hotspot"
+              >
+                <path d="M 400 130 C 420 80 470 90 490 120 C 470 140 430 170 410 210 Z" fill="#000000" opacity="0.9" />
+                {isTacticalHudOn && (
+                  <g>
+                    <circle cx="445" cy="140" r="34" fill="none" stroke="#e11d48" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                    <text x="445" y="70" fill="#fda4af" fontSize="8" fontFamily="monospace" textAnchor="middle">[ALIEN QUEEN]</text>
+                  </g>
+                )}
+              </g>
+            </g>
+
+            {/* Depth Layer 3: Foreground Power Loader & Pulse Rifle HUD */}
+            <g transform={`translate(${screenTilt.x * 1.3}, ${screenTilt.y * 1.3})`}>
+              {/* Caterpillar P-5000 Power Loader (Hotspot) */}
+              <g
+                transform="translate(260, 160)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['aliens'][0])}
+                aria-label="Power Loader Hotspot"
+              >
+                <rect x="-16" y="-20" width="32" height="40" fill="#eab308" stroke="#713f12" strokeWidth="2" />
+                <path d={isTriggered('loader') ? "M -22 -10 Q -40 0 -22 8" : "M -22 -10 Q -36 0 -22 15"} fill="none" stroke="#ca8a04" strokeWidth="4" strokeLinecap="round" />
+                <path d={isTriggered('loader') ? "M 22 -10 Q 40 0 22 8" : "M 22 -10 Q 36 0 22 15"} fill="none" stroke="#ca8a04" strokeWidth="4" strokeLinecap="round" />
+                {isTacticalHudOn && (
+                  <g>
+                    <circle cx="0" cy="0" r="30" fill="none" stroke="#eab308" strokeWidth="1" strokeDasharray="3 3" className="hud-reticle" />
+                    <text x="0" y="-30" fill="#fde047" fontSize="8" fontFamily="monospace" textAnchor="middle">[P-5000 POWER LOADER]</text>
+                  </g>
+                )}
+              </g>
+
+              {/* M41A Pulse Rifle Hotspot */}
+              <g
+                transform="translate(80, 240)"
+                className="interactive-scene-hotspot"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleTriggerHotspot(SCENE_HOTSPOTS['aliens'][3])}
+                aria-label="Pulse Rifle Hotspot"
+              >
+                <rect x="-35" y="-12" width="70" height="24" rx="3" fill="#140507" stroke="#e11d48" strokeWidth="1" />
+                <text x="0" y="4" fill="#fb7185" fontSize="8" fontFamily="monospace" textAnchor="middle">M41A AMMO: 95</text>
+              </g>
+            </g>
           </svg>
         );
 
@@ -1352,7 +2145,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
 
   return (
     <div
-      className={`cinema-terminal ${isAmbilightOn ? 'ambilight-active' : ''}`}
+      className={`cinema-terminal ${isAmbilightOn ? 'ambilight-active' : ''} ${isTheaterExpanded ? 'theater-expanded' : ''}`}
       id="cosmic-cinema-terminal"
       style={{ '--active-movie-color': activeSignal.themeColor } as React.CSSProperties}
     >
@@ -1377,6 +2170,22 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           <button
             type="button"
             className="screen-control-btn"
+            onClick={() => setIsTheaterExpanded(!isTheaterExpanded)}
+            aria-label="Toggle wide theater stage"
+          >
+            <span>{isTheaterExpanded ? 'VIEW: COMPACT' : 'VIEW: WIDE THEATER'}</span>
+          </button>
+          <button
+            type="button"
+            className="screen-control-btn"
+            onClick={() => setIsTacticalHudOn(!isTacticalHudOn)}
+            aria-label="Toggle tactical HUD reticles"
+          >
+            <span>{isTacticalHudOn ? 'HUD: TACTICAL' : 'HUD: CLEAN'}</span>
+          </button>
+          <button
+            type="button"
+            className="screen-control-btn"
             onClick={() => setIsAmbilightOn(!isAmbilightOn)}
             aria-label="Toggle theatrical Ambilight illumination"
           >
@@ -1397,7 +2206,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
       {/* Intro Description */}
       <div className="terminal-intro">
         <p>
-          Tune your deep-space radio telescope into the transmissions of space cinema history. Interact with the floating 3D holographic mini movie screen, explore authentic simulation consoles, study 54 curated visual motifs and props, and decrypt classified Easter eggs.
+          Tune your deep-space radio telescope into the transmissions of space cinema history. Hover and explore the 3D floating holographic mini movie screen with real-time parallax depth, interact with clickable hotspots inside every scene, study 54 curated visual motifs and props, and decrypt classified Easter eggs.
         </p>
       </div>
 
@@ -1508,7 +2317,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
               }}
             />
 
-            {/* Scanline CRT overlay when fx-hologram or fx-grain is active */}
+            {/* Scanline CRT overlay */}
             {displayFx === 'hologram' && <div className="hologram-scanlines" />}
             {displayFx === 'grain' && <div className="film-grain-overlay" />}
 
@@ -1531,6 +2340,55 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           <div className="holo-deck-shadow" />
         </div>
 
+        {/* Optical Telemetry & Tactical Scanner Console (Interactive Hotspot Details) */}
+        <div className="optical-telemetry-console" style={{ borderColor: `${activeSignal.themeColor}55` }}>
+          <div className="console-hud-top">
+            <div className="hud-badge-group">
+              <span className="hud-status-dot" style={{ background: activeSignal.themeColor, boxShadow: `0 0 8px ${activeSignal.themeColor}` }} />
+              <span className="hud-status-label">OPTICAL TELEMETRY SCANNER</span>
+              <span className="hud-active-target">TARGET: {activeHotspot.label}</span>
+            </div>
+            <button
+              type="button"
+              className="action-trigger-btn"
+              style={{ background: activeSignal.themeColor, color: '#000000' }}
+              onClick={() => handleTriggerHotspot(activeHotspot)}
+            >
+              &#9654; {activeHotspot.actionLabel}
+            </button>
+          </div>
+
+          <div className="telemetry-readout-grid">
+            <div className="readout-card">
+              <span className="readout-label">ASTRODYNAMICS / SCI-FI TELEMETRY:</span>
+              <p className="readout-val">{activeHotspot.techSpec}</p>
+            </div>
+            <div className="readout-card">
+              <span className="readout-label">PRODUCTION LORE & CINEMA TRIVIA:</span>
+              <p className="readout-val">{activeHotspot.trivia}</p>
+            </div>
+          </div>
+
+          {/* Quick Select Hotspot Pills */}
+          <div className="hotspot-nav-pills">
+            <span className="pills-label">INTERACTIVE HOTSPOTS:</span>
+            {currentHotspots.map((h) => {
+              const isSelected = activeHotspot.id === h.id;
+              return (
+                <button
+                  key={h.id}
+                  type="button"
+                  className={`hotspot-pill-btn ${isSelected ? 'active' : ''}`}
+                  style={{ '--hotspot-color': activeSignal.themeColor } as React.CSSProperties}
+                  onClick={() => handleTriggerHotspot(h)}
+                >
+                  &#9670; {h.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Scene Narrative Caption */}
         <div className="scene-narrative-bar">
           <p className="scene-narrative-text">{activeSignal.sceneDescription}</p>
@@ -1539,444 +2397,97 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
 
       {/* Active Signal Telemetry Display */}
       <div className="signal-telemetry-card" id={`panel-${activeSignal.id}`} role="tabpanel">
-        <div className="telemetry-grid">
-          {/* Left Column: Interactive Simulation Console */}
-          <div className="telemetry-console-pane">
-            <div className="console-card-header">
-              <span className="console-pill" style={{ borderColor: activeSignal.themeColor, color: activeSignal.themeColor }}>
-                INTERACTIVE CONSOLE
-              </span>
-              <span className="console-callsign">{activeSignal.callSign}</span>
-            </div>
+        <div className="telemetry-content-layout">
+          {/* Iconic Dialogue Banner */}
+          <div className="quote-box" style={{ borderLeftColor: activeSignal.themeColor }}>
+            <div className="quote-label">TRANSMISSION DIALOGUE:</div>
+            <p className="quote-text">"{activeSignal.quote}"</p>
+            <div className="quote-speaker">&mdash; {activeSignal.speaker}</div>
+          </div>
 
-            {/* Custom Interactive Hands-On Simulation per Movie */}
-            <div className="interactive-minigame-box" style={{ borderColor: `${activeSignal.themeColor}55` }}>
-              {/* 1. 2001: A Space Odyssey -> HAL 9000 Disconnection */}
-              {activeSignal.id === 'odyssey-2001' && (
-                <div className="game-hal">
-                  <div className="hal-lens-wrap">
-                    <div
-                      className="hal-red-eye"
-                      style={{
-                        opacity: halCores.length === 0 ? 0.1 : 0.25 + halCores.length * 0.2,
-                        filter: `drop-shadow(0 0 ${halCores.length * 5}px #ef4444)`,
-                      }}
-                    />
-                  </div>
-                  <div className="game-title">HAL 9000 MEMORY LOGIC DISCONNECT</div>
-                  <p className="game-desc">
-                    {halCores.length > 2
-                      ? '"I am putting myself to the fullest possible use, Dave."'
-                      : halCores.length > 0
-                      ? '"My mind is going, Dave... I can feel it... Daisy, Daisy..."'
-                      : '"[LOGIC DECOUPLED // SYSTEM PURGED]"'}
-                  </p>
-                  <div className="hal-cores-grid">
-                    {['HEURISTIC CORE', 'LINGUISTIC MATRIX', 'COGNITIVE WILL', 'SENTIENCE BUFFER'].map((core) => {
-                      const isConnected = halCores.includes(core);
-                      return (
-                        <button
-                          key={core}
-                          type="button"
-                          className={`core-btn ${isConnected ? 'connected' : 'ejected'}`}
-                          onClick={() => (isConnected ? disconnectHalCore(core) : rebootHal())}
-                        >
-                          {isConnected ? `[EJECT ${core}]` : `[RESTORED]`}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {halCores.length < 4 && (
-                    <button type="button" className="action-reset-btn" onClick={rebootHal}>
-                      RESTORE ALL HAL 9000 CORES
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* 2. Interstellar -> TARS Personality & Watch Morse */}
-              {activeSignal.id === 'interstellar' && (
-                <div className="game-tars">
-                  <div className="game-title">TARS PERSONALITY & GRAVITY COMM</div>
-                  <div className="slider-group">
-                    <label className="slider-label">
-                      <span>TARS HUMOR LEVEL:</span>
-                      <strong className="slider-val">{tarsHumor}%</strong>
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={tarsHumor}
-                      onChange={(e) => {
-                        setTarsHumor(Number(e.target.value));
-                        audio.playRadioChirp(500 + Number(e.target.value) * 5);
-                      }}
-                      className="tars-slider"
-                    />
-                  </div>
-
-                  <div className="slider-group">
-                    <label className="slider-label">
-                      <span>TARS HONESTY LEVEL:</span>
-                      <strong className="slider-val">{tarsHonesty}%</strong>
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={tarsHonesty}
-                      onChange={(e) => {
-                        setTarsHonesty(Number(e.target.value));
-                        audio.playRadioChirp(400 + Number(e.target.value) * 4);
-                      }}
-                      className="tars-slider"
-                    />
-                  </div>
-
-                  <div className="tars-dialogue-output">
-                    {tarsHumor < 30
-                      ? 'TARS: "Affirmative, Cooper. Calculations nominal."'
-                      : tarsHumor < 70
-                      ? 'TARS: "That is scientifically feasible, but statistically ill-advised."'
-                      : 'TARS: "Cooper, I have a cue light I can switch on when I am joking, if that helps you."'}
-                  </div>
-
-                  <div className="watch-morse-section">
-                    <button type="button" className="morse-tap-btn" onClick={tapCooperWatch}>
-                      TAP COOPER WRISTWATCH (MORSE TRANSMISSION)
-                    </button>
-                    <div className="morse-stream">
-                      <span>STREAM: </span>
-                      {morseLogs.map((l, i) => (
-                        <span key={i} className="morse-char">{l}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 3. Gravity -> Zero-G Floating Pen & Kessler Alert */}
-              {activeSignal.id === 'gravity' && (
-                <div className="game-gravity">
-                  <div className="game-title">ZERO-G FLOAT & ORBITAL DEBRIS</div>
-                  <div className="pen-stage" onClick={nudgeZeroGPen}>
-                    <div
-                      className="floating-pen"
-                      style={{
-                        transform: `rotate(${penAngle}deg) translateY(${Math.sin(penAngle) * 8}px)`,
-                      }}
-                    >
-                      <div className="pen-body" />
-                      <div className="pen-tip" />
-                    </div>
-                    <div className="pen-prompt">CLICK TO NUDGE ZERO-G PEN (HOMAGE TO 2001)</div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className={`kessler-btn ${kesslerAlert ? 'alert-active' : ''}`}
-                    onClick={triggerKessler}
-                  >
-                    {kesslerAlert ? 'WARNING: KESSLER CASCADE IN PROGRESS (28,000 KM/H)' : 'SIMULATE KESSLER SATELLITE STRIKE'}
-                  </button>
-                  {kesslerAlert && (
-                    <div className="kessler-alert-box">
-                      DEBRIS SHIELD BREACHED // EXPLORER ABORT EVA // SHENZHOU RE-ENTRY BURN REQUIRED
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 4. The Martian -> Pathfinder 16-Hex Transceiver */}
-              {activeSignal.id === 'the-martian' && (
-                <div className="game-martian">
-                  <div className="game-title">PATHFINDER 16-HEX DIAL (SOL 546)</div>
-                  <div className="pathfinder-dial-wrap">
-                    <div className="pathfinder-camera-pointer" style={{ transform: `rotate(${pathfinderDeg}deg)` }}>
-                      <div className="pointer-arrow" />
-                    </div>
-                    <div className="hex-center-info">{activeHexChar}</div>
-                  </div>
-                  <p className="hex-prompt">Click hexadecimal card to rotate camera mast:</p>
-                  <div className="hex-btn-grid">
-                    {['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'].map((h, i) => (
-                      <button
-                        key={h}
-                        type="button"
-                        className={`hex-cell-btn ${activeHexChar === h ? 'active' : ''}`}
-                        onClick={() => turnPathfinder(i * 22.5, h)}
-                      >
-                        {h}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="quick-spell-row">
-                    <button type="button" className="spell-btn" onClick={() => turnPathfinder(112.5, '5')}>
-                      SPELL: "SCIENCE"
-                    </button>
-                    <button type="button" className="spell-btn" onClick={() => turnPathfinder(225, 'A')}>
-                      SPELL: "POTATO"
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* 5. Apollo 13 -> Square Peg in Round Hole Adapter */}
-              {activeSignal.id === 'apollo-13' && (
-                <div className="game-apollo">
-                  <div className="game-title">SQUARE PEG IN ROUND HOLE (CO2 SCRUBBER)</div>
-                  <div className={`co2-gauge ${isScrubberComplete ? 'nominal' : 'danger'}`}>
-                    <span>CO2 CONCENTRATION:</span>
-                    <strong>{isScrubberComplete ? '2.4 mmHg (NOMINAL)' : '18.5 mmHg (CRITICAL DANGER)'}</strong>
-                  </div>
-                  <p className="game-desc">Assemble improvised adapter using Apollo 13 items:</p>
-                  <div className="scrubber-items-grid">
-                    {[
-                      { key: 'canister', label: '1. SQUARE LIOH CANISTER' },
-                      { key: 'cardboard', label: '2. FLIGHT MANUAL COVER' },
-                      { key: 'plasticBag', label: '3. PLASTIC SUIT BAG' },
-                      { key: 'ductTape', label: '4. GREY DUCT TAPE SEAL' },
-                    ].map((it) => (
-                      <button
-                        key={it.key}
-                        type="button"
-                        className={`tool-btn ${scrubberItems[it.key] ? 'installed' : ''}`}
-                        onClick={() => toggleScrubberItem(it.key)}
-                      >
-                        {scrubberItems[it.key] ? `✓ ${it.label}` : `+ FIT ${it.label}`}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="scrubber-status">
-                    {isScrubberComplete
-                      ? 'KRANZ WHITE TEAM: "That\'ll buy them enough time to reach the Pacific splashdown!"'
-                      : 'WARNING: Lithium hydroxide canisters saturating. Improvisation required.'}
-                  </div>
-                </div>
-              )}
-
-              {/* 6. Alien -> MU-TH-UR 6000 CRT Console */}
-              {activeSignal.id === 'alien' && (
-                <div className="game-alien">
-                  <div className="game-title">MU-TH-UR 6000 CRT TERMINAL</div>
-                  <div className="crt-screen">
-                    <pre className="crt-text">{crtOutput}</pre>
-                  </div>
-                  <div className="crt-queries-grid">
-                    <button
-                      type="button"
-                      className="query-btn"
-                      onClick={() =>
-                        queryMother(
-                          'SPECIAL ORDER 937',
-                          'PRIORITY ONE: INSURE RETURN OF ORGANISM FOR ANALYSIS. ALL OTHER CONSIDERATIONS SECONDARY. CREW EXPENDABLE.'
-                        )
-                      }
-                    >
-                      QUERY: ORDER 937
-                    </button>
-                    <button
-                      type="button"
-                      className="query-btn"
-                      onClick={() =>
-                        queryMother(
-                          'CREW STATUS',
-                          'EXECUTIVE OFFICER KANE EXPERIENCED HOSTILE EMBRYONIC CHEST-BURST. DR. ASH CLASSIFIED SYNTHETIC INFILTRATOR.'
-                        )
-                      }
-                    >
-                      QUERY: CREW STATUS
-                    </button>
-                    <button
-                      type="button"
-                      className="query-btn"
-                      onClick={() =>
-                        queryMother(
-                          'JONESY CAT',
-                          'GINGER FELINE DETECTED ON DECK B. AVOID XENOMORPH HIVE AMBUSH IN VENTILATION SYSTEM.'
-                        )
-                      }
-                    >
-                      QUERY: JONESY CAT
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* 7. Star Wars -> Trench Run Targeting Computer */}
-              {activeSignal.id === 'star-wars' && (
-                <div className="game-starwars">
-                  <div className="game-title">DEATH STAR TRENCH TARGETING HUD</div>
-                  <div className="trench-hud">
-                    <div className="trench-wireframe" />
-                    <div className={`crosshair ${useTheForce ? 'force-mode' : 'computer-mode'}`} />
-                    <div className="exhaust-port-target">2M EXHAUST PORT</div>
-                  </div>
-                  <div className="trench-controls">
-                    <button
-                      type="button"
-                      className={`toggle-force-btn ${useTheForce ? 'active' : ''}`}
-                      onClick={() => {
-                        setUseTheForce(!useTheForce);
-                        audio.playRadioChirp(880);
-                      }}
-                    >
-                      {useTheForce ? 'TARGETING COMPUTER: DISENGAGED (USE THE FORCE)' : 'TARGETING COMPUTER: ACTIVE'}
-                    </button>
-                    <button type="button" className="fire-torpedo-btn" onClick={fireTorpedo}>
-                      FIRE PROTON TORPEDO
-                    </button>
-                  </div>
-                  {torpedoStatus && <div className="torpedo-result">{torpedoStatus}</div>}
-                </div>
-              )}
-
-              {/* 8. WALL-E -> Solar Recharge & Directive A-113 */}
-              {activeSignal.id === 'wall-e' && (
-                <div className="game-walle">
-                  <div className="game-title">AXIOM DIRECTIVE & SOLAR CHARGER</div>
-                  <div className="solar-gauge-wrap">
-                    <div className="solar-label-row">
-                      <span>SOLAR BATTERY CAPACITY:</span>
-                      <strong>{solarPercent}%</strong>
-                    </div>
-                    <div className="solar-bar-track">
-                      <div className="solar-bar-fill" style={{ width: `${solarPercent}%` }} />
-                    </div>
-                  </div>
-                  <button type="button" className="charge-btn" onClick={rechargeSolar}>
-                    EXPOSE SOLAR PANELS (MAC STARTUP CHIME)
-                  </button>
-                  <div className="walle-auto-alert">
-                    AUTO STATUS: DIRECTIVE A-113 ACTIVATED // DO NOT RETURN TO EARTH
-                  </div>
-                </div>
-              )}
-
-              {/* 9. Aliens -> M41A Pulse Rifle & Bishop Knife Trick */}
-              {activeSignal.id === 'aliens' && (
-                <div className="game-aliens">
-                  <div className="game-title">M41A PULSE RIFLE (10MM CASELESS)</div>
-                  <div className="ammo-counter-display">
-                    <span className="ammo-label">AMMO:</span>
-                    <span className="ammo-digits">{pulseAmmo < 10 ? `0${pulseAmmo}` : pulseAmmo}</span>
-                  </div>
-                  <div className="aliens-actions-row">
-                    <button type="button" className="fire-burst-btn" onClick={firePulseRifle}>
-                      FIRE 3-ROUND BURST
-                    </button>
-                    <button type="button" className="reload-btn" onClick={reloadPulseRifle}>
-                      TACTICAL RELOAD (95)
-                    </button>
-                  </div>
-                  <button type="button" className="bishop-btn" onClick={doBishopKnifeTrick}>
-                    BISHOP KNIFE TRICK (SPEED: {bishopSpeed === 0 ? 'NOMINAL' : `${bishopSpeed}X FAST`})
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Metadata Footer */}
-            <div className="console-meta-footer">
-              <div>DIR: {activeSignal.director.toUpperCase()} ({activeSignal.year})</div>
-              <div className="console-tag" style={{ color: activeSignal.themeColor }}>{activeSignal.tag}</div>
+          {/* Motifs & Search Header */}
+          <div className="motifs-header-row">
+            <h4 className="motifs-heading">ICONIC REFERENCES, MOTIFS & PROPS ({filteredMotifs.length})</h4>
+            <div className="search-wrap">
+              <input
+                type="text"
+                placeholder="Filter motifs (e.g. pen, watch, cat)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="motif-search-input"
+                aria-label="Filter motifs by keyword"
+              />
             </div>
           </div>
 
-          {/* Right Column: Dialogue, Motifs & Classified Easter Eggs */}
-          <div className="telemetry-data-pane">
-            {/* Iconic Dialogue Banner */}
-            <div className="quote-box" style={{ borderLeftColor: activeSignal.themeColor }}>
-              <div className="quote-label">TRANSMISSION DIALOGUE:</div>
-              <p className="quote-text">"{activeSignal.quote}"</p>
-              <div className="quote-speaker">&mdash; {activeSignal.speaker}</div>
-            </div>
-
-            {/* Motifs & Search Header */}
-            <div className="motifs-header-row">
-              <h4 className="motifs-heading">ICONIC REFERENCES, MOTIFS & PROPS ({filteredMotifs.length})</h4>
-              <div className="search-wrap">
-                <input
-                  type="text"
-                  placeholder="Filter motifs (e.g. pen, watch, cat)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="motif-search-input"
-                  aria-label="Filter motifs by keyword"
-                />
-              </div>
-            </div>
-
-            {/* Category Filter Tabs */}
-            <div className="motif-filter-tabs">
-              {(['ALL', 'Prop', 'Visual Motif', 'Dialogue', 'Easter Egg', 'Character / AI'] as const).map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`motif-filter-pill ${selectedCategory === cat ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {/* Motifs Grid */}
-            <div className="motifs-grid">
-              {filteredMotifs.map((motif, idx) => (
-                <div key={idx} className="motif-card">
-                  <div className="motif-card-header">
-                    <span className="motif-name">{motif.name}</span>
-                    <span className="motif-badge" style={{ borderColor: activeSignal.themeColor, color: activeSignal.themeColor }}>
-                      {motif.category}
-                    </span>
-                  </div>
-                  <p className="motif-desc">{motif.description}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Astrodynamics & Science Lore */}
-            <div className="lore-box">
-              <div className="lore-label">ASTROPHYSICS & PRODUCTION LORE:</div>
-              <p className="lore-text">{activeSignal.astrodynamicsNote}</p>
-            </div>
-
-            {/* Classified Easter Egg Decryptor */}
-            <div className="decrypt-section">
+          {/* Category Filter Tabs */}
+          <div className="motif-filter-tabs">
+            {(['ALL', 'Prop', 'Visual Motif', 'Dialogue', 'Easter Egg', 'Character / AI'] as const).map((cat) => (
               <button
+                key={cat}
                 type="button"
-                className="decrypt-btn"
-                style={{ borderColor: activeSignal.themeColor }}
-                onClick={() => handleDecrypt(activeSignal.id)}
+                className={`motif-filter-pill ${selectedCategory === cat ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat)}
               >
-                <span className="decrypt-radar-icon" aria-hidden="true">&#10022;</span>
-                <span>
-                  {decryptedSignals[activeSignal.id] ? 'RE-ENCRYPT CLASSIFIED LOG' : 'DECRYPT CLASSIFIED EASTER EGG'}
-                </span>
-                <span className="decrypt-code">{activeSignal.classifiedEasterEgg.clearanceCode}</span>
+                {cat}
               </button>
+            ))}
+          </div>
 
-              {decryptedSignals[activeSignal.id] && (
-                <div className="decrypted-log-panel" style={{ borderColor: activeSignal.themeColor }}>
-                  <div className="decrypted-header">
-                    <span className="badge-name">{activeSignal.classifiedEasterEgg.badgeName}</span>
-                    <button
-                      type="button"
-                      className="copy-btn"
-                      onClick={() => handleCopySecret(activeSignal.classifiedEasterEgg.secretLog, activeSignal.id)}
-                    >
-                      {copiedId === activeSignal.id ? '&#10003; COPIED TO CLIPBOARD' : 'COPY TRANSMISSION'}
-                    </button>
-                  </div>
-                  <div className="decrypted-title">{activeSignal.classifiedEasterEgg.title}</div>
-                  <blockquote className="decrypted-body">
-                    {activeSignal.classifiedEasterEgg.secretLog}
-                  </blockquote>
+          {/* Motifs Grid */}
+          <div className="motifs-grid">
+            {filteredMotifs.map((motif, idx) => (
+              <div key={idx} className="motif-card">
+                <div className="motif-card-header">
+                  <span className="motif-name">{motif.name}</span>
+                  <span className="motif-badge" style={{ borderColor: activeSignal.themeColor, color: activeSignal.themeColor }}>
+                    {motif.category}
+                  </span>
                 </div>
-              )}
-            </div>
+                <p className="motif-desc">{motif.description}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Astrodynamics & Science Lore */}
+          <div className="lore-box">
+            <div className="lore-label">ASTROPHYSICS & PRODUCTION LORE:</div>
+            <p className="lore-text">{activeSignal.astrodynamicsNote}</p>
+          </div>
+
+          {/* Classified Easter Egg Decryptor */}
+          <div className="decrypt-section">
+            <button
+              type="button"
+              className="decrypt-btn"
+              style={{ borderColor: activeSignal.themeColor }}
+              onClick={() => handleDecrypt(activeSignal.id)}
+            >
+              <span className="decrypt-radar-icon" aria-hidden="true">&#10022;</span>
+              <span>
+                {decryptedSignals[activeSignal.id] ? 'RE-ENCRYPT CLASSIFIED LOG' : 'DECRYPT CLASSIFIED EASTER EGG'}
+              </span>
+              <span className="decrypt-code">{activeSignal.classifiedEasterEgg.clearanceCode}</span>
+            </button>
+
+            {decryptedSignals[activeSignal.id] && (
+              <div className="decrypted-log-panel" style={{ borderColor: activeSignal.themeColor }}>
+                <div className="decrypted-header">
+                  <span className="badge-name">{activeSignal.classifiedEasterEgg.badgeName}</span>
+                  <button
+                    type="button"
+                    className="copy-btn"
+                    onClick={() => handleCopySecret(activeSignal.classifiedEasterEgg.secretLog, activeSignal.id)}
+                  >
+                    {copiedId === activeSignal.id ? '&#10003; COPIED TO CLIPBOARD' : 'COPY TRANSMISSION'}
+                  </button>
+                </div>
+                <div className="decrypted-title">{activeSignal.classifiedEasterEgg.title}</div>
+                <blockquote className="decrypted-body">
+                  {activeSignal.classifiedEasterEgg.secretLog}
+                </blockquote>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -2375,7 +2886,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
         /* 3D Levitation Stage */
         .holo-levitation-stage {
           position: relative;
-          min-height: 280px;
+          min-height: 290px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -2386,8 +2897,12 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
 
         @media (min-width: 768px) {
           .holo-levitation-stage {
-            min-height: 340px;
+            min-height: 350px;
           }
+        }
+
+        .theater-expanded .floating-cinema-screen {
+          max-width: 1000px;
         }
 
         .volumetric-beam-cone {
@@ -2409,15 +2924,15 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
 
         /* The Floating Screen */
         .floating-cinema-screen {
-          width: 92%;
-          max-width: 780px;
+          width: 95%;
+          max-width: 820px;
           border-radius: 12px;
           border: 2px solid;
           background: #020617;
           position: relative;
           overflow: hidden;
           z-index: 2;
-          transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+          transition: transform 0.15s ease-out, box-shadow 0.3s ease, max-width 0.4s ease;
           animation: holoFloat 5s infinite ease-in-out;
           transform-style: preserve-3d;
         }
@@ -2472,6 +2987,26 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           width: 100%;
           height: 100%;
           display: block;
+        }
+
+        /* Interactive Hotspots within SVG */
+        .interactive-scene-hotspot {
+          cursor: pointer;
+          transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .interactive-scene-hotspot:hover {
+          filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+        }
+
+        .hud-reticle {
+          animation: reticleSpin 8s infinite linear;
+          transform-origin: center;
+        }
+
+        @keyframes reticleSpin {
+          0% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: 24; }
         }
 
         .specular-glass-glare {
@@ -2592,6 +3127,155 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           50% { transform: scale(0.85); opacity: 0.35; }
         }
 
+        /* Optical Telemetry Console (Directly Below Screen) */
+        .optical-telemetry-console {
+          background: color-mix(in srgb, var(--void) 90%, transparent);
+          border: 1px solid;
+          border-radius: var(--radius-md);
+          padding: var(--space-md);
+          margin-top: var(--space-sm);
+          margin-bottom: var(--space-sm);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .console-hud-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: 0.75rem;
+          border-bottom: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
+          padding-bottom: 0.5rem;
+        }
+
+        .hud-badge-group {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+        }
+
+        .hud-status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+
+        .hud-status-label {
+          color: var(--sol-dust);
+          letter-spacing: 0.08em;
+        }
+
+        .hud-active-target {
+          font-weight: 700;
+          color: var(--moon);
+          background: color-mix(in srgb, var(--steel) 20%, transparent);
+          padding: 0.15rem 0.5rem;
+          border-radius: 4px;
+        }
+
+        .action-trigger-btn {
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 0.35rem 0.85rem;
+          border-radius: 4px;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          letter-spacing: 0.04em;
+        }
+
+        .action-trigger-btn:hover {
+          transform: translateY(-1px);
+          filter: brightness(1.2);
+        }
+
+        .action-trigger-btn:active {
+          transform: translateY(0);
+        }
+
+        .telemetry-readout-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
+          margin-bottom: 0.75rem;
+        }
+
+        @media (min-width: 768px) {
+          .telemetry-readout-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        .readout-card {
+          background: color-mix(in srgb, var(--navy) 40%, var(--void));
+          border: 1px solid color-mix(in srgb, var(--steel) 25%, transparent);
+          border-radius: var(--radius-sm);
+          padding: 0.65rem 0.85rem;
+        }
+
+        .readout-label {
+          display: block;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          letter-spacing: 0.08em;
+          color: var(--orbit);
+          margin-bottom: 0.25rem;
+        }
+
+        .readout-val {
+          font-family: var(--font-body);
+          font-size: 0.8125rem;
+          line-height: 1.45;
+          color: var(--star);
+          margin: 0;
+        }
+
+        /* Hotspot Navigation Pills */
+        .hotspot-nav-pills {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          flex-wrap: wrap;
+          padding-top: 0.5rem;
+          border-top: 1px solid color-mix(in srgb, var(--steel) 15%, transparent);
+        }
+
+        .pills-label {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          color: var(--sol-dust);
+          letter-spacing: 0.06em;
+          margin-right: 0.25rem;
+        }
+
+        .hotspot-pill-btn {
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          padding: 0.25rem 0.6rem;
+          background: color-mix(in srgb, var(--navy) 70%, var(--void));
+          border: 1px solid color-mix(in srgb, var(--steel) 30%, transparent);
+          color: var(--star);
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .hotspot-pill-btn:hover {
+          border-color: var(--hotspot-color, var(--orbit));
+          color: #ffffff;
+        }
+
+        .hotspot-pill-btn.active {
+          background: color-mix(in srgb, var(--hotspot-color, var(--orbit)) 25%, transparent);
+          border-color: var(--hotspot-color, var(--orbit));
+          color: #ffffff;
+          box-shadow: 0 0 10px color-mix(in srgb, var(--hotspot-color, var(--orbit)) 30%, transparent);
+        }
+
         .scene-narrative-bar {
           background: color-mix(in srgb, var(--void) 90%, transparent);
           border: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
@@ -2615,6 +3299,30 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
         @keyframes pulseSunAnim {
           0%, 100% { transform: scale(1); transform-origin: 300px 115px; }
           50% { transform: scale(1.15); transform-origin: 300px 115px; }
+        }
+
+        .pulse-hal {
+          animation: pulseHalAnim 2.5s infinite ease-in-out;
+        }
+        @keyframes pulseHalAnim {
+          0%, 100% { opacity: 0.8; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.15); }
+        }
+
+        .pulse-hal-fast {
+          animation: pulseHalFastAnim 0.4s infinite ease-in-out;
+        }
+        @keyframes pulseHalFastAnim {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; filter: drop-shadow(0 0 8px #ef4444); }
+        }
+
+        .beam-burst {
+          animation: beamBurstAnim 0.8s infinite ease-out;
+        }
+        @keyframes beamBurstAnim {
+          0% { stroke-dashoffset: 0; stroke-dasharray: 20 10; opacity: 1; }
+          100% { stroke-dashoffset: 50; stroke-dasharray: 20 10; opacity: 0.2; }
         }
 
         .spin-ring-upper {
@@ -2649,14 +3357,6 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           50% { opacity: 1; }
         }
 
-        .speed-xwing {
-          animation: xwingDrift 2.5s infinite ease-in-out;
-        }
-        @keyframes xwingDrift {
-          0%, 100% { transform: translate(260px, 70px) rotate(-25deg); }
-          50% { transform: translate(268px, 64px) rotate(-22deg); }
-        }
-
         .vapor-spiral {
           animation: vaporAnim 3s infinite ease-in-out;
         }
@@ -2665,7 +3365,16 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           50% { stroke-dashoffset: 40; stroke-dasharray: 30 15; }
         }
 
-        /* Telemetry Card */
+        .ticking-second {
+          animation: tickWatch 1s infinite steps(1);
+          transform-origin: 0px 0px;
+        }
+        @keyframes tickWatch {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(6deg); }
+        }
+
+        /* Telemetry Card & Layout */
         .signal-telemetry-card {
           background: color-mix(in srgb, var(--navy) 40%, var(--deep));
           border: 1px solid color-mix(in srgb, var(--orbit) 30%, transparent);
@@ -2681,678 +3390,7 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           }
         }
 
-        .telemetry-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: var(--space-lg);
-        }
-
-        @media (min-width: 950px) {
-          .telemetry-grid {
-            grid-template-columns: 310px 1fr;
-          }
-        }
-
-        /* Left Column: Interactive Simulation Console */
-        .telemetry-console-pane {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-sm);
-        }
-
-        .console-card-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          font-family: var(--font-mono);
-          font-size: 0.6875rem;
-        }
-
-        .console-pill {
-          border: 1px solid;
-          border-radius: 9999px;
-          padding: 0.15rem 0.5rem;
-          font-weight: 700;
-        }
-
-        .console-callsign {
-          color: var(--star);
-        }
-
-        .interactive-minigame-box {
-          background: color-mix(in srgb, var(--void) 85%, transparent);
-          border: 1px solid;
-          border-radius: var(--radius-md);
-          padding: 1rem;
-          min-height: 280px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-
-        .game-title {
-          font-family: var(--font-mono);
-          font-size: 0.6875rem;
-          font-weight: 700;
-          color: var(--moon);
-          margin-bottom: 0.5rem;
-          letter-spacing: 0.05em;
-        }
-
-        .game-desc {
-          font-family: var(--font-body);
-          font-size: 0.75rem;
-          color: var(--star);
-          margin-bottom: 0.75rem;
-          font-style: italic;
-        }
-
-        /* HAL Game */
-        .hal-lens-wrap {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 0.75rem;
-        }
-
-        .hal-red-eye {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: radial-gradient(circle, #ffffff 0%, #ef4444 40%, #7f1d1d 90%);
-          border: 3px solid #1e293b;
-          transition: all 0.3s ease;
-        }
-
-        .hal-cores-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-        }
-
-        .core-btn {
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.4rem;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          text-align: left;
-        }
-
-        .core-btn.connected {
-          background: color-mix(in srgb, var(--navy) 90%, var(--void));
-          border: 1px solid #ef4444;
-          color: #fca5a5;
-        }
-
-        .core-btn.connected:hover {
-          background: #ef4444;
-          color: #ffffff;
-        }
-
-        .core-btn.ejected {
-          background: #111827;
-          border: 1px dashed #4b5563;
-          color: #4b5563;
-        }
-
-        .action-reset-btn {
-          margin-top: 0.5rem;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.4rem;
-          background: #ef4444;
-          color: #ffffff;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: 700;
-        }
-
-        /* TARS Game */
-        .slider-group {
-          margin-bottom: 0.5rem;
-        }
-
-        .slider-label {
-          display: flex;
-          justify-content: space-between;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          color: var(--star);
-          margin-bottom: 0.15rem;
-        }
-
-        .slider-val {
-          color: #06b6d4;
-        }
-
-        .tars-slider {
-          width: 100%;
-          accent-color: #06b6d4;
-        }
-
-        .tars-dialogue-output {
-          background: color-mix(in srgb, var(--void) 95%, transparent);
-          border: 1px solid #06b6d4;
-          border-radius: 4px;
-          padding: 0.5rem;
-          font-family: var(--font-mono);
-          font-size: 0.6875rem;
-          color: #22d3ee;
-          margin-bottom: 0.5rem;
-          min-height: 48px;
-        }
-
-        .watch-morse-section {
-          border-top: 1px solid color-mix(in srgb, var(--steel) 20%, transparent);
-          padding-top: 0.5rem;
-        }
-
-        .morse-tap-btn {
-          width: 100%;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.4rem;
-          background: color-mix(in srgb, var(--navy) 70%, var(--void));
-          border: 1px solid #f59e0b;
-          color: #fde68a;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .morse-tap-btn:active {
-          background: #f59e0b;
-          color: #000000;
-        }
-
-        .morse-stream {
-          font-family: var(--font-mono);
-          font-size: 0.6875rem;
-          color: #fbbf24;
-          margin-top: 0.35rem;
-        }
-
-        .morse-char {
-          background: color-mix(in srgb, #f59e0b 20%, transparent);
-          padding: 0.1rem 0.3rem;
-          border-radius: 3px;
-          margin-left: 0.2rem;
-        }
-
-        /* Gravity Pen Game */
-        .pen-stage {
-          background: color-mix(in srgb, var(--void) 90%, transparent);
-          border: 1px dashed #38bdf8;
-          border-radius: 6px;
-          height: 110px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          position: relative;
-          margin-bottom: 0.75rem;
-        }
-
-        .floating-pen {
-          width: 70px;
-          height: 8px;
-          background: #e2e8f0;
-          border-radius: 4px;
-          position: relative;
-          transition: transform 0.2s ease;
-          box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
-        }
-
-        .pen-tip {
-          position: absolute;
-          right: -6px;
-          top: 0;
-          width: 0;
-          height: 0;
-          border-left: 6px solid #3b82f6;
-          border-top: 4px solid transparent;
-          border-bottom: 4px solid transparent;
-        }
-
-        .pen-prompt {
-          position: absolute;
-          bottom: 6px;
-          font-family: var(--font-mono);
-          font-size: 0.5625rem;
-          color: var(--star);
-          opacity: 0.8;
-        }
-
-        .kessler-btn {
-          width: 100%;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.45rem;
-          background: color-mix(in srgb, var(--navy) 80%, var(--void));
-          border: 1px solid #38bdf8;
-          color: #bae6fd;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .kessler-btn.alert-active {
-          background: #ef4444;
-          border-color: #f87171;
-          color: #ffffff;
-        }
-
-        .kessler-alert-box {
-          margin-top: 0.5rem;
-          padding: 0.4rem;
-          background: rgba(239, 68, 68, 0.15);
-          border: 1px solid #ef4444;
-          border-radius: 4px;
-          font-family: var(--font-mono);
-          font-size: 0.5625rem;
-          color: #fca5a5;
-        }
-
-        /* Martian Hex Game */
-        .pathfinder-dial-wrap {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          height: 80px;
-          margin-bottom: 0.5rem;
-        }
-
-        .pathfinder-camera-pointer {
-          width: 60px;
-          height: 60px;
-          border: 2px dashed #f97316;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.3s ease;
-        }
-
-        .pointer-arrow {
-          width: 0;
-          height: 0;
-          border-left: 5px solid transparent;
-          border-right: 5px solid transparent;
-          border-bottom: 18px solid #f97316;
-          margin-bottom: 24px;
-        }
-
-        .hex-center-info {
-          position: absolute;
-          font-family: var(--font-mono);
-          font-size: 1.125rem;
-          font-weight: 700;
-          color: #f97316;
-        }
-
-        .hex-prompt {
-          font-family: var(--font-mono);
-          font-size: 0.5625rem;
-          color: var(--star);
-          margin-bottom: 0.35rem;
-        }
-
-        .hex-btn-grid {
-          display: grid;
-          grid-template-columns: repeat(8, 1fr);
-          gap: 0.2rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .hex-cell-btn {
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.25rem;
-          background: color-mix(in srgb, var(--navy) 70%, var(--void));
-          border: 1px solid #f97316;
-          color: #fed7aa;
-          border-radius: 3px;
-          cursor: pointer;
-        }
-
-        .hex-cell-btn.active {
-          background: #f97316;
-          color: #ffffff;
-        }
-
-        .quick-spell-row {
-          display: flex;
-          gap: 0.35rem;
-        }
-
-        .spell-btn {
-          flex: 1;
-          font-family: var(--font-mono);
-          font-size: 0.5625rem;
-          padding: 0.35rem;
-          background: color-mix(in srgb, var(--navy) 90%, var(--void));
-          border: 1px solid #fdba74;
-          color: #fdba74;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        /* Apollo 13 Game */
-        .co2-gauge {
-          display: flex;
-          justify-content: space-between;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.35rem 0.5rem;
-          border-radius: 4px;
-          margin-bottom: 0.5rem;
-        }
-
-        .co2-gauge.danger {
-          background: rgba(239, 68, 68, 0.2);
-          border: 1px solid #ef4444;
-          color: #fca5a5;
-        }
-
-        .co2-gauge.nominal {
-          background: rgba(34, 197, 94, 0.2);
-          border: 1px solid #22c55e;
-          color: #86efac;
-        }
-
-        .scrubber-items-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .tool-btn {
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.35rem 0.5rem;
-          text-align: left;
-          background: color-mix(in srgb, var(--navy) 60%, var(--void));
-          border: 1px solid #fbbf24;
-          color: #fde68a;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .tool-btn.installed {
-          background: rgba(34, 197, 94, 0.2);
-          border-color: #22c55e;
-          color: #86efac;
-        }
-
-        .scrubber-status {
-          font-family: var(--font-body);
-          font-size: 0.6875rem;
-          color: var(--star);
-          font-style: italic;
-        }
-
-        /* Alien CRT Game */
-        .crt-screen {
-          background: #021a08;
-          border: 2px solid #22c55e;
-          border-radius: 4px;
-          padding: 0.5rem;
-          height: 90px;
-          overflow-y: auto;
-          margin-bottom: 0.5rem;
-        }
-
-        .crt-text {
-          font-family: var(--font-mono);
-          font-size: 0.5625rem;
-          color: #4ade80;
-          white-space: pre-wrap;
-          margin: 0;
-          line-height: 1.35;
-        }
-
-        .crt-queries-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-        }
-
-        .query-btn {
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.35rem;
-          background: color-mix(in srgb, var(--navy) 70%, var(--void));
-          border: 1px solid #22c55e;
-          color: #86efac;
-          border-radius: 4px;
-          cursor: pointer;
-          text-align: left;
-        }
-
-        .query-btn:hover {
-          background: #22c55e;
-          color: #000000;
-        }
-
-        /* Star Wars HUD */
-        .trench-hud {
-          background: #000000;
-          border: 1px solid #3b82f6;
-          border-radius: 4px;
-          height: 100px;
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 0.5rem;
-        }
-
-        .crosshair {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          border: 1px dashed #38bdf8;
-          position: relative;
-        }
-
-        .crosshair.force-mode {
-          border-color: #22c55e;
-          opacity: 0.3;
-        }
-
-        .exhaust-port-target {
-          position: absolute;
-          bottom: 4px;
-          font-family: var(--font-mono);
-          font-size: 0.5625rem;
-          color: #ef4444;
-        }
-
-        .trench-controls {
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-        }
-
-        .toggle-force-btn {
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.35rem;
-          background: color-mix(in srgb, var(--navy) 80%, var(--void));
-          border: 1px solid #38bdf8;
-          color: #bae6fd;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .toggle-force-btn.active {
-          background: #166534;
-          border-color: #22c55e;
-          color: #86efac;
-        }
-
-        .fire-torpedo-btn {
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.45rem;
-          background: #ef4444;
-          color: #ffffff;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: 700;
-        }
-
-        .torpedo-result {
-          margin-top: 0.4rem;
-          font-family: var(--font-mono);
-          font-size: 0.5625rem;
-          color: #38bdf8;
-          padding: 0.35rem;
-          background: color-mix(in srgb, var(--void) 90%, transparent);
-          border: 1px solid #38bdf8;
-          border-radius: 4px;
-        }
-
-        /* WALL-E Solar Game */
-        .solar-gauge-wrap {
-          margin-bottom: 0.5rem;
-        }
-
-        .solar-label-row {
-          display: flex;
-          justify-content: space-between;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          color: var(--star);
-          margin-bottom: 0.25rem;
-        }
-
-        .solar-bar-track {
-          background: #1e293b;
-          height: 10px;
-          border-radius: 9999px;
-          overflow: hidden;
-        }
-
-        .solar-bar-fill {
-          background: linear-gradient(90deg, #eab308, #22c55e);
-          height: 100%;
-          transition: width 0.5s ease;
-        }
-
-        .charge-btn {
-          width: 100%;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.45rem;
-          background: color-mix(in srgb, var(--navy) 80%, var(--void));
-          border: 1px solid #eab308;
-          color: #fef08a;
-          border-radius: 4px;
-          cursor: pointer;
-          margin-bottom: 0.5rem;
-        }
-
-        .walle-auto-alert {
-          font-family: var(--font-mono);
-          font-size: 0.5625rem;
-          color: #f87171;
-          padding: 0.35rem;
-          background: rgba(239, 68, 68, 0.1);
-          border: 1px dashed #ef4444;
-          border-radius: 4px;
-        }
-
-        /* Aliens Game */
-        .ammo-counter-display {
-          display: flex;
-          align-items: baseline;
-          justify-content: center;
-          gap: 0.5rem;
-          background: #140507;
-          border: 1px solid #e11d48;
-          border-radius: 4px;
-          padding: 0.5rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .ammo-label {
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          color: #fb7185;
-        }
-
-        .ammo-digits {
-          font-family: var(--font-mono);
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: #f43f5e;
-          letter-spacing: 2px;
-        }
-
-        .aliens-actions-row {
-          display: flex;
-          gap: 0.35rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .fire-burst-btn {
-          flex: 2;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.45rem;
-          background: #e11d48;
-          color: #ffffff;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: 700;
-        }
-
-        .reload-btn {
-          flex: 1;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.45rem;
-          background: color-mix(in srgb, var(--navy) 70%, var(--void));
-          border: 1px solid #e11d48;
-          color: #fca5a5;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .bishop-btn {
-          width: 100%;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          padding: 0.35rem;
-          background: color-mix(in srgb, var(--navy) 80%, var(--void));
-          border: 1px solid var(--steel);
-          color: var(--moon);
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .console-meta-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          font-family: var(--font-mono);
-          font-size: 0.625rem;
-          color: var(--star);
-          margin-top: 0.35rem;
-        }
-
-        .console-tag {
-          font-weight: 700;
-        }
-
-        /* Right Data Pane */
-        .telemetry-data-pane {
+        .telemetry-content-layout {
           display: flex;
           flex-direction: column;
           gap: var(--space-md);
@@ -3780,6 +3818,49 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
           color: #334155;
         }
 
+        :global([data-theme='light']) .optical-telemetry-console,
+        :global(.flat-mode) .optical-telemetry-console,
+        :global([data-flat='true']) .optical-telemetry-console {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+        }
+
+        :global([data-theme='light']) .readout-card,
+        :global(.flat-mode) .readout-card,
+        :global([data-flat='true']) .readout-card {
+          background: #ffffff;
+          border-color: #e2e8f0;
+        }
+
+        :global([data-theme='light']) .readout-val,
+        :global(.flat-mode) .readout-val,
+        :global([data-flat='true']) .readout-val {
+          color: #0f172a;
+        }
+
+        :global([data-theme='light']) .hud-active-target,
+        :global(.flat-mode) .hud-active-target,
+        :global([data-flat='true']) .hud-active-target {
+          background: #e2e8f0;
+          color: #0f172a;
+        }
+
+        :global([data-theme='light']) .hotspot-pill-btn,
+        :global(.flat-mode) .hotspot-pill-btn,
+        :global([data-flat='true']) .hotspot-pill-btn {
+          background: #ffffff;
+          border-color: #cbd5e1;
+          color: #334155;
+        }
+
+        :global([data-theme='light']) .hotspot-pill-btn.active,
+        :global(.flat-mode) .hotspot-pill-btn.active,
+        :global([data-flat='true']) .hotspot-pill-btn.active {
+          background: #e0f2fe;
+          border-color: #0284c7;
+          color: #0369a1;
+        }
+
         :global([data-theme='light']) .frequency-scrubber-bar,
         :global(.flat-mode) .frequency-scrubber-bar,
         :global([data-flat='true']) .frequency-scrubber-bar {
@@ -3813,13 +3894,6 @@ export default function CosmicCinemaTerminal(): React.ReactElement {
         :global(.flat-mode) .signal-telemetry-card,
         :global([data-flat='true']) .signal-telemetry-card {
           background: #f8fafc;
-          border-color: #e2e8f0;
-        }
-
-        :global([data-theme='light']) .interactive-minigame-box,
-        :global(.flat-mode) .interactive-minigame-box,
-        :global([data-flat='true']) .interactive-minigame-box {
-          background: #ffffff;
           border-color: #e2e8f0;
         }
 
