@@ -98,6 +98,7 @@ if (keyLeaks === 0) {
 console.log('\n--- Negative Constraint Check (Zero Hans Zimmer references) ---');
 const forbiddenNames = [
   /\bhans\s+zimmer\b/i,
+  /\binterstellar\b/i,
   /\bdune\b/i,
   /\binception\b/i,
   /\bgladiator\b/i,
