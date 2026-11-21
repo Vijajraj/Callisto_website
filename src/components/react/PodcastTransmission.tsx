@@ -105,14 +105,14 @@ const EPISODES: PodcastEpisode[] = [
     episodeNumber: 'EPISODE 02',
     title: "One Light-Day Away: Voyager 1's Comeback",
     series: 'WHISPERS OF THE UNIVERSE',
-    host: 'SANJAY V V',
+    host: 'LATHIKA RAJ',
     episodeUrl: 'https://open.spotify.com/episode/23Sy8BvI5BxEluyfpwCwNl?si=LNk5Be2cTvyY9e2qzfSH_Q',
     embedUrl: 'https://open.spotify.com/embed/episode/23Sy8BvI5BxEluyfpwCwNl?utm_source=generator&theme=0',
     badge: 'DEEP SPACE RESCUE',
     targetTag: 'TARGET: VOYAGER 1',
     targetClassification: 'EXTRASOLAR PROBE (163+ AU)',
     synopsis:
-      "Over 24 billion kilometers from Earth, humanity's most distant emissary Voyager 1 went silent after a flight data system hardware corruption. Host Sanjay V V explores the historic remote engineering rescue by NASA JPL engineers who diagnosed and patched an extrasolar deep space probe using 1970s assembly code across a 45-hour round-trip radio delay.",
+      "Over 24 billion kilometers from Earth, humanity's most distant emissary Voyager 1 went silent after a flight data system hardware corruption. Host Lathika Raj explores the historic remote engineering rescue by NASA JPL engineers who diagnosed and patched an extrasolar deep space probe using 1970s assembly code across a 45-hour round-trip radio delay.",
     stats: [
       { label: 'DISTANCE', value: '>24B km (163 AU)' },
       { label: 'SIGNAL DELAY', value: '22.5h (One-Way)' },
@@ -134,14 +134,14 @@ const EPISODES: PodcastEpisode[] = [
     episodeNumber: 'EPISODE 03',
     title: 'Scent beyond the Horizon',
     series: 'WHISPERS OF THE UNIVERSE',
-    host: 'SANJAY V V',
+    host: 'V S DAKSHA',
     episodeUrl: 'https://open.spotify.com/episode/2ngtuoAxOu9K2ijfnKAcmE?si=vOzO8xcxTZiqseB99WV30w',
     embedUrl: 'https://open.spotify.com/embed/episode/2ngtuoAxOu9K2ijfnKAcmE?utm_source=generator&theme=0',
     badge: 'COSMIC ASTROCHEMISTRY',
     targetTag: 'TARGET: MOLECULAR CLOUDS',
     targetClassification: 'PLANETARY VOLATILES & ORGANICS',
     synopsis:
-      "What does outer space smell and taste like? From the ethyl formate raspberry and rum aroma detected in Sagittarius B2's deep cosmic gas clouds to the volcanic sulfur dioxide frost of Jovian moon Io and Titan's dense hydrocarbon atmosphere, explore the rich aromatic chemistry and spectroscopic discoveries of the cosmos.",
+      "What does outer space smell and taste like? Host V S Daksha delves into astrochemistry—from the ethyl formate raspberry and rum aroma detected in Sagittarius B2's deep cosmic gas clouds to the volcanic sulfur dioxide frost of Jovian moon Io and Titan's dense hydrocarbon atmosphere, exploring the rich aromatic chemistry and spectroscopic discoveries of the cosmos.",
     stats: [
       { label: 'KEY ORGANICS', value: 'Ethyl Formate & HCN' },
       { label: 'FIELD', value: 'Astrochemistry' },
@@ -425,7 +425,7 @@ export default function PodcastTransmission(): React.ReactElement {
                 </div>
               </div>
               <div className="dossier-footer">
-                <span>PODCAST CREATED BY CIT CALLISTO STARCAST TEAM &bull; HOSTED BY SANJAY V V</span>
+                <span>PODCAST CREATED BY CIT CALLISTO STARCAST TEAM &bull; HOSTED BY {activeEpisode.host}</span>
               </div>
             </div>
           )}
