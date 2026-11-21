@@ -117,10 +117,10 @@ export const crewOfficers: CrewOfficer[] = [
     departmentId: 'content',
     departmentName: 'Content',
     themedName: 'StarCast',
-    description: 'Host and producer of "Whispers of the Universe", Callisto\'s official astrophysics podcast exploring deep-space phenomena from Jovian moons to ultramassive black hole TON 618.',
+    description: 'Host and producer of "Whispers of the Universe", Callisto\'s official astrophysics podcast exploring deep-space phenomena from Voyager 1\'s comeback to cosmic astrochemistry and TON 618.',
     avatar: '/crew/avatars/sanjay-vv.svg',
     socialLinks: {
-      spotify: 'https://open.spotify.com/episode/7Cua98anBVaMCRzlCHi60D?si=E8OqIumUTTqXjRt5iAQHcA',
+      spotify: 'https://open.spotify.com/show/6cKcglU4Qe6p4eCqFA24b5?si=2b33bc126e1a44a1',
       comms: 'mailto:podcast@callisto.club',
     },
   },

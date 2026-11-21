@@ -130,6 +130,56 @@ const faqs = [
       </div>
     </section>
 
+    <!-- Flight Onboarding Pathway Section (Zero-Barrier) -->
+    <section class="pathway-section" aria-labelledby="pathway-heading">
+      <div class="section-badge-center">ONBOARDING PATHWAY</div>
+      <h2 id="pathway-heading" class="pathway-title">From First-Look to Flight Director</h2>
+      <p class="pathway-subtitle">
+        Zero prior aerospace or astronomy experience required. Inspired by collegiate space initiatives worldwide, we train you from optical basics to leading scientific projects.
+      </p>
+
+      <div class="pathway-grid">
+        <div class="pathway-card">
+          <div class="pathway-phase-tag">PHASE 01 // WEEKS 1-4</div>
+          <h3 class="pathway-card-title">Cadet Orientation</h3>
+          <p class="pathway-card-desc">
+            Master night-sky navigation, naked-eye constellation cartography, manual telescope polar alignment, and optical safety under mentor guidance.
+          </p>
+          <div class="pathway-chips">
+            <span class="path-chip">Stellarium</span>
+            <span class="path-chip">Telescope Optics 101</span>
+            <span class="path-chip">Star-Hopping</span>
+          </div>
+        </div>
+
+        <div class="pathway-card featured-pathway">
+          <div class="pathway-phase-tag highlight">PHASE 02 // MONTHS 2-6</div>
+          <h3 class="pathway-card-title">Mission Specialist</h3>
+          <p class="pathway-card-desc">
+            Deploy with active flight wings. Operate motorized trackers, capture and process astrophotography FITS data, script telemetry pipelines, and co-host StarCast podcasts.
+          </p>
+          <div class="pathway-chips">
+            <span class="path-chip">Astrophotography Stacking</span>
+            <span class="path-chip">Python Astropy</span>
+            <span class="path-chip">Field Camps</span>
+          </div>
+        </div>
+
+        <div class="pathway-card">
+          <div class="pathway-phase-tag">PHASE 03 // YEAR 2+</div>
+          <h3 class="pathway-card-title">Flight Director &amp; Lead</h3>
+          <p class="pathway-card-desc">
+            Lead research papers, command high-altitude probe roadmaps, manage department operations, and train incoming cadet cohorts for inter-collegiate conferences.
+          </p>
+          <div class="pathway-chips">
+            <span class="path-chip">Project Architecture</span>
+            <span class="path-chip">Symposia Submissions</span>
+            <span class="path-chip">Cadet Mentorship</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Application Form Section -->
     <section id="application-form" class="form-section" aria-labelledby="form-heading">
       <div class="form-panel">
@@ -272,6 +322,118 @@ const faqs = [
     line-height: 1.6;
     color: var(--steel);
     margin: 0;
+  }
+
+  /* Onboarding Pathway Section */
+  .pathway-section {
+    margin-bottom: var(--space-3xl);
+    text-align: center;
+  }
+
+  .pathway-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 600;
+    color: var(--moon);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .pathway-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--steel);
+    max-width: 680px;
+    margin: 0 auto var(--space-2xl) auto;
+  }
+
+  .pathway-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    text-align: left;
+  }
+
+  @media (min-width: 768px) {
+    .pathway-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .pathway-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.7), rgba(11, 17, 32, 0.9));
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    position: relative;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .pathway-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--orbit);
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.15);
+  }
+
+  .pathway-card.featured-pathway {
+    border-color: rgba(56, 189, 248, 0.5);
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.85), rgba(14, 116, 144, 0.15));
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
+
+  .pathway-phase-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--steel);
+  }
+
+  .pathway-phase-tag.highlight {
+    color: var(--orbit);
+  }
+
+  .pathway-card-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--moon);
+    margin: 0;
+  }
+
+  .pathway-card-desc {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--starlight);
+    margin: 0;
+    flex-grow: 1;
+  }
+
+  .pathway-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+  }
+
+  .path-chip {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 4px;
+    color: var(--steel);
+  }
+
+  .featured-pathway .path-chip {
+    color: var(--moon);
+    border-color: rgba(56, 189, 248, 0.3);
   }
 
   /* Form Section */

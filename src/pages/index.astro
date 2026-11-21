@@ -94,6 +94,27 @@ const previewDepartments = departments.slice(0, 5);
           <span>Suit Lab</span>
         </a>
       </div>
+
+      <!-- Telemetry Coordinates Strip (FREX Inspired) -->
+      <div class="hero-telemetry-strip" aria-hidden="true">
+        <span class="telemetry-coord">LAT: 12.9716° N</span>
+        <span class="telemetry-sep">//</span>
+        <span class="telemetry-coord">LON: 80.0435° E</span>
+        <span class="telemetry-sep">//</span>
+        <span class="telemetry-coord">ELEV: 54m</span>
+        <span class="telemetry-sep">//</span>
+        <span class="telemetry-coord">AZ: 184.2°</span>
+        <span class="telemetry-sep">//</span>
+        <span class="telemetry-coord">ALT: +42.8°</span>
+        <span class="telemetry-sep">//</span>
+        <span class="telemetry-status">STATION: ONLINE</span>
+      </div>
+    </div>
+
+    <!-- Atmospheric Horizon Glow Arc (FREX Inspired) -->
+    <div class="earth-horizon-glow" aria-hidden="true">
+      <div class="horizon-arc"></div>
+      <div class="atmosphere-haze"></div>
     </div>
 
     <!-- Scroll Indicator -->
@@ -103,6 +124,39 @@ const previewDepartments = departments.slice(0, 5);
         <polyline points="6 9 12 15 18 9"></polyline>
       </svg>
     </a>
+  </section>
+
+  <!-- Track Record & Impact Metrics Banner -->
+  <section class="metrics-banner-section" aria-label="Callisto Impact & Exploration Metrics">
+    <div class="content-wrapper">
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-val">500+</span>
+          <span class="metric-label">Active Cadets &amp; Observers</span>
+          <span class="metric-detail">Across 11 Specialized Wings</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val">25+</span>
+          <span class="metric-label">Stargazing Expeditions</span>
+          <span class="metric-detail">Campus Rooftops &amp; Dark-Sky Camps</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val">50+</span>
+          <span class="metric-label">Deep-Sky Objects Imaged</span>
+          <span class="metric-detail">Nebulae, Galaxies &amp; Star Clusters</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val">12+</span>
+          <span class="metric-label">Technical Workshops</span>
+          <span class="metric-detail">Optics, Astropy &amp; Astrophotography</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val">3</span>
+          <span class="metric-label">StarCast Audio Broadcasts</span>
+          <span class="metric-detail">Streaming on Spotify Worldwide</span>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Mission Brief Section -->
@@ -160,6 +214,141 @@ const previewDepartments = departments.slice(0, 5);
       />
       <div class="orrery-island-wrapper">
         <SolarSystemOrrery client:visible />
+      </div>
+    </div>
+  </section>
+
+  <!-- Planned Missions & Research Roadmap Section -->
+  <section class="missions-roadmap-section" aria-label="Planned Missions & Research Roadmap">
+    <div class="content-wrapper">
+      <div class="roadmap-header-flex">
+        <SectionHeading
+          mono="PROJECT BLUEPRINTS // ROADMAP 2026-2027"
+          title="Planned Missions &amp; Research Initiatives"
+          subtitle="We are in active team-formation and conceptual architecture phases. Explore our proposed project roadmaps and join as a founding contributor."
+          align="left"
+        />
+        <a href="/join" class="btn-outline roadmap-cta-btn">
+          <span>Join a Project Team &rarr;</span>
+        </a>
+      </div>
+
+      <div class="roadmap-grid">
+        <!-- Card 1: Project Caelum -->
+        <article class="roadmap-card">
+          <div class="roadmap-card-top">
+            <span class="roadmap-badge proposed">PROPOSED // CONCEPT PHASE</span>
+            <span class="roadmap-domain">AVIONICS &amp; EMBEDDED TELEMETRY</span>
+          </div>
+          <h3 class="roadmap-title">Project Caelum: High-Altitude Atmospheric Probe</h3>
+          <p class="roadmap-desc">
+            Conceptual stratospheric balloon payload engineered to gather real-time environmental telemetry (UV irradiance, barometric pressure, temperature lapse rate) with autonomous GPS recovery and 433MHz LoRa downlink.
+          </p>
+          <div class="roadmap-specs-table">
+            <div class="spec-row">
+              <span class="spec-k">TARGET TIMELINE:</span>
+              <span class="spec-v">Q4 2027 Kickoff</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">CORE STACK:</span>
+              <span class="spec-v">ESP32, LoRa SX1278, BMP388, KiCad</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">OPEN ROLES:</span>
+              <span class="spec-v">Firmware Leads, RF Comms, Payload Recovery</span>
+            </div>
+          </div>
+          <div class="roadmap-card-foot">
+            <a href="/join" class="roadmap-apply-link">Apply to Lead Caelum &rarr;</a>
+          </div>
+        </article>
+
+        <!-- Card 2: Project Aether-Eye -->
+        <article class="roadmap-card">
+          <div class="roadmap-card-top">
+            <span class="roadmap-badge kickoff">KICKOFF PHASE // TEAM FORMATION</span>
+            <span class="roadmap-domain">OPTICS &amp; ASTROPHOTOGRAPHY</span>
+          </div>
+          <h3 class="roadmap-title">Project Aether-Eye: Open-Source Star Tracker</h3>
+          <p class="roadmap-desc">
+            Designing a 3D-printable, stepper-driven motorized equatorial tracking mount for wide-field DSLR and mirrorless astrophotography, compensating for Earth’s sidereal rotation for deep exposures.
+          </p>
+          <div class="roadmap-specs-table">
+            <div class="spec-row">
+              <span class="spec-k">TARGET TIMELINE:</span>
+              <span class="spec-v">Q2 2027 Prototype</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">CORE STACK:</span>
+              <span class="spec-v">TMC2209 Drivers, NEMA 17, Arduino, CAD</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">OPEN ROLES:</span>
+              <span class="spec-v">Mechanical Designers, Embedded Control, Optics</span>
+            </div>
+          </div>
+          <div class="roadmap-card-foot">
+            <a href="/join" class="roadmap-apply-link">Apply to Lead Aether-Eye &rarr;</a>
+          </div>
+        </article>
+
+        <!-- Card 3: Citizen Science & Exoplanet Photometry -->
+        <article class="roadmap-card">
+          <div class="roadmap-card-top">
+            <span class="roadmap-badge research">RESEARCH ROADMAP // RECRUITING</span>
+            <span class="roadmap-domain">ASTROPHYSICS &amp; DATA SCIENCE</span>
+          </div>
+          <h3 class="roadmap-title">Citizen Science: Exoplanet Transit Photometry</h3>
+          <p class="roadmap-desc">
+            Open scientific research pipeline utilizing public NASA TESS &amp; Kepler light curve data to perform differential transit photometry, planetary radius estimation, and stellar variability cataloging.
+          </p>
+          <div class="roadmap-specs-table">
+            <div class="spec-row">
+              <span class="spec-k">TARGET TIMELINE:</span>
+              <span class="spec-v">Ongoing 2026-2027</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">CORE STACK:</span>
+              <span class="spec-v">Python, Lightkurve, Astropy, Jupyter</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">OPEN ROLES:</span>
+              <span class="spec-v">Data Analysts, Transit Modelers, Paper Drafters</span>
+            </div>
+          </div>
+          <div class="roadmap-card-foot">
+            <a href="/join" class="roadmap-apply-link">Apply to Research Cohort &rarr;</a>
+          </div>
+        </article>
+
+        <!-- Card 4: CanSat Micro-Avionics Testbed -->
+        <article class="roadmap-card">
+          <div class="roadmap-card-top">
+            <span class="roadmap-badge proposed">PROPOSED // CADET ROADMAP</span>
+            <span class="roadmap-domain">SPACE SYSTEMS &amp; SIMULATION</span>
+          </div>
+          <h3 class="roadmap-title">CanSat Micro-Avionics Testbed</h3>
+          <p class="roadmap-desc">
+            Introductory aerospace hardware challenge: designing a beverage-can scale atmospheric satellite with sensor telemetry logging, parachute recovery mechanisms, and a live web telemetry ground station.
+          </p>
+          <div class="roadmap-specs-table">
+            <div class="spec-row">
+              <span class="spec-k">TARGET TIMELINE:</span>
+              <span class="spec-v">Academic Year 2026-2027</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">CORE STACK:</span>
+              <span class="spec-v">Custom PCB, Gyro/IMU, Barometer, Telemetry GUI</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">OPEN ROLES:</span>
+              <span class="spec-v">Cadet Builders, PCB Enthusiasts, Recovery Teams</span>
+            </div>
+          </div>
+          <div class="roadmap-card-foot">
+            <a href="/join" class="roadmap-apply-link">Apply to Join CanSat &rarr;</a>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -261,8 +450,8 @@ const previewDepartments = departments.slice(0, 5);
     <div class="content-wrapper">
       <SectionHeading
         mono="AUDIO TRANSMISSION // STARCAST RADIO"
-        title="Whispers of the Universe"
-        subtitle="Tune into Callisto's official astrophysics podcast hosted by Sanjay V V. Streaming deep-space cosmological investigations from our orbital transceiver."
+        title="Whispers of the Universe &amp; Scent Beyond the Horizon"
+        subtitle="Tune into Callisto's official astrophysics podcast hosted by Sanjay V V. Streaming deep-space cosmological investigations, Voyager 1 extrasolar telemetry, and astrochemistry across 3 episodes on Spotify."
         align="left"
       />
       <PodcastTransmission client:load />
@@ -531,6 +720,293 @@ const previewDepartments = departments.slice(0, 5);
 
   .scroll-indicator:hover {
     color: var(--orbit);
+  }
+
+  /* Telemetry Coordinates Strip (FREX Inspired) */
+  .hero-telemetry-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: var(--space-xl);
+    padding: 0.4rem 1.1rem;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--starlight);
+    backdrop-filter: blur(8px);
+    z-index: 5;
+  }
+
+  .telemetry-coord {
+    font-weight: 600;
+  }
+
+  .telemetry-sep {
+    color: var(--orbit);
+    opacity: 0.6;
+  }
+
+  .telemetry-status {
+    color: #10b981;
+    font-weight: 700;
+  }
+
+  /* Earth Horizon Glow Arc (FREX Aesthetic) */
+  .earth-horizon-glow {
+    position: absolute;
+    bottom: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140vw;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center top, rgba(56, 189, 248, 0.22) 0%, rgba(14, 116, 144, 0.12) 35%, transparent 70%);
+    pointer-events: none;
+    z-index: 1;
+    border-top: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 -20px 60px rgba(56, 189, 248, 0.15);
+  }
+
+  /* Track Record & Impact Metrics Banner */
+  .metrics-banner-section {
+    position: relative;
+    z-index: 6;
+    padding: var(--space-2xl) 0;
+    background: linear-gradient(180deg, rgba(11, 17, 32, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    border-top: 1px solid rgba(56, 189, 248, 0.25);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 768px) {
+    .metrics-grid {
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-lg);
+    }
+  }
+
+  .metric-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-md);
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: var(--radius-md);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--orbit);
+  }
+
+  .metric-val {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.5vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1;
+    color: #ffffff;
+    background: linear-gradient(180deg, #ffffff 40%, var(--orbit) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.35rem;
+  }
+
+  .metric-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--moon);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.2rem;
+  }
+
+  .metric-detail {
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    color: var(--steel);
+    line-height: 1.4;
+  }
+
+  /* Planned Missions & Research Roadmap Section */
+  .missions-roadmap-section {
+    padding: var(--space-3xl) 0;
+    border-top: 1px solid color-mix(in srgb, var(--steel) 15%, transparent);
+    position: relative;
+  }
+
+  .roadmap-header-flex {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-2xl);
+  }
+
+  .roadmap-cta-btn {
+    align-self: flex-start;
+  }
+
+  @media (min-width: 768px) {
+    .roadmap-cta-btn {
+      align-self: flex-end;
+    }
+  }
+
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  @media (min-width: 768px) {
+    .roadmap-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .roadmap-card {
+    background: linear-gradient(155deg, rgba(15, 23, 42, 0.85), rgba(11, 17, 32, 0.95));
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .roadmap-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--orbit);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.15);
+  }
+
+  .roadmap-card-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .roadmap-badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  .roadmap-badge.proposed {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #f59e0b;
+  }
+
+  .roadmap-badge.kickoff {
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+  }
+
+  .roadmap-badge.research {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #10b981;
+  }
+
+  .roadmap-domain {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--steel);
+    letter-spacing: 0.08em;
+  }
+
+  .roadmap-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--moon);
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  .roadmap-desc {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--starlight);
+    margin: 0;
+    flex-grow: 1;
+  }
+
+  .roadmap-specs-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: rgba(11, 17, 32, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 6px;
+    padding: 0.75rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+  }
+
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .spec-k {
+    color: var(--steel);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .spec-v {
+    color: var(--moon);
+    text-align: right;
+  }
+
+  .roadmap-card-foot {
+    margin-top: 0.25rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .roadmap-apply-link {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--orbit);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.2s ease, transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .roadmap-apply-link:hover {
+    color: #ffffff;
+    transform: translateX(3px);
   }
 
   /* 2. Mission Brief Section */
