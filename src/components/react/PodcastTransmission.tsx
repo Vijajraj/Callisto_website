@@ -187,9 +187,13 @@ export default function PodcastTransmission(): React.ReactElement {
     }
   };
 
-  const handleFreqChange = (preset: RadioFrequencyPreset) => {
+  const handleFreqChange = (preset: RadioFrequencyPreset, idx?: number) => {
     playTelemetryBeep(980, 0.06);
     setSelectedFreq(preset);
+    const targetIdx = idx !== undefined ? idx : FREQUENCY_PRESETS.findIndex((p) => p.id === preset.id);
+    if (targetIdx !== -1 && EPISODES[targetIdx]) {
+      setActiveEpisodeIndex(targetIdx);
+    }
   };
 
   const toggleDossier = () => {
@@ -207,8 +211,10 @@ export default function PodcastTransmission(): React.ReactElement {
             AUDIO FEED
           </span>
           <div className="station-meta">
-            <span className="station-title">CALLISTO SUB-SPACE RADIO // WHISPERS OF THE UNIVERSE</span>
-            <span className="station-sub">OFFICIAL CLUB PODCAST &bull; HOSTED BY SANJAY V V</span>
+            <span className="station-title">CALLISTO SUB-SPACE RADIO // {activeEpisode.series}</span>
+            <span className="station-sub" key={activeEpisode.id}>
+              NOW TUNED: <strong className="station-sub-highlight">{activeEpisode.episodeNumber}</strong> &ndash; {activeEpisode.title.toUpperCase()} &bull; HOSTED BY {activeEpisode.host}
+            </span>
           </div>
         </div>
 
@@ -216,11 +222,11 @@ export default function PodcastTransmission(): React.ReactElement {
         <div className="freq-selector-wrap">
           <span className="freq-label">CARRIER FREQ:</span>
           <div className="freq-chips">
-            {FREQUENCY_PRESETS.map((f) => (
+            {FREQUENCY_PRESETS.map((f, fIdx) => (
               <button
                 key={f.id}
                 type="button"
-                onClick={() => handleFreqChange(f)}
+                onClick={() => handleFreqChange(f, fIdx)}
                 className={`freq-chip ${selectedFreq.id === f.id ? 'active' : ''}`}
                 title={`${f.name} - ${f.description}`}
               >
@@ -246,6 +252,12 @@ export default function PodcastTransmission(): React.ReactElement {
             >
               <span className="ep-num">{ep.episodeNumber}</span>
               <span className="ep-title-short">{ep.title.split('–')[0].split(':')[0]}</span>
+              {activeEpisodeIndex === idx && (
+                <span className="now-playing-pill" aria-label="Currently tuned">
+                  <span className="tiny-pulse" />
+                  TUNED
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -336,6 +348,7 @@ export default function PodcastTransmission(): React.ReactElement {
           {/* Live Spotify Audio Player Iframe */}
           <div className="spotify-embed-container">
             <iframe
+              key={activeEpisode.id}
               src={activeEpisode.embedUrl}
               width="100%"
               height="152"
@@ -500,6 +513,36 @@ export default function PodcastTransmission(): React.ReactElement {
           font-size: 0.625rem;
           color: var(--orbit, #38bdf8);
           letter-spacing: 0.08em;
+          transition: all 0.25s ease;
+        }
+
+        .station-sub-highlight {
+          color: #f59e0b;
+          font-weight: 800;
+        }
+
+        .now-playing-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          background: rgba(30, 215, 96, 0.15);
+          color: #1ed760;
+          border: 1px solid #1ed760;
+          font-size: 0.55rem;
+          font-weight: 800;
+          padding: 0.1rem 0.35rem;
+          border-radius: 3px;
+          letter-spacing: 0.06em;
+          margin-left: 0.25rem;
+        }
+
+        .tiny-pulse {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #1ed760;
+          box-shadow: 0 0 6px #1ed760;
+          animation: signalBlink 1.2s infinite ease-in-out;
         }
 
         /* Frequency Selector */
