@@ -58,6 +58,9 @@ export { default as TonightSkyEphemeris } from './TonightSkyEphemeris';
 export { default as CrewRoster } from './CrewRoster';
 export { default as PodcastTransmission } from './PodcastTransmission';
 export { default as SkyQualityIndex } from './SkyQualityIndex';
+export { default as CosmicElevator } from './CosmicElevator';
+export { default as CosmicLightDelay } from './CosmicLightDelay';
+export { default as TextDecryptor } from './TextDecryptor';
 
 export type { StarfieldProps } from './Starfield';
 export type { FlatModeToggleProps } from './FlatModeToggle';

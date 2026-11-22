@@ -89,6 +89,8 @@ const componentsToCheck = [
   { file: 'src/components/react/SoundHud.tsx', name: 'SoundHud' },
   { file: 'src/components/react/PodcastTransmission.tsx', name: 'PodcastTransmission' },
   { file: 'src/components/react/SkyQualityIndex.tsx', name: 'SkyQualityIndex' },
+  { file: 'src/components/react/CosmicElevator.tsx', name: 'CosmicElevator' },
+  { file: 'src/components/react/CosmicLightDelay.tsx', name: 'CosmicLightDelay' },
   { file: 'src/pages/404.astro', name: 'Custom 404 Page' },
   { file: 'src/styles/global.css', name: 'Global Stylesheet' },
 ];

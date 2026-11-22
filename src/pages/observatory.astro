@@ -15,6 +15,8 @@ import NasaDeepSpaceFeed from '../components/react/NasaDeepSpaceFeed';
 import TonightSkyEphemeris from '../components/react/TonightSkyEphemeris';
 import PodcastTransmission from '../components/react/PodcastTransmission';
 import SkyQualityIndex from '../components/react/SkyQualityIndex';
+import CosmicElevator from '../components/react/CosmicElevator';
+import CosmicLightDelay from '../components/react/CosmicLightDelay';
 
 // Preload primary featured expedition asset without flooding mobile network
 const preloadedAssets = [
@@ -57,6 +59,11 @@ const preloadedAssets = [
       <SkyQualityIndex client:load />
     </section>
 
+    <!-- Cosmic Flight & Atmospheric Elevator Island (SSI & FREX Inspired) -->
+    <section class="elevator-section" aria-label="Atmospheric to Cosmic Flight Profile">
+      <CosmicElevator client:load />
+    </section>
+
     <!-- Featured Article Section -->
     <section class="article-section" aria-labelledby="article-heading">
       <div class="article-card">
@@ -81,6 +88,11 @@ const preloadedAssets = [
           <span class="full-article-note">Full scientific publication releasing in Callisto Journal Vol. IV</span>
         </div>
       </div>
+    </section>
+
+    <!-- Cosmic Distance & Speed-of-Light Telemetry Visualizer (SSI & FREX Inspired) -->
+    <section class="light-delay-section" aria-label="Cosmic Speed-of-Light & Signal Telemetry Visualizer">
+      <CosmicLightDelay client:load />
     </section>
 
     <!-- Sub-Space Radio Transmission Section -->
